@@ -29,7 +29,6 @@ def check_mk_dir(dirname):
         dir_already_exists=False
     return(dir_already_exists)
 
-
 # -----------------------------------------------------------------------
 def get_data_from_ascii_file(filename):
     r"""
@@ -146,7 +145,7 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax1 = fig.add_subplot(3, 3, 1)
                     ax1.step(vect_x, data_tes[pixel], where='mid')
                     ax1.plot(vect_x, data_tes[pixel], '.k')
-                    ax1.set_title('TES data (pix {0:2d})'.format(pixel))
+                    ax1.set_title('TES input (pix {0:2d})'.format(pixel))
                     ax1.set_xlabel(xtitle)
                     ax1.set_xticks(major_ticks)
                     ax1.set_xticks(minor_ticks, minor=True)
@@ -159,7 +158,7 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax2 = fig.add_subplot(3, 3, 2)
                     ax2.step(vect_x, data_error[pixel], where='mid')
                     ax2.plot(vect_x, data_error[pixel], '.k')
-                    ax2.set_title('Error data (pix {0:2d})'.format(pixel))
+                    ax2.set_title('Error (pix {0:2d})'.format(pixel))
                     ax2.set_xlabel(xtitle)
                     ax2.set_xticks(major_ticks)
                     ax2.set_xticks(minor_ticks, minor=True)
@@ -168,10 +167,10 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax2.set_xlim(xmin,xmax)
 
                     # Plotting feedback data
-                    ax3 = fig.add_subplot(3, 3, 4)
+                    ax3 = fig.add_subplot(3, 3, 3)
                     ax3.step(vect_x, data_feedback[pixel], where='mid')
                     ax3.plot(vect_x, data_feedback[pixel], '.k')
-                    ax3.set_title('Feedback data (pix {0:2d})'.format(pixel))
+                    ax3.set_title('Feedback (pix {0:2d})'.format(pixel))
                     ax3.set_xlabel(xtitle)
                     ax3.set_xticks(major_ticks)
                     ax3.set_xticks(minor_ticks, minor=True)
@@ -180,10 +179,10 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax3.set_xlim(xmin,xmax)
 
                     # Plotting science data
-                    ax4 = fig.add_subplot(3, 3, 5)
+                    ax4 = fig.add_subplot(3, 3, 4)
                     ax4.step(vect_x, data_science[pixel], where='mid')
                     ax4.plot(vect_x, data_science[pixel], '.k')
-                    ax4.set_title('Science data (pix {0:2d})'.format(pixel))
+                    ax4.set_title('Science output (pix {0:2d})'.format(pixel))
                     ax4.set_xlabel(xtitle)
                     ax4.set_xticks(major_ticks)
                     ax4.set_xticks(minor_ticks, minor=True)
@@ -192,7 +191,7 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax4.set_xlim(xmin,xmax)
 
                     # Plotting FB + error data
-                    ax5 = fig.add_subplot(3, 3, 6)
+                    ax5 = fig.add_subplot(3, 3, 5)
                     ax5.step(vect_x, data_feedback[pixel]+data_error[pixel], where='mid')
                     ax5.plot(vect_x, data_feedback[pixel]+data_error[pixel], '.k')
                     ax5.set_title('Feedback+error (pix {0:2d})'.format(pixel))
@@ -206,10 +205,11 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     # Plotting the comparison science vs tes
                     ax6 = fig.add_subplot(3, 3, 7)
                     ax6.step(vect_x, data_tes[pixel]/data_tes[pixel][-1], where='mid')
-                    ax6.plot(vect_x, data_tes[pixel]/data_tes[pixel][-1], '.k')
+                    ax6.plot(vect_x, data_tes[pixel]/data_tes[pixel][-1], '.k', label='TES input (norm.)')
                     ax6.step(vect_x, data_science[pixel]/data_science[pixel][-1], where='mid')
-                    ax6.plot(vect_x, data_science[pixel]/data_science[pixel][-1], '.r')
-                    ax6.set_title('norm tes & norm science (pix {0:2d})'.format(pixel))
+                    ax6.plot(vect_x, data_science[pixel]/data_science[pixel][-1], '.r', label='Science output (norm.)')
+                    ax6.set_title('TES input & science output (pix {0:2d})'.format(pixel))
+                    ax6.legend(loc='best')
                     ax6.set_xlabel(xtitle)
                     ax6.set_xticks(major_ticks)
                     ax6.set_xticks(minor_ticks, minor=True)
@@ -219,9 +219,10 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
 
                     # Plotting the comparison science vs tes
                     ax7 = fig.add_subplot(3, 3, 8)
-                    ax7.step(vect_x[1:], data_tes[pixel][:-1]/data_tes[pixel][-1]-data_science[pixel][1:]/data_science[pixel][-1], where='mid')
-                    ax7.plot(vect_x[1:], data_tes[pixel][:-1]/data_tes[pixel][-1]-data_science[pixel][1:]/data_science[pixel][-1], '.k')
-                    ax7.set_title('norm tes - norm shifted science (pix {0:2d})'.format(pixel))
+                    diff_pc=100.*(data_tes[pixel][:-1]/data_tes[pixel][-1]-data_science[pixel][1:]/data_science[pixel][-1])
+                    ax7.step(vect_x[1:], diff_pc, where='mid')
+                    ax7.plot(vect_x[1:], diff_pc, '.k')
+                    ax7.set_title('norm tes - norm shifted science (%, pix {0:2d})'.format(pixel))
                     ax7.set_xlabel(xtitle)
                     ax7.set_xticks(major_ticks)
                     ax7.set_xticks(minor_ticks, minor=True)
@@ -239,8 +240,6 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     major_ticks = np.arange(0, x_zoom_max, 4)
                     minor_ticks = np.arange(0, x_zoom_max, 1)
                     extension='_start' # type of plots (zoom or not)
-
-
 
 # -----------------------------------------------------------------------
 
