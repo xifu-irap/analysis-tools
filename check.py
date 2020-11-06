@@ -116,7 +116,7 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
     data_science=demux(get_data_from_ascii_file(os.path.join(dirname, 'science.log')), offset=science_shift)
 
     xmin=20
-    xmax=len(data_tes[0])
+    xmax=len(data_tes[0])-1
     x_zoom_min=0
     x_zoom_max=20
     extension='_pulse' # type of plots
@@ -203,20 +203,36 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
                     ax5.grid(which='major', alpha=0.5)
                     ax5.set_xlim(xmin,xmax)
 
-                    # Plotting the comparison science vs tes
-                    ax6 = fig.add_subplot(3, 3, 7)
-                    ax6.step(vect_x, data_tes[pixel][xmin:xmax]/data_tes[pixel][-1], where='mid')
-                    ax6.plot(vect_x, data_tes[pixel][xmin:xmax]/data_tes[pixel][-1], '.k', label='TES input (norm.)')
-                    ax6.step(vect_x, data_science[pixel][xmin:xmax]/data_science[pixel][-1], where='mid')
-                    ax6.plot(vect_x, data_science[pixel][xmin:xmax]/data_science[pixel][-1], '.r', label='Science output (norm.)')
-                    ax6.set_title('TES input & science output (pix {0:2d})'.format(pixel))
-                    ax6.legend(loc='best')
+                    # Checking science: Plotting Science - (FB + error data) 
+                    ax6 = fig.add_subplot(3, 3, 6)
+                    ax6.step(vect_x, 100*(data_science[pixel][xmin+1:xmax+1]-\
+                        (data_feedback[pixel][xmin:xmax]+data_error[pixel][xmin:xmax]))/ \
+                        data_science[pixel][xmin:xmax].max(), where='mid')
+                    ax6.plot(vect_x, 100*(data_science[pixel][xmin+1:xmax+1]-\
+                        (data_feedback[pixel][xmin:xmax]+data_error[pixel][xmin:xmax]))/ \
+                        data_science[pixel][xmin:xmax].max(), '.k')
+                    ax6.set_title('Science-(Feedback+error) (%, pix {0:2d})'.format(pixel))
                     ax6.set_xlabel(xtitle)
                     ax6.set_xticks(major_ticks)
                     ax6.set_xticks(minor_ticks, minor=True)
                     ax6.grid(which='minor', alpha=0.2)
                     ax6.grid(which='major', alpha=0.5)
                     ax6.set_xlim(xmin,xmax)
+
+                    # Plotting the comparison science vs tes
+                    ax7 = fig.add_subplot(3, 3, 7)
+                    ax7.step(vect_x, data_tes[pixel][xmin:xmax]/data_tes[pixel][-1], where='mid')
+                    ax7.plot(vect_x, data_tes[pixel][xmin:xmax]/data_tes[pixel][-1], '.k', label='TES input (norm.)')
+                    ax7.step(vect_x, data_science[pixel][xmin:xmax]/data_science[pixel][-1], where='mid')
+                    ax7.plot(vect_x, data_science[pixel][xmin:xmax]/data_science[pixel][-1], '.r', label='Science output (norm.)')
+                    ax7.set_title('TES input & science output (pix {0:2d})'.format(pixel))
+                    ax7.legend(loc='best')
+                    ax7.set_xlabel(xtitle)
+                    ax7.set_xticks(major_ticks)
+                    ax7.set_xticks(minor_ticks, minor=True)
+                    ax7.grid(which='minor', alpha=0.2)
+                    ax7.grid(which='major', alpha=0.5)
+                    ax7.set_xlim(xmin,xmax)
 
                     # Plotting the comparison science vs tes
                     ax7 = fig.add_subplot(3, 3, 8)
@@ -247,5 +263,4 @@ def mosaic(dirname, science_shift, overwrite=False, mux_factor=34):
 science_shift=1
 
 name = '../DATA'
-#name='/Users/laurent/MyCore_xifu/20_DRE/70_Architecture/00_Firmware/TDM_simulations/2020-10-06_12-28-13/DATA'
 mosaic(name, science_shift, overwrite=True, mux_factor=34)
