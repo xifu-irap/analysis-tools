@@ -1,2 +1,2 @@
-# check-firmware-tdm-py
-A set of Python scripts to analyse the outputs of the TDM demux firmware.
+# demux-py
+A set of Python scripts to analyze and plot the DRE-DEMUX performances, based on DUMP test files.

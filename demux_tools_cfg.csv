@@ -1,0 +1,5 @@
+dir_data=../DATA
+dir_plots=../PLOTS
+dir_logs=../LOGS
+adc_1volt_in_adu=2048
+npix=34
