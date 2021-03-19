@@ -12,5 +12,5 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
 
 for file in dumpfilenames:
     print('\n#---------------------')
-    get_data.check_dump(config, file, max_duration=0.001, spectral=True)
+    get_data.check_dump(config, file, max_duration=0.000001, spectral=True)
 

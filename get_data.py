@@ -271,9 +271,12 @@ def plot_adc_dump(data, plotfilename, config, max_duration=0.2, spectral=False):
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
     x_zoom_max = int(max_duration * fs)
+    mkr=''
+    if x_zoom_max<400:
+        mkr='.'
 
     ax1 = fig.add_subplot(2, 1, 1)
-    ax1.plot(1000*t[0:x_zoom_max], data[0:x_zoom_max]/float(config["adc_1volt_in_adu"]), 'b')
+    ax1.plot(1000*t[0:x_zoom_max], data[0:x_zoom_max]/float(config["adc_1volt_in_adu"]), 'b', marker=mkr)
     ax1.set_ylabel(ylabel_v)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
@@ -356,9 +359,12 @@ def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
     fig = plt.figure(figsize=(10, 8))
     xtitle = "Time (ms)"
     x_zoom_max = int(max_duration * fs)
+    mkr=''
+    if x_zoom_max<400:
+        mkr='.'
 
     ax1 = fig.add_subplot(2, 2, 1)
-    ax1.plot(1000*t[0:x_zoom_max], data1[0:x_zoom_max], 'b')
+    ax1.plot(1000*t[0:x_zoom_max], data1[0:x_zoom_max], 'b', marker=mkr)
     ax1.set_ylabel(title1)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
@@ -370,7 +376,7 @@ def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
     ax3.grid(color='k', linestyle=':', linewidth=0.5)
 
     ax2 = fig.add_subplot(2, 2, 2)
-    ax2.plot(1000*t[0:x_zoom_max], data2[0:x_zoom_max], 'b')
+    ax2.plot(1000*t[0:x_zoom_max], data2[0:x_zoom_max], 'b', marker=mkr)
     ax2.set_ylabel(title2)
     ax2.set_xlabel(xtitle)
     ax2.grid(color='k', linestyle=':', linewidth=0.5)
