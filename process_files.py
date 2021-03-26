@@ -1,5 +1,5 @@
 import os
-import get_data
+import plot_data
 import general_tools
 
 config = general_tools.get_csv('demux_tools_cfg.csv')
@@ -12,5 +12,4 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
 
 for file in dumpfilenames:
     print('\n#---------------------')
-    get_data.check_dump(config, file, max_duration=0.000001, spectral=True)
-
+    plot_data.plot_dump(config, file, max_duration=0.000001, spectral=True, noise=True, check_noise_measurement=True)

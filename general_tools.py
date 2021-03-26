@@ -83,7 +83,7 @@ def do_spectrum(x, npts):
             spectrum=np.zeros(int((npts+1)/2))
         nslices=int(len(x)/npts)
         for slice in range(nslices):
-            spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*signal.blackman(2*npts)[npts-1:-1]))
+            spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*signal.blackman(npts)))
     return(spectrum/nslices)
 
 # -----------------------------------------------------------------------
