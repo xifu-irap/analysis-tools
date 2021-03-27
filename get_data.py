@@ -123,24 +123,34 @@ def read_dump(dumpfilename, config):
     data=data[2:]
 
     # decommutation of data according to dumptype
+    ## 5MHz dump data
     if dumptype_int == 0 or dumptype_int == 1 or dumptype_int == 2 or dumptype_int == 4 or dumptype_int == 9:
         data = np.resize(data, (len(data)//2, 2))
+
+    ## ADC dump data
     if dumptype_int == 5:
         # input values are in the wrong order
         data2 = np.resize(data, (len(data)//2, 2))
         data[0::2]=data2[:,1]
         data[1::2]=data2[:,0]
+
+    ## science data
     if dumptype_int == 8:
         # merging 16-bit words in 32-bit words
         data = np.resize(data, (len(data)//2, 2)).astype('uint16')
         data = data[:, 1]*2.**16 + data[:, 0]
 
-        # the first haeder has been removed by read_dump function. I need it here. I add a fake one.
+        # the first header has been removed by read_dump function. I need it here. I add a fake one.
         data = np.append(np.zeros(1), data)
 
         # reordering data
         npix = int(config["npix"])
         data = np.transpose(np.resize(data, (len(data)//(npix+2), npix+2)))
+
+        # removing periodic headers
+        data = data[1:,:]
+
+    ## 32-bit counter data
     if dumptype_int == 15:
         data = np.resize(data, (len(data)//2, 2)).astype('uint16')
         data = data[:, 1]*2.**16 + data[:, 0]

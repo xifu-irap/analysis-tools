@@ -11,20 +11,23 @@ frequency_label="Frequency (Hz)"
 spectral_power_density_label=r"Power spectral density (dB/$\sqrt{Hz}$)"
 
 # -----------------------------------------------------------------------------
-def plot_dump(config, filename, max_duration=0.2, spectral=False, noise=False, check_noise_measurement=False):
+def plot_dump(config, filename, max_duration=0.2, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
         Parameters
         ----------
-        config : dictionnary
+        config: dictionnary
         contains different informations such as path and directory names
 
-        filename : string
+        filename: string
         The name of the dump file (without the path)
 
-        Max_duration : number, optional
+        max_duration: number, optional
         Maximum duration in seconds to be considered for analysis (default is 0.2)
+
+        pix_zoom: number (integer)
+        pixel id refering to the pixel for which we plot a zoom (default=0)
 
         spectral : boolean
         If True a spectral nalysis shall be done (default=False)
@@ -50,24 +53,24 @@ def plot_dump(config, filename, max_duration=0.2, spectral=False, noise=False, c
     data, dumptype_int, _ = get_data.read_dump(fullfilename, config)
 
     if dumptype_int == 0:
-        plot_5mega_dump(data, plotfilename, "DACFB1", "Science", max_duration)
+        plot_5mega_dump(data, plotfilename, config, "DACFB1", "Science", max_duration)
     if dumptype_int == 1:
-        plot_5mega_dump(data, plotfilename, "ERROR", "Science", max_duration)
+        plot_5mega_dump(data, plotfilename, config, "ERROR", "Science", max_duration)
     if dumptype_int == 2:
-        plot_5mega_dump(data, plotfilename, "DACFB2", "Science", max_duration)
+        plot_5mega_dump(data, plotfilename, config, "DACFB2", "Science", max_duration)
     if dumptype_int == 4:
-        plot_5mega_dump(data, plotfilename, "DACFB1", "DACFB2", max_duration)
+        plot_5mega_dump(data, plotfilename, config, "DACFB1", "DACFB2", max_duration)
     if dumptype_int == 5:
         plot_adc_dump(data, plotfilename, config, max_duration, spectral)
     if dumptype_int == 8:
-        plot_science_dump(data, plotfilename, config, max_duration, noise, check_noise_measurement)
+        plot_science_dump(data, plotfilename, config, max_duration, pix_zoom, noise, check_noise_measurement)
     if dumptype_int == 9:
-        plot_5mega_dump(data, plotfilename, "ERROR", "DACFB1", max_duration)
+        plot_5mega_dump(data, plotfilename, config, "ERROR", "DACFB1", max_duration)
     if dumptype_int == 15:
-        plot_counter_dump(data, plotfilename)
+        plot_counter_dump(data, plotfilename, config)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump(data, plotfilename, config, max_duration=0.2, noise=False, check_noise_measurement=False):
+def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, noise=False, check_noise_measurement=False):
     r"""
         This function checks the data of a DRE-DEMUX science data dump.
 
@@ -82,8 +85,11 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, noise=False,
         config: dictionnary
         contains different informations such as path and directory names
 
-        Max_duration: number, optional
+        max_duration: number, optional
         Maximum duration in seconds to be considered for analysis (default is 0.2)
+
+        pix_zoom: number (integer)
+        pixel id refering to the pixel for which we plot a zoom (default=0)
 
         noise: boolean
         Indicates if a noise analysis shall be done (default=False)
@@ -97,10 +103,12 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, noise=False,
 
         """
     print(plotting_message)
-    print("  >> " + plotfilename)
+    plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
+    plotfilename_all = plotfilename[:-4]+"_all.png"
+    print("  >> " + plotfilename_zoom)
+    print("  >> " + plotfilename_all)
 
     npix = int(config["npix"])
-
     fs = float(config["frow"]/npix)
     t = np.arange(len(data[0,:]))/fs
 
@@ -111,26 +119,39 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, noise=False,
     ncols, nlines = 4, 9
     for pix in range(npix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
-        ax.plot(1000*t, data[2+pix,:], 'b')
+        ax.plot(1000*t, data[1+pix,:], 'b')
         ax.set_ylabel("Pixel {0:2d}".format(pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         if pix/ncols>=(nlines-1):
             ax.set_xlabel(xtitle)
     ax = fig.add_subplot(nlines, ncols, npix+1)
-    ax.plot(1000*t, data[1,:], 'b')
+    ax.plot(1000*t, data[0,:], 'b')
     ax.set_ylabel("Packet number")
+    ax.grid(color='k', linestyle=':', linewidth=0.5)
+    ax.set_xlabel(xtitle)
+
+    # doing zoom
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(plotfilename_all, bbox_inches='tight')
+
+    fig = plt.figure(figsize=(8, 10))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(1000*t, data[1+pix_zoom,:], 'b')
+    ax.set_ylabel("Pixel {0:2d}".format(pix))
     ax.grid(color='k', linestyle=':', linewidth=0.5)
     ax.set_xlabel(xtitle)
 
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plotfilename, bbox_inches='tight')
+    plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
+    # Plotting spectra
     if noise:
-        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", 2000, 8192, check_noise_measurement)
+        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 2000, 8192, check_noise_measurement)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, n_records=2000, record_len=8192, check_noise_measurement=False):
+def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000, record_len=8192, check_noise_measurement=False):
     r"""
         This function measures noise spectra on science data
 
@@ -144,6 +165,9 @@ def plot_science_dump_noise(data, config, plotfilename, n_records=2000, record_l
 
         plotfilename: string
         Name of the plot file (with the path)
+
+        pix_zoom: number (integer)
+        pixel id refering to the pixel for which we plot a zoom (default=0)
 
         n_records: number (integer)
         number of spectra to be averaged (default = 2000)
@@ -160,10 +184,13 @@ def plot_science_dump_noise(data, config, plotfilename, n_records=2000, record_l
         The noise spectra
         """
     print("Plotting noise from dump data...")
-    print("  >> " + plotfilename)
+    plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
+    plotfilename_all = plotfilename[:-4]+"_all.png"
+    print("  >> " + plotfilename_zoom)
+    print("  >> " + plotfilename_all)
 
     n_pix = int(config["npix"])
-    fs = float(config["frow"])
+    fs = float(config["frow"]/n_pix)
 
     if record_len > len(data[0]):
         print("  Requested record length is too high ({0:5d})...".format(record_len))
@@ -191,16 +218,17 @@ def plot_science_dump_noise(data, config, plotfilename, n_records=2000, record_l
     n = len(noise_spectra_db[0])
     f = np.arange(n)*(fs/2)/n
 
+    # plotting zoom
     fig = plt.figure(figsize=(8, 6))
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.semilogx(f[3:-1], noise_spectra_db[0,3:-1], marker='.')
+    ax1.semilogx(f[3:-1], noise_spectra_db[pix_zoom,3:-1], marker='.')
     ax1.set_ylabel(r"Power spectral density (dB/$\sqrt{Hz}$)")
     ax1.set_xlabel(frequency_label)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
 
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plotfilename[:-4]+".png", bbox_inches='tight')
+    plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
     fig = plt.figure(figsize=(8, 10))
     ncols, nlines = 4, 9
@@ -213,25 +241,28 @@ def plot_science_dump_noise(data, config, plotfilename, n_records=2000, record_l
             ax.set_xlabel("Frequency (Hz)")
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plotfilename[:-4]+"_ALL.png", bbox_inches='tight')
+    plt.savefig(plotfilename_all, bbox_inches='tight')
 
     if check_noise_measurement:
         plotfilename_test = plotfilename[:-4]+"_FAKE.png"
-        data_test = test_plot_science_dump_noise(config, 2000, 8192)
-        plot_science_dump_noise(data_test, config, plotfilename_test, 2000, 8192)
+        data_test = make_fake_science_noise(config, 2000, 8192)
+        plot_science_dump_noise(data_test, config, plotfilename_test, 0, 2000, 8192)
 
     return(noise_spectra)
 
 # -----------------------------------------------------------------------------
-def test_plot_science_dump_noise(config, n_records=2000, record_len=8192):
+def make_fake_science_noise(config, n_records=2000, record_len=8192):
     r"""
+        This function builds a fake science data dump with gaussian noise.
+        Two sine waves are added in the data of pixel 0.
+        s
         config : dictionnary
         contains different informations such as path and directory names
         """
     n_pix = int(config["npix"])
     fs = float(config["frow"]/n_pix)
     t = np.arange(n_records*record_len)/fs
-    freq = 300
+    freq1, freq2 = 500, 2000
 
     print('\n#---------------------')
     print('# Checking noise routine')
@@ -239,7 +270,7 @@ def test_plot_science_dump_noise(config, n_records=2000, record_len=8192):
     data = np.random.normal(loc=2**15, scale=20, size=(n_pix, n_records*record_len))
 
     # Adding a sine wave on pix 20 data
-    data[20,:]+= 20*np.sin(2*np.pi*freq*t)
+    data[0,:]+= 20*np.sin(2*np.pi*freq1*t) + 5*np.sin(2*np.pi*freq2*t)
 
     return(data)
 
@@ -333,7 +364,7 @@ def plot_adc_dump(data, plotfilename, config, max_duration=0.2, spectral=False):
         plt.savefig(plotfilename[:-4]+"_F.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
+def plot_5mega_dump(data, plotfilename, config, title1, title2, max_duration=0.2):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -345,14 +376,17 @@ def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
         plotfilename : string
         Name of the plot file (with the path)
 
+        config: dictionnary
+        contains different informations such as path and directory names
+
         title1 : string
         Name of the first data set
 
         title2 : string
         Name of the second data set
 
-        Max_duration : number, optional
-        Maximum duration in seconds to be considered for analysis (default is 0.2)
+        max_duration : number, optional
+        maximum duration in seconds to be considered for analysis (default is 0.2)
 
         Returns
         -------
@@ -364,8 +398,10 @@ def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
 
     data1 = data[:, 0]
     data2 = data[:, 1]
+    print(">>>>>>>>>>>>>>>> ", data1[0:20])
 
-    fs = 5e6
+    # In these dumps the 5MHz data are over sampled at 20MHz
+    fs = float(config["frow"])*4 # Approx 20MHz
     t = np.arange(len(data1))/fs
 
     # Plotting data
@@ -405,7 +441,7 @@ def plot_5mega_dump(data, plotfilename, title1, title2, max_duration=0.2):
     plt.savefig(plotfilename, bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_counter_dump(data, plotfilename):
+def plot_counter_dump(data, plotfilename, config):
     r"""
         This function checks the data of a DRE-DEMUX COUNTER data dump.
 
@@ -417,6 +453,9 @@ def plot_counter_dump(data, plotfilename):
         plotfilename : string
         Name of the plot file (with the path)
 
+        config: dictionnary
+        contains different informations such as path and directory names
+
         Returns
         -------
         Nothing
@@ -425,7 +464,7 @@ def plot_counter_dump(data, plotfilename):
     print(plotting_message)
     print("  >> " + plotfilename)
 
-    fs = 20e6
+    fs = float(config["frow"])*4 # Approx 20MHz
     t = np.arange(len(data))/fs
 
     reference = np.arange(len(data))

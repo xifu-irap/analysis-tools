@@ -5,4 +5,4 @@ adc_1volt_in_adu=2048
 npix=34
 fs_ADC=39056000
 fs_DAC=78112000
-frow=4882
+frow=4882000
