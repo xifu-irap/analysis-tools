@@ -10,6 +10,41 @@ time_label="Time (ms)"
 frequency_label="Frequency (Hz)"
 spectral_power_density_label=r"Power spectral density (dB/$\sqrt{Hz}$)"
 
+# -----------------------------------------------------------------------
+def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
+    r"""
+        This function defines the xlabel and ylabel for a plot in a plot mosaic.
+        The xlabel is displayed only for the plots at the bottom of the mosaic.
+        The ylabel is displayed only for the plots at the left of the mosaic.
+
+        Parameters
+        ----------
+        ax : matplotlib axis
+
+        box : number
+        the number of the plot in the mosaic
+
+        n_cols, n_lines : numbers
+        the number of columns and lines in the mosaic
+
+        x_lab, y_lab : string
+        the x and y labels
+
+        Returns
+        -------
+        Nothing
+
+        """
+    if box//n_cols == n_lines-1:
+        ax.set_xlabel(x_lab)
+    else:
+        plt.xticks(visible=False)
+    if box%n_cols == 0:
+        ax.set_ylabel(y_lab)
+    else:
+        plt.yticks(visible=False)
+
+
 # -----------------------------------------------------------------------------
 def plot_dump(config, filename, max_duration=0.2, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
     r"""
@@ -69,6 +104,7 @@ def plot_dump(config, filename, max_duration=0.2, pix_zoom=0, spectral=False, no
     if dumptype_int == 15:
         plot_counter_dump(data, plotfilename, config)
 
+
 # -----------------------------------------------------------------------------
 def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, noise=False, check_noise_measurement=False):
     r"""
@@ -113,37 +149,50 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     t = np.arange(len(data[0,:]))/fs
 
     packet_nb = data[0,:]
+    print(packet_nb)
     data = data[1:,:]
 
     # Plotting data in time domain
-    fig = plt.figure(figsize=(8, 10))
+    fig = plt.figure(figsize=(18, 12))
     xtitle = time_label
 
-    ncols, nlines = 4, 9
+    ncols, nlines = 9, 4
+    ymin, ymax = 0.98*data.min(), 1.02*data.max()
     for pix in range(npix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
         ax.plot(1000*t, data[pix,:], 'b')
-        ax.set_ylabel("Pixel {0:2d}".format(pix))
+        ax.set_title("Pixel {0:2d}".format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
-        if pix/ncols>=(nlines-1):
-            ax.set_xlabel(xtitle)
-    ax = fig.add_subplot(nlines, ncols, npix+1)
+        ax.set_ylim(ymin, ymax)
+        mosaic_labels(ax, pix, ncols, nlines, xtitle, r'ADU')
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+            item.set_weight('bold')
+            item.set_fontsize(12)
+        for item in (ax.get_xticklabels() + ax.get_yticklabels()):
+            item.set_fontsize(10)
+    ax = fig.add_subplot(nlines, ncols, ncols*nlines)
     ax.plot(1000*t, packet_nb, 'b')
-    ax.set_ylabel("Packet number")
-    ax.grid(color='k', linestyle=':', linewidth=0.5)
+    ax.set_title("Packet number")
     ax.set_xlabel(xtitle)
+    ax.grid(color='k', linestyle=':', linewidth=0.5)
 
-    # doing zoom
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
 
-    fig = plt.figure(figsize=(8, 10))
+    # doing zoom
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(1000*t, data[pix_zoom,:], 'b')
-    ax.set_ylabel("Pixel {0:2d}".format(pix))
-    ax.grid(color='k', linestyle=':', linewidth=0.5)
+    ax.set_title("Pixel {0:2d}".format(1+pix_zoom))
     ax.set_xlabel(xtitle)
+    ax.set_ylabel(r'ADU')
+    ax.grid(color='k', linestyle=':', linewidth=0.5)
+    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax.get_xticklabels() + ax.get_yticklabels()):
+        item.set_fontsize(12)
 
     fig.tight_layout()
     #plt.show()
@@ -194,6 +243,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
 
     n_pix = int(config["npix"])
     fs = float(config["frow"]/n_pix)
+    ylabel=r"Power density (dB/$\sqrt{Hz}$)"
 
     if record_len > len(data[0]):
         print("  Requested record length is too high ({0:5d})...".format(record_len))
@@ -222,26 +272,37 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
     f = np.arange(n)*(fs/2)/n
 
     # plotting zoom
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(10, 8))
     ax1 = fig.add_subplot(1, 1, 1)
     ax1.semilogx(f[3:-1], noise_spectra_db[pix_zoom,3:-1], marker='.')
-    ax1.set_ylabel(r"Power spectral density (dB/$\sqrt{Hz}$)")
+    ax1.set_ylabel(ylabel)
     ax1.set_xlabel(frequency_label)
+    ax1.set_title("Pixel {0:2d}".format(1+pix_zoom))
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
-
-    fig.tight_layout()
+    for item in ([ax1.title, ax1.xaxis.label, ax1.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
+        item.set_fontsize(12)
     #plt.show()
+    fig.tight_layout()
     plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
-    fig = plt.figure(figsize=(8, 10))
-    ncols, nlines = 4, 9
+    fig = plt.figure(figsize=(18, 12))
+    ncols, nlines = 9, 4
+    ymin, ymax = 0.9*noise_spectra_db[:,3:-1].min(), 1.1*noise_spectra_db[:,3:-1].max()
     for pix in range(n_pix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
         ax.semilogx(f[3:-1], noise_spectra_db[pix,3:-1], marker='.')
-        ax.set_ylabel("Pixel {0:2d}".format(pix))
+        ax.set_title("Pixel {0:2d}".format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
-        if pix/ncols>=(nlines-1):
-            ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylim(ymin, ymax)
+        mosaic_labels(ax, pix, ncols, nlines, frequency_label, ylabel)
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+            item.set_weight('bold')
+            item.set_fontsize(12)
+        for item in (ax.get_xticklabels() + ax.get_yticklabels()):
+            item.set_fontsize(10)
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
