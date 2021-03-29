@@ -112,6 +112,9 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     fs = float(config["frow"]/npix)
     t = np.arange(len(data[0,:]))/fs
 
+    packet_nb = data[0,:]
+    data = data[1:,:]
+
     # Plotting data in time domain
     fig = plt.figure(figsize=(8, 10))
     xtitle = time_label
@@ -119,13 +122,13 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     ncols, nlines = 4, 9
     for pix in range(npix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
-        ax.plot(1000*t, data[1+pix,:], 'b')
+        ax.plot(1000*t, data[pix,:], 'b')
         ax.set_ylabel("Pixel {0:2d}".format(pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         if pix/ncols>=(nlines-1):
             ax.set_xlabel(xtitle)
     ax = fig.add_subplot(nlines, ncols, npix+1)
-    ax.plot(1000*t, data[0,:], 'b')
+    ax.plot(1000*t, packet_nb, 'b')
     ax.set_ylabel("Packet number")
     ax.grid(color='k', linestyle=':', linewidth=0.5)
     ax.set_xlabel(xtitle)
@@ -137,7 +140,7 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
 
     fig = plt.figure(figsize=(8, 10))
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(1000*t, data[1+pix_zoom,:], 'b')
+    ax.plot(1000*t, data[pix_zoom,:], 'b')
     ax.set_ylabel("Pixel {0:2d}".format(pix))
     ax.grid(color='k', linestyle=':', linewidth=0.5)
     ax.set_xlabel(xtitle)

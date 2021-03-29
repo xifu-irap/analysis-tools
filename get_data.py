@@ -148,6 +148,7 @@ def read_dump(dumpfilename, config):
         data = np.transpose(np.resize(data, (len(data)//(npix+2), npix+2)))
 
         # removing periodic headers
+        # keeping packet_number
         data = data[1:,:]
 
     ## 32-bit counter data

@@ -12,4 +12,4 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
 
 for file in dumpfilenames:
     print('\n#---------------------')
-    plot_data.plot_dump(config, file, max_duration=0.00001, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=True)
+    plot_data.plot_dump(config, file, max_duration=0.00001, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=False)
