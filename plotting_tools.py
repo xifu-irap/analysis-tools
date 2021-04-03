@@ -4,11 +4,14 @@ import os
 import matplotlib.pyplot as plt
 import general_tools, get_data
 
-# Some general text definitions
+"""
+Some general text definitions
+"""
 plotting_message="Plotting dump data..."
 time_label="Time (ms)"
 frequency_label="Frequency (Hz)"
 spectral_power_density_label=r"Power spectral density (dB/$\sqrt{Hz}$)"
+error_t0_message="Wrong zoom parameter, t0 changed to 0s."
 
 # -----------------------------------------------------------------------
 def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
@@ -46,67 +49,7 @@ def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
 
 
 # -----------------------------------------------------------------------------
-def plot_dump(config, filename, max_duration=0.2, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
-    r"""
-        This function checks the data of a DRE-DEMUX ADC data dump.
-
-        Parameters
-        ----------
-        config: dictionnary
-        contains different informations such as path and directory names
-
-        filename: string
-        The name of the dump file (without the path)
-
-        max_duration: number, optional
-        Maximum duration in seconds to be considered for analysis (default is 0.2)
-
-        pix_zoom: number (integer)
-        pixel id refering to the pixel for which we plot a zoom (default=0)
-
-        spectral : boolean
-        If True a spectral nalysis shall be done (default=False)
-
-        noise: boolean
-        Indicates if a noise analysis shall be done (default=False)
-
-        check_noise_measurement: boolean
-        indicates if the function shall tested on fake data (default=False)
-
-        Returns
-        -------
-        Nothing
-
-        """
-
-    fullfilename = os.path.join(os.path.normcase(config['dir_data']), filename)
-    plotdirname = os.path.normcase(config['dir_plots'])
-    general_tools.checkdir(plotdirname)
-    plotfilename = os.path.join(plotdirname, filename[:-4]+".png")
-
-    # verifying the dumptype
-    data, dumptype_int, _ = get_data.read_dump(fullfilename, config)
-
-    if dumptype_int == 0:
-        plot_5mega_dump(data, plotfilename, config, "DACFB1", "Science", max_duration)
-    if dumptype_int == 1:
-        plot_5mega_dump(data, plotfilename, config, "ERROR", "Science", max_duration)
-    if dumptype_int == 2:
-        plot_5mega_dump(data, plotfilename, config, "DACFB2", "Science", max_duration)
-    if dumptype_int == 4:
-        plot_5mega_dump(data, plotfilename, config, "DACFB1", "DACFB2", max_duration)
-    if dumptype_int == 5:
-        plot_adc_dump(data, plotfilename, config, max_duration, spectral)
-    if dumptype_int == 8:
-        plot_science_dump(data, plotfilename, config, max_duration, pix_zoom, noise, check_noise_measurement)
-    if dumptype_int == 9:
-        plot_5mega_dump(data, plotfilename, config, "ERROR", "DACFB1", max_duration)
-    if dumptype_int == 15:
-        plot_counter_dump(data, plotfilename, config)
-
-
-# -----------------------------------------------------------------------------
-def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, noise=False, check_noise_measurement=False):
+def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, noise=False, check_noise_measurement=False):
     r"""
         This function checks the data of a DRE-DEMUX science data dump.
 
@@ -121,8 +64,11 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
         config: dictionnary
         contains different informations such as path and directory names
 
-        max_duration: number, optional
-        Maximum duration in seconds to be considered for analysis (default is 0.2)
+        t0: number, optional
+        begining of zoom in seconds (default is 0)
+
+        duration: number, optional
+        zoom duration in seconds. If 0 all the data are plotted (default is 0)
 
         pix_zoom: number (integer)
         pixel id refering to the pixel for which we plot a zoom (default=0)
@@ -149,10 +95,29 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     t = np.arange(len(data[0,:]))/fs
 
     packet_nb = data[0,:]
-    print(packet_nb)
+    reference = packet_nb[0] + np.arange(len(packet_nb))
+    if np.abs((packet_nb-reference)%2**32).max()>0:
+        print(" Error in the packet number !")
+        plt.plot(packet_nb-reference)
+        plt.show()
+
     data = data[1:,:]
 
-    # Plotting data in time domain
+    """
+    Plotting data in time domain
+    """
+    imin = int(t0*fs)
+    if imin > len(data[0,:]):
+        print(error_t0_message)
+        imin = 0
+    if duration == 0 :
+        imax = len(data[0,:])
+    else :
+        imax = min(int((t0+duration)*fs), len(data[0,:]))
+    mkr=''
+    if imax - imin < 200:
+        mkr='.'
+
     fig = plt.figure(figsize=(18, 12))
     xtitle = time_label
 
@@ -160,9 +125,10 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     ymin, ymax = 0.98*data.min(), 1.02*data.max()
     for pix in range(npix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
-        ax.plot(1000*t, data[pix,:], 'b')
+        ax.plot(1000*t[imin:imax], data[pix,imin:imax], 'b')
         ax.set_title("Pixel {0:2d}".format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
+        ax.set_xlim(t[imin]*1000, t[imax-1]*1000)
         ax.set_ylim(ymin, ymax)
         mosaic_labels(ax, pix, ncols, nlines, xtitle, r'ADU')
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
@@ -171,7 +137,7 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
         for item in (ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontsize(10)
     ax = fig.add_subplot(nlines, ncols, ncols*nlines)
-    ax.plot(1000*t, packet_nb, 'b')
+    ax.plot(1000*t[imin:imax], packet_nb[imin:imax], 'b')
     ax.set_title("Packet number")
     ax.set_xlabel(xtitle)
     ax.grid(color='k', linestyle=':', linewidth=0.5)
@@ -180,13 +146,16 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
 
-    # doing zoom
+    """
+    doing zoom
+    """
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(1000*t, data[pix_zoom,:], 'b')
+    ax.plot(1000*t[imin:imax], data[pix_zoom,imin:imax], 'b', marker=mkr)
     ax.set_title("Pixel {0:2d}".format(1+pix_zoom))
     ax.set_xlabel(xtitle)
     ax.set_ylabel(r'ADU')
+    ax.set_xlim(t[imin]*1000, t[imax-1]*1000)
     ax.grid(color='k', linestyle=':', linewidth=0.5)
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_weight('bold')
@@ -198,7 +167,9 @@ def plot_science_dump(data, plotfilename, config, max_duration=0.2, pix_zoom=0, 
     #plt.show()
     plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
-    # Plotting spectra
+    """
+    Plotting spectra
+    """
     if noise:
         plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 2000, 8192, check_noise_measurement)
 
@@ -339,25 +310,28 @@ def make_fake_science_noise(config, n_records=2000, record_len=8192):
     return(data)
 
 # -----------------------------------------------------------------------------
-def plot_adc_dump(data, plotfilename, config, max_duration=0.2, spectral=False):
+def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
         Parameters
         ----------
-        data : numpy array
+        data: numpy array
         The data of the dump 
 
-        plotfilename : string
+        plotfilename: string
         Name of the plot file (with the path)
 
-        config : dictionnary
+        config: dictionnary
         contains different informations such as path and directory names
 
-        Max_duration : number, optional
-        Maximum duration in seconds to be considered for analysis (default is 0.2)
+        t0: number, optional
+        begining of zoom in seconds (default is 0)
 
-        spectral : boolean
+        duration: number, optional
+        zoom duration in seconds. If 0 all the data are plotted (default is 0)
+
+        spectral: boolean
         If True a spectral nalysis shall be done (default=False)
 
         Returns
@@ -374,16 +348,26 @@ def plot_adc_dump(data, plotfilename, config, max_duration=0.2, spectral=False):
     fs = float(config["fs_ADC"])
     t = np.arange(len(data))/fs
 
-    # Plotting data in time domain
+    """
+    Plotting data in time domain
+    """
+    imin = int(t0*fs)
+    if imin > len(data[0,:]):
+        print(error_t0_message)
+        imin = 0
+    if duration == 0 :
+        imax = len(data[0,:])
+    else :
+        imax = min(int((t0+duration)*fs), len(data[0,:]))
+
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
-    x_zoom_max = int(max_duration * fs)
     mkr=''
-    if x_zoom_max<400:
+    if imax-imin<300:
         mkr='.'
 
     ax1 = fig.add_subplot(2, 1, 1)
-    ax1.plot(1000*t[0:x_zoom_max], data[0:x_zoom_max]/float(config["adc_1volt_in_adu"]), 'b', marker=mkr)
+    ax1.plot(1000*t[imin:imax], data[imin:imax]/float(config["adc_1volt_in_adu"]), 'b', marker=mkr)
     ax1.set_ylabel(ylabel_v)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
@@ -428,7 +412,7 @@ def plot_adc_dump(data, plotfilename, config, max_duration=0.2, spectral=False):
         plt.savefig(plotfilename[:-4]+"_F.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_5mega_dump(data, plotfilename, config, title1, title2, max_duration=0.2):
+def plot_5mega_dump(data, plotfilename, config, title1, title2, t0=0, duration=0):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -449,8 +433,11 @@ def plot_5mega_dump(data, plotfilename, config, title1, title2, max_duration=0.2
         title2 : string
         Name of the second data set
 
-        max_duration : number, optional
-        maximum duration in seconds to be considered for analysis (default is 0.2)
+        t0: number, optional
+        begining of zoom in seconds (default is 0)
+
+        duration: number, optional
+        zoom duration in seconds. If 0 all the data are plotted (default is 0)
 
         Returns
         -------
@@ -462,22 +449,31 @@ def plot_5mega_dump(data, plotfilename, config, title1, title2, max_duration=0.2
 
     data1 = data[:, 0]
     data2 = data[:, 1]
-    print(">>>>>>>>>>>>>>>> ", data1[0:20])
 
     # In these dumps the 5MHz data are over sampled at 20MHz
     fs = float(config["frow"])*4 # Approx 20MHz
     t = np.arange(len(data1))/fs
 
-    # Plotting data
+    """
+    Plotting data
+    """
+    imin = int(t0*fs)
+    if imin > len(data[0,:]):
+        print(error_t0_message)
+        imin = 0
+    if duration == 0 :
+        imax = len(data[0,:])
+    else :
+        imax = min(int((t0+duration)*fs), len(data[0,:]))
+
     fig = plt.figure(figsize=(10, 8))
     xtitle = "Time (ms)"
-    x_zoom_max = int(max_duration * fs)
     mkr=''
-    if x_zoom_max<400:
+    if imax-imin<300:
         mkr='.'
 
     ax1 = fig.add_subplot(2, 2, 1)
-    ax1.plot(1000*t[0:x_zoom_max], data1[0:x_zoom_max], 'b', marker=mkr)
+    ax1.plot(1000*t[imin:imax], data1[imin:imax], 'b', marker=mkr)
     ax1.set_ylabel(title1)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
@@ -489,7 +485,7 @@ def plot_5mega_dump(data, plotfilename, config, title1, title2, max_duration=0.2
     ax3.grid(color='k', linestyle=':', linewidth=0.5)
 
     ax2 = fig.add_subplot(2, 2, 2)
-    ax2.plot(1000*t[0:x_zoom_max], data2[0:x_zoom_max], 'b', marker=mkr)
+    ax2.plot(1000*t[imin:imax], data2[imin:imax], 'b', marker=mkr)
     ax2.set_ylabel(title2)
     ax2.set_xlabel(xtitle)
     ax2.grid(color='k', linestyle=':', linewidth=0.5)
@@ -557,5 +553,27 @@ def plot_counter_dump(data, plotfilename, config):
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
+
+# -----------------------------------------------------------------------------
+
+"""
+Testing the routines with test data.
+"""
+if __name__ == "__main__":
+
+    print("Testing the dumps analysis...")
+    config=general_tools.configuration("demux_tools_cfg")
+    config.config["dir_data"]="./test_data"
+    config.config["dir_plots"]="./test_plots"
+    datadirname = os.path.join(os.path.normcase(config.config['dir_data'])) 
+    dumpfilenames = [f for f in os.listdir(datadirname) \
+                if os.path.isfile(os.path.join(datadirname, f)) \
+                and f[-4:]==".dat"]
+
+    for file in dumpfilenames:
+        print('\n#---------------------')
+        d=get_data.data(file, config.config)
+        d.print_dumptype()
+        d.plot(config, t0=0, duration=0, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=True)
 
 # -----------------------------------------------------------------------------
