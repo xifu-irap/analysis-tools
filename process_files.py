@@ -1,4 +1,8 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import os
+
 import general_tools, get_data, plotting_tools
 
 config=general_tools.configuration("demux_tools_cfg")

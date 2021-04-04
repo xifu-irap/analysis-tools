@@ -1,4 +1,7 @@
 
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 ###############################################################################
 def switch_bin2hexa_digit(digit):
     switcher={

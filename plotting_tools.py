@@ -1,7 +1,11 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from numpy.fft import rfft
 import os
 import matplotlib.pyplot as plt
+
 import general_tools, get_data
 
 """
