@@ -7,7 +7,7 @@ import general_tools, get_data, plotting_tools
 
 config=general_tools.configuration("demux_tools_cfg")
 
-datadirname = os.path.join(os.path.normcase(config.config['dir_data']))
+datadirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_data'])
 
 dumpfilenames = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \

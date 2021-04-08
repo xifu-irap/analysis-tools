@@ -75,7 +75,7 @@ class data:
 
             """
 
-        plotdirname = os.path.normcase(config.config['dir_plots'])
+        plotdirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_plots'])
         general_tools.checkdir(plotdirname)
         plotfilename = os.path.join(plotdirname, self.filename[:-4]+".png")
 
@@ -121,7 +121,8 @@ def read_data(dumpfilename, config):
         Dumptype id.
         """
 
-    fullfilename = os.path.join(os.path.normcase(config['dir_data']), dumpfilename)
+    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+    fullfilename = os.path.join(dirname, dumpfilename)
 
     fdat=open(fullfilename, 'rb')
     data=np.fromfile(fdat, dtype='<h')

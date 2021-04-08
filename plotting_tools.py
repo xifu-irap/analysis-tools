@@ -81,7 +81,7 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
         Indicates if a noise analysis shall be done (default=False)
 
         check_noise_measurement: boolean
-        indicates if the function shall tested on fake data (default=False)
+        Indicates if a noise analysis shall be done on fake data (default=False)        
 
         Returns
         -------
@@ -175,10 +175,14 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
     Plotting spectra
     """
     if noise:
-        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 2000, 8192, check_noise_measurement)
+        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 2000, 8192)
+        if check_noise_measurement:
+            plotfilename_test = plotfilename[:-4]+"_FAKE.png"
+            data_test = make_fake_science_noise(config, 2000, 8192)
+            plot_science_dump_noise(data_test, config, plotfilename_test, 0, 2000, 8192)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000, record_len=8192, check_noise_measurement=False):
+def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000, record_len=8192):
     r"""
         This function measures noise spectra on science data
 
@@ -202,9 +206,6 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
         record_len: number (integer)
         number of samples per records (default = 8192)
 
-        check_noise_measurement: boolean
-        indicates if the function shall tested on fake data (default=False)
-
         Returns
         -------
         noise_spectra: 2-dimensional numpy array
@@ -222,7 +223,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
 
     if record_len > len(data[0]):
         print("  Requested record length is too high ({0:5d})...".format(record_len))
-        record_len = len(data[0])
+        record_len = 2**(np.log10(len(data[0]))//np.log10(2))
         print("  Record length reduced to {0:5d}".format(record_len))
     else:
         print("  Record length: {0:5d}".format(record_len))
@@ -235,10 +236,9 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
     else:
         print("  Number of records: {0:5d}".format(n_records))
 
-    noise_spectra = general_tools.do_spectrum(data[0,0:n_records*record_len], record_len)
-    for pix in range(n_pix-1):
-        noise_spectra = np.concatenate((noise_spectra, general_tools.do_spectrum(data[pix+1,0:n_records*record_len], record_len)), axis=0)
-    noise_spectra = np.resize(noise_spectra, (n_pix, int(len(noise_spectra)/n_pix)))
+    noise_spectra = np.zeros((n_pix, int(record_len/2)+1))
+    for pix in range(n_pix):
+        noise_spectra[pix,:]=general_tools.do_spectrum(data[pix,0:n_records*record_len], record_len)
 
     noise_spectra_db = noise_spectra*0
     inotzero = np.where(noise_spectra != 0)
@@ -281,11 +281,6 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
-
-    if check_noise_measurement:
-        plotfilename_test = plotfilename[:-4]+"_FAKE.png"
-        data_test = make_fake_science_noise(config, 2000, 8192)
-        plot_science_dump_noise(data_test, config, plotfilename_test, 0, 2000, 8192)
 
     return(noise_spectra)
 
@@ -567,8 +562,9 @@ if __name__ == "__main__":
 
     print("Testing the dumps analysis...")
     config=general_tools.configuration("demux_tools_cfg")
-    config.config["dir_data"]="./test_data"
-    config.config["dir_plots"]="./test_plots"
+    config.config["path"]="."
+    config.config["dir_data"]="test_data"
+    config.config["dir_plots"]="test_plots"
     datadirname = os.path.join(os.path.normcase(config.config['dir_data'])) 
     dumpfilenames = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
