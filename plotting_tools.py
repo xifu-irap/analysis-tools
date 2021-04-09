@@ -182,7 +182,7 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
             plot_science_dump_noise(data_test, config, plotfilename_test, 0, 2000, 8192)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000, record_len=8192):
+def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, n_records=2000, record_len=8192):
     r"""
         This function measures noise spectra on science data
 
@@ -243,17 +243,29 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
     noise_spectra_db = noise_spectra*0
     inotzero = np.where(noise_spectra != 0)
     noise_spectra_db[inotzero] = 20.*np.log10(noise_spectra[inotzero])
+
+    # normalisation with respect to baseline
+    for pix in range(n_pix):
+        noise_spectra_db[pix,:] -= noise_spectra_db[pix,:].max()
+
     n = len(noise_spectra_db[0])
     f = np.arange(n)*(fs/2)/n
 
     # plotting zoom
-    fig = plt.figure(figsize=(10, 8))
+    db_step = 5
+    ymin = db_step*(noise_spectra_db[pix_zoom, 1:].min()//db_step)
+    ymax = db_step*(noise_spectra_db[pix_zoom, 1:].max()//db_step+1)
+    fig = plt.figure(figsize=(10, 7))
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.semilogx(f[3:-1], noise_spectra_db[pix_zoom,3:-1], marker='.')
+    ax1.semilogx(f, noise_spectra_db[pix_zoom,:], marker='.')
     ax1.set_ylabel(ylabel)
     ax1.set_xlabel(frequency_label)
     ax1.set_title("Pixel {0:2d}".format(1+pix_zoom))
-    ax1.grid(color='k', linestyle=':', linewidth=0.5)
+    major_ticks=np.linspace(ymin,ymax,db_step)
+    ax1.set_xlim(f[1], f[-1])
+    ax1.set_ylim(ymin, ymax)
+    ax1.set_yticks(major_ticks)
+    ax1.grid(which="major",alpha=0.6)
     for item in ([ax1.title, ax1.xaxis.label, ax1.yaxis.label]):
         item.set_weight('bold')
         item.set_fontsize(14)
@@ -265,14 +277,19 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom, n_records=2000
 
     fig = plt.figure(figsize=(18, 12))
     ncols, nlines = 9, 4
-    ymin, ymax = 0.9*noise_spectra_db[:,3:-1].min(), 1.1*noise_spectra_db[:,3:-1].max()
+    ymin = db_step*(noise_spectra_db[:, 1:].min()//db_step)
+    ymax = db_step*(noise_spectra_db[:, 1:].max()//db_step+1)
+    major_ticks=np.linspace(ymin,ymax,db_step)
     for pix in range(n_pix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
-        ax.semilogx(f[3:-1], noise_spectra_db[pix,3:-1], marker='.')
+        ax.semilogx(f, noise_spectra_db[pix,:], marker='.')
         ax.set_title("Pixel {0:2d}".format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         ax.set_ylim(ymin, ymax)
+        ax.set_xlim(f[1], f[-1])
+        ax.set_yticks(major_ticks)
         mosaic_labels(ax, pix, ncols, nlines, frequency_label, ylabel)
+        ax.grid(which="major",alpha=0.6)
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
             item.set_weight('bold')
             item.set_fontsize(12)
@@ -390,7 +407,7 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
     plt.savefig(plotfilename, bbox_inches='tight')
 
     if spectral:
-        # Plotting data in time domain
+        # Plotting data in frequency domain
         fig = plt.figure(figsize=(8, 6))
         spt = general_tools.do_spectrum(data, int(2**20))
         spt_db = spt*0

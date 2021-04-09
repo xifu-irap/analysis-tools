@@ -54,7 +54,7 @@ def get_csv(filename):
     return(dictionnary)
 
 # -----------------------------------------------------------------------
-def do_spectrum(x, npts):
+def do_spectrum(x, npts, window="none"):
     r"""
         This function computes the spectrum of the input vector.
         If the input vector is long enough, several computations are averaged.
@@ -68,6 +68,10 @@ def do_spectrum(x, npts):
         npts: number
         Number of values to be used in the rfft.
 
+        window: string
+        indicates if a window shall be applied ("blackman" or "none") 
+        (default is "none")
+
         Returns
         -------
         spectrum: numpy array
@@ -76,6 +80,11 @@ def do_spectrum(x, npts):
         """
     from numpy.fft import rfft
     from scipy import signal
+
+    if window=="blakman":
+        w=signal.blackman(npts)
+    else:
+        w=np.ones(npts)
 
     if len(x)<npts:
         raise ValueError("Not enough values in input vector to compute spectra.")
@@ -86,7 +95,7 @@ def do_spectrum(x, npts):
             spectrum=np.zeros(int((npts+1)/2))
         nslices=int(len(x)/npts)
         for slice in range(nslices):
-            spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*signal.blackman(npts)))
+            spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*w))
     return(spectrum/nslices)
 
 # -----------------------------------------------------------------------
