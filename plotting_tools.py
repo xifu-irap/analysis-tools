@@ -351,13 +351,13 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
     Plotting data in time domain
     """
     imin = int(t0*fs)
-    if imin > len(data[0,:]):
+    if imin > len(data[:]):
         print(error_t0_message)
         imin = 0
     if duration == 0 :
-        imax = len(data[0,:])
+        imax = len(data[:])
     else :
-        imax = min(int((t0+duration)*fs), len(data[0,:]))
+        imax = min(int((t0+duration)*fs), len(data[:]))
 
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
@@ -457,13 +457,13 @@ def plot_5mega_dump(data, plotfilename, config, title1, title2, t0=0, duration=0
     Plotting data
     """
     imin = int(t0*fs)
-    if imin > len(data[0,:]):
+    if imin > len(data1):
         print(error_t0_message)
         imin = 0
     if duration == 0 :
-        imax = len(data[0,:])
+        imax = len(data1)
     else :
-        imax = min(int((t0+duration)*fs), len(data[0,:]))
+        imax = min(int((t0+duration)*fs), len(data1))
 
     fig = plt.figure(figsize=(10, 8))
     xtitle = "Time (ms)"
