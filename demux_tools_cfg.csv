@@ -7,3 +7,4 @@ npix=34
 fs_ADC=39056000
 fs_DAC=78112000
 frow=4882000
+eres_req_cbe_dre_7kev=0.7348

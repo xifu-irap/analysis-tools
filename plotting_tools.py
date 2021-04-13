@@ -591,6 +591,11 @@ if __name__ == "__main__":
         print('\n#---------------------')
         d=get_data.data(file, config.config)
         d.print_dumptype()
-        d.plot(config, t0=0, duration=0, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=True)
+        t0, duration = 0, 0
+        pix_zoom = 0
+        spectral = True
+        noise = True
+        check_noise_measurement = True
+        d.plot(t0, duration, pix_zoom, spectral, noise, check_noise_measurement)
 
 # -----------------------------------------------------------------------------

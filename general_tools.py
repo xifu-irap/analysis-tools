@@ -117,6 +117,19 @@ def is_even(x):
     return(x%2==0)
 
 # -----------------------------------------------------------------------
+
+def smooth(y, n):
+    box = np.ones(n)/n
+    smoothed=np.convolve(y, box, mode='same')
+    """
+    removind side effects
+    """
+    smoothed=np.append(np.repeat(smoothed[n],n), smoothed[n:])
+    smoothed=np.append(smoothed[:-n], np.repeat(smoothed[-n],n))
+    return(smoothed)
+
+# -----------------------------------------------------------------------
+
 class configuration:
     def __init__(self, csv_file):
         self.config = get_csv(csv_file+".csv")

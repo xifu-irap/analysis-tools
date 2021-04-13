@@ -17,6 +17,7 @@ DADA=-9510      # 0xDADA interpreted as int16
 class data:
     def __init__(self, filename, config):
         self.filename=filename
+        self.config=config
         self.values, self.dumptype=read_data(filename, config)
 
     def print_dumptype(self):
@@ -42,15 +43,12 @@ class data:
             raise ValueError('Wrong dump type')
         print(dumptype_str)
 
-    def plot(self, config, t0=0, duration=0, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
+    def plot(self, t0=0, duration=0, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
         r"""
             This function checks the data of a DRE-DEMUX ADC data dump.
 
             Parameters
             ----------
-            config: dictionnary
-            contains different informations such as path and directory names
-
             t0: number, optional
             begining of zoom in seconds (default is 0)
 
@@ -75,26 +73,26 @@ class data:
 
             """
 
-        plotdirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_plots'])
+        plotdirname = os.path.join(os.path.normcase(self.config['path']), self.config['dir_plots'])
         general_tools.checkdir(plotdirname)
         plotfilename = os.path.join(plotdirname, self.filename[:-4]+".png")
 
         if self.dumptype == 0:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, config.config, "DACFB1", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB1", "Science", t0, duration)
         if self.dumptype == 1:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, config.config, "ERROR", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "ERROR", "Science", t0, duration)
         if self.dumptype == 2:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, config.config, "DACFB2", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB2", "Science", t0, duration)
         if self.dumptype == 4:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, config.config, "DACFB1", "DACFB2", t0, duration)
+            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB1", "DACFB2", t0, duration)
         if self.dumptype == 5:
-            plotting_tools.plot_adc_dump(self.values, plotfilename, config.config, t0, duration, spectral)
+            plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral)
         if self.dumptype == 8:
-            plotting_tools.plot_science_dump(self.values, plotfilename, config.config, t0, duration, pix_zoom, noise, check_noise_measurement)
+            plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, check_noise_measurement)
         if self.dumptype == 9:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, config.config, "ERROR", "DACFB1", t0, duration)
+            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "ERROR", "DACFB1", t0, duration)
         if self.dumptype == 15:
-            plotting_tools.plot_counter_dump(self.values, plotfilename, config.config)
+            plotting_tools.plot_counter_dump(self.values, plotfilename, self.config)
 
 
 # -----------------------------------------------------------------------------
