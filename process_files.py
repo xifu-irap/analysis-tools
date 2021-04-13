@@ -3,11 +3,13 @@
 
 import os
 
-import general_tools, get_data, plotting_tools, ep_tools
+import general_tools, get_data, plotting_tools, ep_tools, measure_ki
 
 config=general_tools.configuration("demux_tools_cfg")
 
 datadirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_data'])
+
+drawline = '\n#---------------------'
 
 """
 Processing dumps files
@@ -20,10 +22,21 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
                 and f[-13:]!="_er_measu.dat" ]
 
 for file in dumpfilenames:
-    print('\n#---------------------')
+    print(drawline)
     d=get_data.data(file, config.config)
     d.print_dumptype()
     d.plot(t0=0, duration=0, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=False)
+
+"""
+Processing ki measurements data
+"""
+kifilename = [f for f in os.listdir(datadirname) \
+                if os.path.isfile(os.path.join(datadirname, f)) \
+                and f[-13:]=="_ki_check.dat" ]
+if len(kifilename)>0:
+    print(drawline)
+    d=get_data.data(kifilename[0], config.config)
+    _ = measure_ki.measure_ki(d)
 
 """
 Processing energy resolution data
@@ -40,7 +53,7 @@ filename_er_measu = [f for f in os.listdir(datadirname) \
 
 if len(filename_er_noise)>0 and len(filename_er_calib)>0 and len(filename_er_measu)>0:
     pix = 20
-    print('\n#---------------------')
+    print(drawline)
     print("Processing energy resolution data of pixel {0:2d}...".format(pix))
     record_len = 4096
     verbose=False
