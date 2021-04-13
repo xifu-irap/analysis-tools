@@ -175,14 +175,14 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
     Plotting spectra
     """
     if noise:
-        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 2000, 8192)
+        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 8192)
         if check_noise_measurement:
             plotfilename_test = plotfilename[:-4]+"_FAKE.png"
             data_test = make_fake_science_noise(config, 2000, 8192)
-            plot_science_dump_noise(data_test, config, plotfilename_test, 0, 2000, 8192)
+            plot_science_dump_noise(data_test, config, plotfilename_test, 0, 8192)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, n_records=2000, record_len=8192):
+def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8192):
     r"""
         This function measures noise spectra on science data
 
@@ -199,9 +199,6 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, n_records=20
 
         pix_zoom: number (integer)
         pixel id refering to the pixel for which we plot a zoom (default=0)
-
-        n_records: number (integer)
-        number of spectra to be averaged (default = 2000)
 
         record_len: number (integer)
         number of samples per records (default = 8192)
@@ -226,15 +223,10 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, n_records=20
         record_len = 2**(np.log10(len(data[0]))//np.log10(2))
         print("  Record length reduced to {0:5d}".format(record_len))
     else:
-        print("  Record length: {0:5d}".format(record_len))
+        print("  Record length:     {0:5d}".format(record_len))
 
-    n_records_max = int(len(data[0])/record_len)
-    if n_records > n_records_max:
-        print("  Too much records requested ({0:5d})...".format(n_records))
-        n_records = n_records_max
-        print("  Number of records reduced to {0:5d}".format(n_records))
-    else:
-        print("  Number of records: {0:5d}".format(n_records))
+    n_records = int(len(data[0])/record_len)
+    print("  Number of records: {0:5d}".format(n_records))
 
     noise_spectra = np.zeros((n_pix, int(record_len/2)+1))
     for pix in range(n_pix):

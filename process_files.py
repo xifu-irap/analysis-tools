@@ -14,7 +14,10 @@ Processing dumps files
 """
 dumpfilenames = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
-                and f[-4:]==".dat" and f[-7:-4]!="_er"]
+                and f[-4:]==".dat" \
+                and f[-13:]!="_er_noise.dat" \
+                and f[-13:]!="_er_calib.dat" \
+                and f[-13:]!="_er_measu.dat" ]
 
 for file in dumpfilenames:
     print('\n#---------------------')
@@ -25,20 +28,20 @@ for file in dumpfilenames:
 """
 Processing energy resolution data
 """
-filename_noise_er = [f for f in os.listdir(datadirname) \
+filename_er_noise = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
-                and f[-12:]=="noise_er.dat"]
-filename_calib_er = [f for f in os.listdir(datadirname) \
+                and f[-13:]=="_er_noise.dat"]
+filename_er_calib = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
-                and f[-12:]=="calib_er.dat"]
-filename_measu_er = [f for f in os.listdir(datadirname) \
+                and f[-13:]=="_er_calib.dat"]
+filename_er_measu = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
-                and f[-12:]=="measu_er.dat"]
+                and f[-13:]=="_er_measu.dat"]
 
-if len(filename_noise_er)>0 and len(filename_calib_er)>0 and len(filename_measu_er)>0:
-    pix = 0
+if len(filename_er_noise)>0 and len(filename_er_calib)>0 and len(filename_er_measu)>0:
+    pix = 20
     print('\n#---------------------')
     print("Processing energy resolution data of pixel {0:2d}...".format(pix))
     record_len = 4096
     verbose=False
-    _, _= ep_tools.ep(filename_noise_er[0], filename_calib_er[0], filename_measu_er[0], pix, config.config, record_len, verbose)
+    _, _= ep_tools.ep(filename_er_noise[0], filename_er_calib[0], filename_er_measu[0], pix, config.config, record_len, verbose)

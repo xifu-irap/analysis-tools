@@ -857,9 +857,7 @@ def ep(noise_filename, calib_filename, measu_filename, pix, config, record_len, 
     noise = get_noise_records(noise_filename, config, pix, record_len)
     noise_level = noise[0].std() # used to set the pulse detection threshold
 
-    pix=0
     calib, _ = get_pulse_records(calib_filename, config, pix, record_len, PREBUFF, noise_level)
-    pix=9
     measu, t = get_pulse_records(measu_filename, config, pix, record_len+4, PREBUFF+2, noise_level)
 
     """
