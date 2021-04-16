@@ -53,7 +53,7 @@ def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
 
 
 # -----------------------------------------------------------------------------
-def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, noise=False, check_noise_measurement=False):
+def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, noise=False, sav_spectra=False):
     r"""
         This function checks the data of a DRE-DEMUX science data dump.
 
@@ -80,8 +80,8 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
         noise: boolean
         Indicates if a noise analysis shall be done (default=False)
 
-        check_noise_measurement: boolean
-        Indicates if a noise analysis shall be done on fake data (default=False)        
+        sav_spectra: boolean
+        indicates if spactra shall be saved in npy file (default=False)
 
         Returns
         -------
@@ -175,14 +175,10 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
     Plotting spectra
     """
     if noise:
-        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 8192)
-        if check_noise_measurement:
-            plotfilename_test = plotfilename[:-4]+"_FAKE.png"
-            data_test = make_fake_science_noise(config, 2000, 8192)
-            plot_science_dump_noise(data_test, config, plotfilename_test, 0, 8192)
+        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 8192, sav_spectra)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8192):
+def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8192, sav=False):
     r"""
         This function measures noise spectra on science data
 
@@ -202,6 +198,9 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
 
         record_len: number (integer)
         number of samples per records (default = 8192)
+
+        sav: boolean
+        indicates if spactra shall be saved in npy file (default=False)
 
         Returns
         -------
@@ -242,6 +241,13 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
 
     n = len(noise_spectra_db[0])
     f = np.arange(n)*(fs/2)/n
+
+    if sav:
+        dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+        npy_file = os.path.join(dirname, 'sc_spectra.npy')
+        with open(npy_file, 'wb') as file:
+            np.save(file, f)
+            np.save(file, noise_spectra_db)
 
     # plotting zoom
     db_step = 5
@@ -292,30 +298,6 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
     plt.savefig(plotfilename_all, bbox_inches='tight')
 
     return(noise_spectra)
-
-# -----------------------------------------------------------------------------
-def make_fake_science_noise(config, n_records=2000, record_len=8192):
-    r"""
-        This function builds a fake science data dump with gaussian noise.
-        Two sine waves are added in the data of pixel 0.
-        s
-        config : dictionnary
-        contains different informations such as path and directory names
-        """
-    n_pix = int(config["npix"])
-    fs = float(config["frow"]/n_pix)
-    t = np.arange(n_records*record_len)/fs
-    freq1, freq2 = 500, 2000
-
-    print('\n#---------------------')
-    print('# Checking noise routine')
-    n_pix = int(config["npix"])
-    data = np.random.normal(loc=2**15, scale=20, size=(n_pix, n_records*record_len))
-
-    # Adding a sine wave on pix 20 data
-    data[0,:]+= 20*np.sin(2*np.pi*freq1*t) + 5*np.sin(2*np.pi*freq2*t)
-
-    return(data)
 
 # -----------------------------------------------------------------------------
 def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):

@@ -43,7 +43,7 @@ class data:
             raise ValueError('Wrong dump type')
         print(dumptype_str)
 
-    def plot(self, t0=0, duration=0, pix_zoom=0, spectral=False, noise=False, check_noise_measurement=False):
+    def plot(self, t0=0, duration=0, pix_zoom=0, spectral=False, noise=False, sav_spectra=False):
         r"""
             This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -67,6 +67,9 @@ class data:
             check_noise_measurement: boolean
             indicates if the function shall tested on fake data (default=False)
 
+            sav_spectra: boolean
+            indicates if spactra shall be saved in npy file (default=False)
+
             Returns
             -------
             Nothing
@@ -88,7 +91,7 @@ class data:
         if self.dumptype == 5:
             plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral)
         if self.dumptype == 8:
-            plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, check_noise_measurement)
+            plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, sav_spectra)
         if self.dumptype == 9:
             plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "ERROR", "DACFB1", t0, duration)
         if self.dumptype == 15:

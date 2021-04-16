@@ -17,15 +17,24 @@ Processing dumps files
 dumpfilenames = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-4:]==".dat" \
-                and f[-13:]!="_er_noise.dat" \
                 and f[-13:]!="_er_calib.dat" \
                 and f[-13:]!="_er_measu.dat" ]
 
+t0=0
+duration=0
+pix_zoom=0
+spectral=True
+noise=True
+sav_er_noise_spectra=True
 for file in dumpfilenames:
     print(drawline)
     d=get_data.data(file, config.config)
     d.print_dumptype()
-    d.plot(t0=0, duration=0, pix_zoom=0, spectral=True, noise=True, check_noise_measurement=False)
+    sav_spectra = False
+    if file[-13:]=="_er_noise.dat":
+        sav_spectra = sav_er_noise_spectra
+        print("Bingo !")
+    d.plot(t0, duration, pix_zoom, spectral, noise, sav_spectra)
 
 """
 Processing ki measurements data
@@ -36,7 +45,7 @@ kifilename = [f for f in os.listdir(datadirname) \
 if len(kifilename)>0:
     print(drawline)
     d=get_data.data(kifilename[0], config.config)
-    _ = measure_ki.measure_ki(d)
+    measure_ki.measure_ki(d)
 
 """
 Processing energy resolution data
