@@ -300,7 +300,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
     return(noise_spectra)
 
 # -----------------------------------------------------------------------------
-def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
+def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, sav=False):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -323,6 +323,9 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
 
         spectral: boolean
         If True a spectral nalysis shall be done (default=False)
+
+        sav: boolean
+        indicates if spectra shall be saved in npy file (default=False)
 
         Returns
         -------
@@ -382,7 +385,6 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
 
     if spectral:
         # Plotting data in frequency domain
-        fig = plt.figure(figsize=(8, 6))
         spt = general_tools.do_spectrum(data, int(2**20))
         spt_db = spt*0
         inotzero = np.where(spt != 0)[0]
@@ -390,12 +392,28 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False):
 
         f = np.arange(len(spt_db))*(fs/2)/len(spt_db)
 
+        """
+        saving data in a npy file if requested
+        """
+        if sav:
+            dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+            npy_file = os.path.join(dirname, 'adc_spectra.npy')
+            with open(npy_file, 'wb') as file:
+                np.save(file, f)
+                np.save(file, spt_db)
+
+        fig = plt.figure(figsize=(10, 8))
         ax1 = fig.add_subplot(1, 1, 1)
         ax1.semilogx(f, spt_db, 'b')
         ax1.set_ylabel(spectral_power_density_label)
         ax1.set_xlabel(frequency_label)
         ax1.grid(color='k', linestyle=':', linewidth=0.5)
         ax1.set_xlim(1e3, f[-1])
+        for item in ([ax1.title, ax1.xaxis.label, ax1.yaxis.label]):
+            item.set_weight('bold')
+            item.set_fontsize(14)
+        for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
+            item.set_fontsize(12)
 
         fig.tight_layout()
         #plt.show()

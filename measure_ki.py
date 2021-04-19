@@ -8,6 +8,21 @@ import matplotlib.pyplot as plt
 import general_tools, get_data
 
 def measure_ki(ki_data):
+    r"""
+        This function analyses a SQ1 feedback and SQ2 feedback dump to
+        measure the ki gain. The function makes plot in order to measure
+        the step size on both signals.
+
+        Parameters
+        ----------
+        ki_data: data object
+        Contains the SQ1 feedback and SQ2 feedback dumps.
+
+        Returns
+        -------
+        Nothing
+
+        """
     """
     Defining path and file names
     """
@@ -71,7 +86,6 @@ def measure_ki(ki_data):
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
     ax1.legend(loc="best")
-
 
     fig.tight_layout()
     #plt.show()

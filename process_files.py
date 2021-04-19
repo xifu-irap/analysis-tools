@@ -25,15 +25,14 @@ duration=0
 pix_zoom=0
 spectral=True
 noise=True
-sav_er_noise_spectra=True
+sav_noise_spectra=True
 for file in dumpfilenames:
     print(drawline)
     d=get_data.data(file, config.config)
     d.print_dumptype()
     sav_spectra = False
-    if file[-13:]=="_er_noise.dat":
-        sav_spectra = sav_er_noise_spectra
-        print("Bingo !")
+    if file[-13:]=="_er_noise.dat" or d.dumptype==5:
+        sav_spectra = sav_noise_spectra
     d.plot(t0, duration, pix_zoom, spectral, noise, sav_spectra)
 
 """

@@ -68,7 +68,7 @@ class data:
             indicates if the function shall tested on fake data (default=False)
 
             sav_spectra: boolean
-            indicates if spactra shall be saved in npy file (default=False)
+            indicates if spectra shall be saved in npy file (default=False)
 
             Returns
             -------
@@ -89,7 +89,7 @@ class data:
         if self.dumptype == 4:
             plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB1", "DACFB2", t0, duration)
         if self.dumptype == 5:
-            plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral)
+            plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral, sav_spectra)
         if self.dumptype == 8:
             plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, sav_spectra)
         if self.dumptype == 9:
