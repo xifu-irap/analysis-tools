@@ -10,7 +10,6 @@ from astropy.io import fits
 
 import general_tools, get_data, plotting_tools
 
-PREBUFF=180
 JITTER_MARGIN=10
 
 """
@@ -324,7 +323,7 @@ def apply_baseline_correction(energies,baseline,baseline_correction):
 # ############################################################
 # Function to perform energy reconstruction
 # ############################################################
-def energy_reconstruction(pulse_list,optimal_filter,prebuffer=PREBUFF,prebuff_exclusion=10,
+def energy_reconstruction(pulse_list,optimal_filter,prebuffer,prebuff_exclusion=10,
                           verbose=False):
     """Perform energy reconstruction on list of pulses, including jitter correction.
     Also compute baseline value before each pulse
@@ -712,7 +711,7 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
 # ############################################################
 # Pulse reconstruction
 # ############################################################
-def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, index, verbose=False, do_plots=True):
+def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, index, PREBUFF, verbose=False, do_plots=True):
     """Perform the operations to measure the energy resolution (with and without tes noise).
     
     Arguments:
@@ -722,6 +721,7 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
         - pixeldirname: directory containing pixel's informations
         - plotdirname: location of plotfiles
         - index: to be included in the plot filename 
+        - PREBUFF: size of pre buffer
         - verbose: if True some informations are printed (Default=False)
         - do_plots: if True a plot is done with all the intermediate results (Default=True)
         
@@ -824,15 +824,24 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
 
 
 # ############################################################
-def ep(noise_filename, calib_filename, measu_filename, pix, config, record_len, verbose=False):
+def ep(noise, calib, measu, t_measu, config, PREBUFF, verbose=False):
     """Perform the operations to measure the energy resolution (with and without tes noise).
     
     Arguments:
-        fulldirname: string
-        The name of the directory containing the data files
+        noise: numpy array
+        noise records
+
+        calib: numpy array
+        pulse records of calibration data
+
+        measu: numpy array
+        pulse records of measurement data
 
         config: dictionnary
         Contains path and constants definitions
+
+        PREBUFF: number
+        size of pre buffer
 
         verbose: boolean
         If True some informations are printed (Default=False)
@@ -852,15 +861,6 @@ def ep(noise_filename, calib_filename, measu_filename, pix, config, record_len, 
     file_xifusim_tes_noise = os.path.join(pixeldirname,"noise_spectra_bbfb_noFBDAC.fits")
 
     """
-    Reading data from files
-    """
-    noise = get_noise_records(noise_filename, config, pix, record_len)
-    noise_level = noise[0].std() # used to set the pulse detection threshold
-
-    calib, _ = get_pulse_records(calib_filename, config, pix, record_len, PREBUFF, noise_level)
-    measu, t = get_pulse_records(measu_filename, config, pix, record_len+4, PREBUFF+2, noise_level)
-
-    """
     Computing EP filter
     """
     optimal_filter, optimal_filter_tot=do_ep_filter(noise, calib, file_xifusim_template, file_xifusim_tes_noise, plotdirname, verbose)
@@ -868,7 +868,7 @@ def ep(noise_filename, calib_filename, measu_filename, pix, config, record_len, 
     """
     Measuring energies
     """
-    eres, _=measure_er(measu, t, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, 0, verbose)
+    eres, _=measure_er(measu, t_measu, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, 0, PREBUFF, verbose)
 
     return(eres, config['eres_req_cbe_dre_7kev'])
 
