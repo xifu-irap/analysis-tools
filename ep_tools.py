@@ -21,6 +21,19 @@ sample_nb_label = 'Sample number'
 # Function to read noise records
 # ############################################################
 def get_noise_records(noise_file, config, pix, record_len):
+    '''
+    This function builds noise records from row dump files  
+    
+    Arguments:
+        - noise_file: string
+          dump file name
+        - config: dictionnary
+          contains path and constants definitions
+        - pix: number
+          index of the pixel to be processed
+        - record_len: number
+          length of the records to be applied
+    '''
     print("Getting noise data from file: ", noise_file)
     noisedat = get_data.data(noise_file, config)
     # selecting the data of the requested pixel
@@ -35,35 +48,92 @@ def get_noise_records(noise_file, config, pix, record_len):
 # ############################################################
 # Function to read pulse records
 # ############################################################
-def get_pulse_records(pulse_file, config, pix, record_len, prebuff, noise_level, debug=False, check=False):
+def get_pulse_records(pulse_file, config, pix, record_len, prebuff, check=False):
+    '''
+    This function builds pulse records from row dump files  
+    
+    Arguments:
+        - pulse_file: string
+          dump file name
+        - config: dictionnary
+          contains path and constants definitions
+        - pix: number
+          index of the pixel to be processed
+        - record_len: number
+          length of the records to be applied
+        - prebuff: number
+          length of prebuffer data available before each pulse
+        - check: boolean
+          if true debugging plots are displayed (default is False)
+
+    Returns:
+        - the records
+        - the t0 (indicates the begining of the pulses)
+        - the pixel reference (if the input parameyter pix is equal to 100,
+        the routine returns the reference of a pixel where pulses have been found)
+    '''
     print("Getting pulses data from file: ", pulse_file)
     pulsedat = get_data.data(pulse_file, config)
     if check:
         plotting_tools.plot_science_dump(pulsedat.values, "science_mosaic.png", config, t0=0, duration=0, pix_zoom=0)
 
-    # selecting the data of the requested pixel
+    # selecting the pixels data 
     # (offset of 1 is applyed) because the first line is the readout index
-    pulses = pulsedat.values[1+pix,:]
+    pulses = pulsedat.values[1:,:]
     # Pulse detection
-    if debug:
-        plt.plot(pulses)
-        plt.show()
-    records, t=trig(pulses, noise_level, record_len, prebuff, config, debug)
-    return(records, t)
+    return(trig(pulses, pix, record_len, prebuff, config))
     
 # ############################################################
 # Function to detect pulses in data
 # ############################################################
-def trig(data, noise_level, record_len, prebuffer, config, debug=False):
-    ratio = 0.1
-    threshold = data.max() - ratio*(data.max()-data.min())
-    t=np.arange(len(data))*(config['frow']/config['npix'])
+def trig(data, pix, record_len, prebuffer, config):
+    '''
+    This function builds pulse records from row dump files  
+    
+    Arguments:
+        - data: numpy array
+          contains the science data
+        - pix: number
+          index of the pixel to be processed
+          (if 100 the routine search for a pixel refernce containing data)
+        - record_len: number
+          length of the records to be applied
+        - prebuffer: number
+          length of prebuffer data available before each pulse
+        - config: dictionnary
+          contains path and constants definitions
+
+    Returns:
+        - the records
+        - the t0 (indicates the begining of the pulses)
+        - the pixel reference (if the input parameyter pix is equal to 100,
+        the routine returns the reference of a pixel where pulses have been found)
+    '''
+    if pix==100:
+        npix=int(config['npix'])
+        std=np.zeros(npix)
+        for p in range(npix):
+            std[p]=data[p,:].std()
+        limit = std.min()*3
+
+        if len(np.arange(npix)[std>limit])>0:
+            print("  There are probably pulses in the following pixels:")
+            print(np.arange(npix)[std>limit])
+            pix = np.arange(npix)[std>limit][0]
+        else:
+            print("there are probably no pulses in these data")
 
     """
     Rise detection (assuming there are no multiple pulses)
     """
-    level_factor = 5
-    if data.std() < noise_level * level_factor:
+    print("  Processing data of pixel {0:2d}".format(pix))
+    data=data[pix]
+
+    ratio = 0.1
+    threshold = data.max() - ratio*(data.max()-data.min())
+    t=np.arange(len(data))*(config['frow']/config['npix'])
+    noise_limit = 100
+    if data.std() < noise_limit:
         print("there are probably no pulses in these data")
         data_records = 0
     else:
@@ -87,24 +157,19 @@ def trig(data, noise_level, record_len, prebuffer, config, debug=False):
         Checking pulses are complete
         """
         # checking if first pulse is complete
-        if ipulses[0]-prebuffer < 0:
+        if ipulses[0]-prebuffer-2 < 0:
             ipulses = ipulses[1:]
         print("  Found {0:4d} pulses".format(len(ipulses)))
 
         spacing = np.append(ipulses[1:], len(data)) - ipulses
         ipulses = ipulses[spacing > record_len]
 
-        if debug:
-            spacing = np.append(ipulses[1:], len(data)) - ipulses
-            plt.plot(spacing)
-            plt.show()
-
         n_records = len(ipulses)
         print("    > {0:4d} records are long enough for processing".format(n_records))
         data_records = np.zeros((n_records, record_len))
         for i in range(n_records-1):
-            data_records[i,:] = data[ipulses[i]-prebuffer: ipulses[i]-prebuffer+record_len]
-    return(data_records, t[ipulses])
+            data_records[i,:] = data[ipulses[i]-prebuffer-2: ipulses[i]-prebuffer-2+record_len]
+    return(data_records, t[ipulses], pix)
 
 # ############################################################
 # Function to create pulse average
@@ -229,7 +294,8 @@ def do_pulse_jitter(opt_filter, pulse_record):
 # Gaussian function
 # ############################################################
 def gauss(x,*p):
-    '''Gaussian function for fits
+    '''
+    Gaussian function for fits
     '''
     A,mu,sigma = p
     return A*np.exp(-(x-mu)**2/(2.*sigma**2))
@@ -362,7 +428,7 @@ def energy_reconstruction(pulse_list,optimal_filter,prebuffer,prebuff_exclusion=
 # ############################################################
 # Function to perform all the operations needed to compute the optimal filters
 # ############################################################
-def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, plotdirname, verbose=False, do_plots=True):
+def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, prebuffer, config, plotdirname, verbose=False, do_plots=True):
     """Perform the operations to compute the optimal filters (with and without tes noise)
     and compares the results with xifusim.
     
@@ -371,6 +437,8 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
         - pulses: array containing DRE pulses data
         - file_xifusim_template: file containing xifusim template
         - file_xifusim_tes_noise: file containing tes noise compute by xifusim
+        - prebuffer: length of prebuffer data available before each pulse 
+        - config: contains path and constants definitions
         - plotdirname: location of plotfiles
         - verbose: if True some informations are printed (Default=False)
         - do_plots: if True a plot is done with all the intermediate results (Default=True)
@@ -452,10 +520,10 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
     # Do plots
     # ############################################################
     if do_plots:
-        fig = plt.figure(figsize=(8, 10))    
+        fig = plt.figure(figsize=(14, 8))    
 
         # Show noise spectrum
-        ax1=fig.add_subplot(4,2,1)
+        ax1=fig.add_subplot(2,4,1)
         ax1.loglog(frequencies,noise_spectrum[1:int(record_length/2)])
         ax1.set_title('Average noise spectrum')
         ax1.set_xlabel('Frequency [Hz]')
@@ -469,9 +537,11 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
                 
         # Show pulse template
-        ax2=fig.add_subplot(4,2,2)
-        ax2.plot((np.arange(len(pulse_template))-200)*6.4e-3,pulse_template, label='Pulse template')
-        ax2.plot((np.arange(len(pulse_template[:PREBUFF]))-200)*6.4e-3,pulse_template[:PREBUFF],'r',label='Pre-buffer')
+        ax2=fig.add_subplot(2,4,2)
+        #ax2.plot((np.arange(len(pulse_template))-prebuffer)*6.4e-3,pulse_template, label='Pulse template')
+        #ax2.plot((np.arange(len(pulse_template[:prebuffer]))-200)*6.4e-3,pulse_template[:prebuffer],'r',label='Pre-buffer')
+        ax2.plot((np.arange(len(pulse_template))-prebuffer)*config['npix']*1e-3/config['frow'],pulse_template, label='Pulse template')
+        ax2.plot((np.arange(len(pulse_template[:prebuffer]))-prebuffer)*config['npix']*1e-3/config['frow'],pulse_template[:prebuffer],'r',label='Pre-buffer')
         ax2.set_title('Pulse template')
         ax2.set_xlabel('Time [ms]')
         ax2.set_ylabel("ADU")
@@ -486,7 +556,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Show difference between xifusim template and DRE template
-        ax3=fig.add_subplot(4,2,3)
+        ax3=fig.add_subplot(2,4,3)
         ax3.plot(xifusim_template_decimated*baseline_scaling,label='xifusim')
         ax3.plot(dre_template[decal:1000+decal],label='dre')
         ax3.plot(xifusim_template_decimated*baseline_scaling - dre_template[decal:1000+decal],label='difference')
@@ -503,7 +573,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Relative difference
-        ax4=fig.add_subplot(4,2,4)
+        ax4=fig.add_subplot(2,4,4)
         ax4.plot((xifusim_template_decimated*baseline_scaling - dre_template[decal:1000+decal])/dre_template[decal:1000+decal]*100,label='difference')
         ax4.set_title('Relative difference between both templates')
         ax4.set_xlabel(sample_nb_label)
@@ -517,7 +587,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Show different power spectra
-        ax5=fig.add_subplot(4,2,5)
+        ax5=fig.add_subplot(2,4,5)
         ax5.loglog(ps_freq,xifusim_ps,label="xifusim")
         ax5.loglog(ps_freq,DRE_PS,label="dre")
         ax5.set_title('Comparison of Pulses power spectra')
@@ -533,7 +603,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Compare DAC noise with TES noise
-        ax6=fig.add_subplot(4,2,6)
+        ax6=fig.add_subplot(2,4,6)
         ax6.loglog(frequencies,tes_noise[1:int(record_length/2)],label="TES noise")
         ax6.loglog(frequencies,noise_spectrum[1:int(record_length/2)],label="DAC noise")
         ax6.loglog(frequencies,total_noise[1:int(record_length/2)],label="Total noise")
@@ -550,7 +620,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Show optimal filter without TES noise
-        ax7=fig.add_subplot(4,2,7)
+        ax7=fig.add_subplot(2,4,7)
         ax7.plot(optimal_filter_tot)
         ax7.set_title('Optimal filter')
         ax7.set_xlabel(sample_nb_label)
@@ -563,7 +633,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Show optimal filter with TES noise
-        ax8=fig.add_subplot(4,2,8)
+        ax8=fig.add_subplot(2,4,8)
         ax8.plot(optimal_filter_tot)
         ax8.set_title('Optimal filter including TES noise')
         ax8.set_xlabel(sample_nb_label)
@@ -574,7 +644,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(7)
         for item in (ax8.get_xticklabels() + ax8.get_yticklabels()):
             item.set_fontsize(6)
-
+        #plt.show()
         fig.tight_layout()
         plt.savefig(os.path.join(plotdirname,'PLOT_E_RESOL_TEMPLATES.png'),bbox_inches='tight')
 
@@ -702,16 +772,34 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
         item.set_fontsize(7)
     for item in (ax7.get_xticklabels() + ax7.get_yticklabels()):
         item.set_fontsize(6)
-
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename,bbox_inches='tight')
+
+    fig = plt.figure(figsize=(10, 8))
+    ax7=fig.add_subplot(1, 1, 1)
+    # Show energy error after phase correction
+    ax7.hist(array_to_fit3,bins=bins3,histtype='stepfilled',facecolor=c, label="")
+    ax7.plot(axe_fit3,hist_fit3,c='r',linewidth=2, label='Fit : Er={0:5.3f} x {1:5.3f} = {2:5.3f}+-{3:5.3f}eV' \
+        .format(non_linear_factor, 2.355*coeffs3[2], 2.355*coeffs3[2]*non_linear_factor, 2.355*coeffs3[2]*non_linear_factor/(np.sqrt(2.*len(energies)))))
+    ax7.legend(loc=loc_ul, fontsize=12)
+    ax7.set_title('Energy resolution after baseline and phase corrections '+tes_text)
+    ax7.set_xlabel(xlabel_e)
+    ax7.set_ylabel(ylabel_occ)
+    for item in ([ax7.title, ax7.xaxis.label, ax7.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax7.get_xticklabels() + ax7.get_yticklabels()):
+        item.set_fontsize(12)
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(plotfilename[:-4]+'_zoom.png',bbox_inches='tight')
 
 
 # ############################################################
 # Pulse reconstruction
 # ############################################################
-def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, index, PREBUFF, verbose=False, do_plots=True):
+def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, index, prebuffer, verbose=False, do_plots=True):
     """Perform the operations to measure the energy resolution (with and without tes noise).
     
     Arguments:
@@ -721,7 +809,7 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
         - pixeldirname: directory containing pixel's informations
         - plotdirname: location of plotfiles
         - index: to be included in the plot filename 
-        - PREBUFF: size of pre buffer
+        - prebuffer: size of pre buffer
         - verbose: if True some informations are printed (Default=False)
         - do_plots: if True a plot is done with all the intermediate results (Default=True)
         
@@ -745,7 +833,7 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
     t_list=t_list[i_pulse_list]
 
     # Compute first energy estimates
-    energies,phases,baselines = energy_reconstruction(pulse_list, optimal_filter, PREBUFF, JITTER_MARGIN)
+    energies,phases,baselines = energy_reconstruction(pulse_list, optimal_filter, prebuffer, JITTER_MARGIN)
 
     coeffs1, array_to_fit1, bins1, axe_fit1, hist_fit1 = hist_and_fit((energies-7)*1000, 100)
     print("Resolution without TES noise (prior correction): {0:5.3f}eV".format(coeffs1[2]*2.355*non_linear_factor))
@@ -774,7 +862,7 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
     print("\nReconstruction with OF including TES noise...")
         
     # Compute first energy estimates
-    energies,phases,baselines = energy_reconstruction(pulse_list, optimal_filter_tot, PREBUFF, JITTER_MARGIN)
+    energies,phases,baselines = energy_reconstruction(pulse_list, optimal_filter_tot, prebuffer, JITTER_MARGIN)
 
     coeffs1, array_to_fit1, bins1, axe_fit1, hist_fit1 = hist_and_fit((energies-7)*1000, 100)
     print("Resolution without TES noise (prior correction): {0:5.3f}eV".format(coeffs1[2]*2.355*non_linear_factor))
@@ -818,29 +906,28 @@ def measure_er(pulse_list, t_list, optimal_filter, optimal_filter_tot, pixeldirn
         fig.tight_layout()
         plt.savefig(plotdriftfilename,bbox_inches='tight')
 
-
     # np.save('energies.npy', energies)
     return(eres_tesnoise, eres_tesnoise/(np.sqrt(2.*len(energies))))
 
 
 # ############################################################
-def ep(noise, calib, measu, t_measu, config, PREBUFF, verbose=False):
+def ep(noise_rec_filename, calib_rec_filename, measu_rec_filename, config, prebuffer, verbose=False):
     """Perform the operations to measure the energy resolution (with and without tes noise).
     
     Arguments:
-        noise: numpy array
-        noise records
+        noise_rec_filename: string
+        name of the npy file containing the noise records
 
-        calib: numpy array
-        pulse records of calibration data
+        calib_rec_filename: string
+        name of the npy file containing the pulse records of calibration data
 
-        measu: numpy array
-        pulse records of measurement data
+        measu_rec_filename: string
+        name of the npy file containing the pulse records of measurement data
 
         config: dictionnary
         Contains path and constants definitions
 
-        PREBUFF: number
+        prebuffer: number
         size of pre buffer
 
         verbose: boolean
@@ -854,21 +941,34 @@ def ep(noise, calib, measu, t_measu, config, PREBUFF, verbose=False):
     """
     Defining path and file names
     """
+    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+    full_noise_rec_filename = os.path.join(dirname, noise_rec_filename)
+    full_calib_rec_filename = os.path.join(dirname, calib_rec_filename)
+    full_measu_rec_filename = os.path.join(dirname, measu_rec_filename)
     plotdirname = os.path.join(os.path.normcase(config['path']), config['dir_plots'])
     general_tools.checkdir(plotdirname)
     pixeldirname = os.path.normcase("./Pixel_data_LPA75um_AR0.5/")
     file_xifusim_template = os.path.join(pixeldirname,"pulse_withBBFB.npy")
     file_xifusim_tes_noise = os.path.join(pixeldirname,"noise_spectra_bbfb_noFBDAC.fits")
 
+    with open(full_noise_rec_filename, 'rb') as file:
+        noise = np.load(file)
+    with open(full_calib_rec_filename, 'rb') as file:
+        t_calib = np.load(file)
+        calib = np.load(file)
+    with open(full_measu_rec_filename, 'rb') as file:
+        t_measu = np.load(file)
+        measu = np.load(file)
+
     """
     Computing EP filter
     """
-    optimal_filter, optimal_filter_tot=do_ep_filter(noise, calib, file_xifusim_template, file_xifusim_tes_noise, plotdirname, verbose)
+    optimal_filter, optimal_filter_tot=do_ep_filter(noise, calib, file_xifusim_template, file_xifusim_tes_noise, prebuffer, config, plotdirname, verbose)
     
     """
     Measuring energies
     """
-    eres, _=measure_er(measu, t_measu, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, 0, PREBUFF, verbose)
+    eres, _=measure_er(measu, t_measu, optimal_filter, optimal_filter_tot, pixeldirname, plotdirname, 0, prebuffer, verbose)
 
     return(eres, config['eres_req_cbe_dre_7kev'])
 
