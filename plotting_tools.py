@@ -420,13 +420,13 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
         plt.savefig(plotfilename[:-4]+"_F.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_5mega_dump(data, plotfilename, config, title1, title2, t0=0, duration=0):
+def plot_5mega_dump(data1, data2, plotfilename, config, title1, title2, t0=0, duration=0):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
         Parameters
         ----------
-        data : numpy array
+        data1, data2 : numpy arrays
         Contains the 2 sets of data
 
         plotfilename : string
@@ -454,9 +454,6 @@ def plot_5mega_dump(data, plotfilename, config, title1, title2, t0=0, duration=0
         """
     print(plotting_message)
     print("  >> " + plotfilename)
-
-    data1 = data[:, 0]
-    data2 = data[:, 1]
 
     # In these dumps the 5MHz data are over sampled at 20MHz
     fs = float(config["frow"])*4 # Approx 20MHz

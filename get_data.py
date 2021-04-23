@@ -81,19 +81,29 @@ class data:
         plotfilename = os.path.join(plotdirname, self.filename[:-4]+".png")
 
         if self.dumptype == 0:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB1", "Science", t0, duration)
+            data1 = self.values[:, 0]
+            data2 = self.values[:, 1]+2**16 # Convertion to 16-bit unsigned format 
+            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB1", "Science", t0, duration)
         if self.dumptype == 1:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "ERROR", "Science", t0, duration)
+            data1 = self.values[:, 0]
+            data2 = self.values[:, 1]+2**16 # Convertion to 16-bit unsigned format 
+            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "ERROR", "Science", t0, duration)
         if self.dumptype == 2:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB2", "Science", t0, duration)
+            data1 = self.values[:, 0]
+            data2 = self.values[:, 1]+2**16 # Convertion to 16-bit unsigned format 
+            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB2", "Science", t0, duration)
         if self.dumptype == 4:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "DACFB1", "DACFB2", t0, duration)
+            data1 = self.values[:, 0]
+            data2 = self.values[:, 1]
+            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB1", "DACFB2", t0, duration)
         if self.dumptype == 5:
             plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral, sav_spectra)
         if self.dumptype == 8:
             plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, sav_spectra)
         if self.dumptype == 9:
-            plotting_tools.plot_5mega_dump(self.values, plotfilename, self.config, "ERROR", "DACFB1", t0, duration)
+            data1 = self.values[:, 0]
+            data2 = self.values[:, 1]
+            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "ERROR", "DACFB1", t0, duration)
         if self.dumptype == 15:
             plotting_tools.plot_counter_dump(self.values, plotfilename, self.config)
 
