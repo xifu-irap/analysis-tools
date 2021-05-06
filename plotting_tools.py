@@ -5,6 +5,8 @@ import numpy as np
 from numpy.fft import rfft
 import os
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.rcParams['agg.path.chunksize'] = 10000
 
 import general_tools, get_data
 
@@ -355,7 +357,7 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
 
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
-    mkr=''
+    mkr='.'
     if imax-imin<300:
         mkr='.'
 
@@ -560,7 +562,6 @@ def plot_counter_dump(data, plotfilename, config):
     plt.savefig(plotfilename, bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-
 """
 Testing the routines with test data.
 """
@@ -586,5 +587,14 @@ if __name__ == "__main__":
         noise = True
         check_noise_measurement = True
         d.plot(t0, duration, pix_zoom, spectral, noise, check_noise_measurement)
+
+# -----------------------------------------------------------------------------
+def over_plot_records(records):
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(1, 1, 1)
+    for i_record in range(len(records)):
+        ax.plot(records[i_record,:])
+    fig.tight_layout()
+    plt.show()
 
 # -----------------------------------------------------------------------------

@@ -21,6 +21,10 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
                 and f[-13:]!="_er_calib.dat" \
                 and f[-13:]!="_er_measu.dat" ]
 
+#dumpfilenames = [f for f in os.listdir(datadirname) \
+#                if os.path.isfile(os.path.join(datadirname, f)) \
+#                and f[-4:]==".log" ]
+
 t0=0
 duration=0
 pix_zoom=0
@@ -52,12 +56,12 @@ Processing energy resolution data ###################################
 """
 prebuffer=180
 record_len=4096
-pix = 100 # if 100 the routine will look for pixels with pulses
 rec_extension='_rec.npy'
 
 """
 Making noise records
 """
+pix=0
 filename_er_noise = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-13:]=="_er_noise.dat"]
@@ -74,6 +78,7 @@ if len(filename_er_noise)>0 and len(filename_er_noise_rec)==0:
 """
 Triggering calibration pulses
 """
+pix = 100 # if 100 the routine will look for pixels with pulses
 filename_er_calib = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-13:]=="_er_calib.dat"]

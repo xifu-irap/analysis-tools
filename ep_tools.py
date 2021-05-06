@@ -106,29 +106,30 @@ def trig(data, pix, record_len, prebuffer, config):
     Returns:
         - the records
         - the t0 (indicates the begining of the pulses)
-        - the pixel reference (if the input parameyter pix is equal to 100,
+        - the pixel reference (if the input parameter pix is equal to 100,
         the routine returns the reference of a pixel where pulses have been found)
     '''
-    if pix==100:
+    if pix==100: # looking for pixels with pulses
         npix=int(config['npix'])
         std=np.zeros(npix)
         for p in range(npix):
             std[p]=data[p,:].std()
-        limit = std.min()*3
+        limit = std.min()*5
 
-        if len(np.arange(npix)[std>limit])>0:
+        pixels_with_pulses=np.arange(npix)[std>limit]
+        if len(pixels_with_pulses)>0:
             print("  There are probably pulses in the following pixels:")
-            print(np.arange(npix)[std>limit])
-            pix = np.arange(npix)[std>limit][0]
+            print(pixels_with_pulses)
+            pix = np.arange(npix)[std==std.max()][0]
         else:
             print("there are probably no pulses in these data")
 
     """
-    Rise detection (assuming there are no multiple pulses)
+    Rising edge detection (assuming there are no multiple pulses)
     """
     print("  Processing data of pixel {0:2d}".format(pix))
-    data=data[pix]
-
+    data=data[pix,:]
+    
     ratio = 0.1
     threshold = data.max() - ratio*(data.max()-data.min())
     t=np.arange(len(data))*(config['frow']/config['npix'])
@@ -151,23 +152,22 @@ def trig(data, pix, record_len, prebuffer, config):
         """
         Building pulse records
         """
-        ipulses = np.where(boole)[0]
+        ipulses = np.arange(len(boole))[boole]
 
         """
         Checking pulses are complete
         """
-        # checking if first pulse is complete
-        if ipulses[0]-prebuffer-2 < 0:
-            ipulses = ipulses[1:]
         print("  Found {0:4d} pulses".format(len(ipulses)))
 
-        spacing = np.append(ipulses[1:], len(data)) - ipulses
-        ipulses = ipulses[spacing > record_len]
+        spacing1 = np.append(ipulses[1:], len(data)) - ipulses
+        spacing2 = ipulses - np.append(prebuffer+2, ipulses[:-1])
+        condition = (spacing1 > record_len) & (spacing2 > record_len)
+        ipulses = ipulses[condition]
 
         n_records = len(ipulses)
         print("    > {0:4d} records are long enough for processing".format(n_records))
         data_records = np.zeros((n_records, record_len))
-        for i in range(n_records-1):
+        for i in range(n_records):
             data_records[i,:] = data[ipulses[i]-prebuffer-2: ipulses[i]-prebuffer-2+record_len]
     return(data_records, t[ipulses], pix)
 
@@ -520,10 +520,10 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
     # Do plots
     # ############################################################
     if do_plots:
-        fig = plt.figure(figsize=(14, 8))    
+        fig = plt.figure(figsize=(14, 9))    
 
         # Show noise spectrum
-        ax1=fig.add_subplot(2,4,1)
+        ax1=fig.add_subplot(2,3,2)
         ax1.loglog(frequencies,noise_spectrum[1:int(record_length/2)])
         ax1.set_title('Average noise spectrum')
         ax1.set_xlabel('Frequency [Hz]')
@@ -536,6 +536,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
         for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
             item.set_fontsize(6)
                 
+        """
         # Show pulse template
         ax2=fig.add_subplot(2,4,2)
         #ax2.plot((np.arange(len(pulse_template))-prebuffer)*6.4e-3,pulse_template, label='Pulse template')
@@ -554,13 +555,14 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(7)
         for item in (ax2.get_xticklabels() + ax2.get_yticklabels()):
             item.set_fontsize(6)
+        """
 
         # Show difference between xifusim template and DRE template
-        ax3=fig.add_subplot(2,4,3)
+        ax3=fig.add_subplot(2,3,1)
         ax3.plot(xifusim_template_decimated*baseline_scaling,label='xifusim')
         ax3.plot(dre_template[decal:1000+decal],label='dre')
         ax3.plot(xifusim_template_decimated*baseline_scaling - dre_template[decal:1000+decal],label='difference')
-        ax3.set_title('Direct difference between both templates')
+        ax3.set_title('Pulse template')
         ax3.set_xlabel(sample_nb_label)
         ax3.set_ylabel('Module (ADU)')
         ax3.legend(loc="best", prop=dict(size=7))
@@ -573,7 +575,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Relative difference
-        ax4=fig.add_subplot(2,4,4)
+        ax4=fig.add_subplot(2,3,4)
         ax4.plot((xifusim_template_decimated*baseline_scaling - dre_template[decal:1000+decal])/dre_template[decal:1000+decal]*100,label='difference')
         ax4.set_title('Relative difference between both templates')
         ax4.set_xlabel(sample_nb_label)
@@ -587,7 +589,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Show different power spectra
-        ax5=fig.add_subplot(2,4,5)
+        ax5=fig.add_subplot(2,3,5)
         ax5.loglog(ps_freq,xifusim_ps,label="xifusim")
         ax5.loglog(ps_freq,DRE_PS,label="dre")
         ax5.set_title('Comparison of Pulses power spectra')
@@ -603,7 +605,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(6)
 
         # Compare DAC noise with TES noise
-        ax6=fig.add_subplot(2,4,6)
+        ax6=fig.add_subplot(2,3,3)
         ax6.loglog(frequencies,tes_noise[1:int(record_length/2)],label="TES noise")
         ax6.loglog(frequencies,noise_spectrum[1:int(record_length/2)],label="DAC noise")
         ax6.loglog(frequencies,total_noise[1:int(record_length/2)],label="Total noise")
@@ -619,6 +621,7 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
         for item in (ax6.get_xticklabels() + ax6.get_yticklabels()):
             item.set_fontsize(6)
 
+        """
         # Show optimal filter without TES noise
         ax7=fig.add_subplot(2,4,7)
         ax7.plot(optimal_filter_tot)
@@ -631,9 +634,10 @@ def do_ep_filter(noise, pulses, file_xifusim_template, file_xifusim_tes_noise, p
             item.set_fontsize(7)
         for item in (ax7.get_xticklabels() + ax7.get_yticklabels()):
             item.set_fontsize(6)
+        """
 
         # Show optimal filter with TES noise
-        ax8=fig.add_subplot(2,4,8)
+        ax8=fig.add_subplot(2,3,6)
         ax8.plot(optimal_filter_tot)
         ax8.set_title('Optimal filter including TES noise')
         ax8.set_xlabel(sample_nb_label)
@@ -959,6 +963,8 @@ def ep(noise_rec_filename, calib_rec_filename, measu_rec_filename, config, prebu
     with open(full_measu_rec_filename, 'rb') as file:
         t_measu = np.load(file)
         measu = np.load(file)
+
+    #plotting_tools.over_plot_records(calib)
 
     """
     Computing EP filter

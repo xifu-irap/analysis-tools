@@ -65,16 +65,9 @@ def switch_bin2hexa(bin):
 ###############################################################################
 def switch_natbin2dec(bin):
     r"""
-    This function makes the conversion from natural binary ascii to decimal ascci.
+    This function makes the conversion from natural binary ascii to decimal value.
     """
-
-    nbits=len(bin)
-    offset=0
-    dec=''
-    while offset<nbits:
-        dec=dec+bin[offset]*2**offset
-        offset+=1
-    return(dec)
+    return(int(bin,2))
 
 ###############################################################################
 def dec2cad(dec, n):
