@@ -21,12 +21,8 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
                 and f[-13:]!="_er_calib.dat" \
                 and f[-13:]!="_er_measu.dat" ]
 
-#dumpfilenames = [f for f in os.listdir(datadirname) \
-#                if os.path.isfile(os.path.join(datadirname, f)) \
-#                and f[-4:]==".log" ]
-
 t0=0
-duration=0
+duration=0.1
 pix_zoom=0
 spectral=True
 noise=True

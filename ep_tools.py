@@ -3,7 +3,6 @@
 
 import os
 import numpy as np
-import argparse
 import matplotlib.pyplot as plt
 from scipy.optimize.minpack import curve_fit
 from astropy.io import fits
@@ -668,6 +667,7 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
     ylabel_e7 = 'Energy - 7000 [eV]'
     ylabel_occ = "Occurences"
     loc_ul = "upper left"
+    fit_er_txt = 'Fit : Er={0:5.3f} x {1:5.3f} = {2:5.3f}+-{3:5.3f}eV'
 
     # Show initial energy error
     ax1=fig.add_subplot(5, 1, 1)
@@ -718,7 +718,7 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
     # Show energy error after baseline correction
     ax4=fig.add_subplot(5, 1, 3)
     ax4.hist(array_to_fit2,bins=bins2,histtype='stepfilled',facecolor=c)
-    ax4.plot(axe_fit2,hist_fit2,c='r',linewidth=2, label='Fit : Er={0:5.3f} x {1:5.3f} = {2:5.3f}+-{3:5.3f}eV' \
+    ax4.plot(axe_fit2,hist_fit2,c='r',linewidth=2, label=fit_er_txt\
         .format(non_linear_factor, 2.355*coeffs2[2], 2.355*coeffs2[2]*non_linear_factor, 2.355*coeffs2[2]*non_linear_factor/(np.sqrt(2.*len(energies)))))
     ax4.legend(loc=loc_ul, prop=dict(size=7))
     ax4.set_title('Energy resolution after baseline correction '+tes_text)
@@ -763,7 +763,7 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
     # Show energy error after phase correction
     ax7=fig.add_subplot(5, 1, 5)
     ax7.hist(array_to_fit3,bins=bins3,histtype='stepfilled',facecolor=c, label="")
-    ax7.plot(axe_fit3,hist_fit3,c='r',linewidth=2, label='Fit : Er={0:5.3f} x {1:5.3f} = {2:5.3f}+-{3:5.3f}eV' \
+    ax7.plot(axe_fit3,hist_fit3,c='r',linewidth=2, label=fit_er_txt\
         .format(non_linear_factor, 2.355*coeffs3[2], 2.355*coeffs3[2]*non_linear_factor, 2.355*coeffs3[2]*non_linear_factor/(np.sqrt(2.*len(energies)))))
     ax7.legend(loc=loc_ul, prop=dict(size=7))
     ax7.set_title('Energy resolution after baseline and phase corrections '+tes_text)
@@ -784,7 +784,7 @@ def plot_er(non_linear_factor,array_to_fit1,bins1,coeffs1,axe_fit1,hist_fit1,bas
     ax7=fig.add_subplot(1, 1, 1)
     # Show energy error after phase correction
     ax7.hist(array_to_fit3,bins=bins3,histtype='stepfilled',facecolor=c, label="")
-    ax7.plot(axe_fit3,hist_fit3,c='r',linewidth=2, label='Fit : Er={0:5.3f} x {1:5.3f} = {2:5.3f}+-{3:5.3f}eV' \
+    ax7.plot(axe_fit3,hist_fit3,c='r',linewidth=2, label=fit_er_txt\
         .format(non_linear_factor, 2.355*coeffs3[2], 2.355*coeffs3[2]*non_linear_factor, 2.355*coeffs3[2]*non_linear_factor/(np.sqrt(2.*len(energies)))))
     ax7.legend(loc=loc_ul, fontsize=12)
     ax7.set_title('Energy resolution after baseline and phase corrections '+tes_text)
@@ -958,7 +958,7 @@ def ep(noise_rec_filename, calib_rec_filename, measu_rec_filename, config, prebu
     with open(full_noise_rec_filename, 'rb') as file:
         noise = np.load(file)
     with open(full_calib_rec_filename, 'rb') as file:
-        t_calib = np.load(file)
+        _ = np.load(file)
         calib = np.load(file)
     with open(full_measu_rec_filename, 'rb') as file:
         t_measu = np.load(file)

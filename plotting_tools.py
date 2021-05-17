@@ -18,6 +18,7 @@ time_label="Time (ms)"
 frequency_label="Frequency (Hz)"
 spectral_power_density_label=r"Power spectral density (dB/$\sqrt{Hz}$)"
 error_t0_message="Wrong zoom parameter, t0 changed to 0s."
+pix_id_txt = "Pixel {0:2d}"
 
 # -----------------------------------------------------------------------
 def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
@@ -132,7 +133,7 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
     for pix in range(npix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
         ax.plot(1000*t[imin:imax], data[pix,imin:imax], 'b')
-        ax.set_title("Pixel {0:2d}".format(1+pix))
+        ax.set_title(pix_id_txt.format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         ax.set_xlim(t[imin]*1000, t[imax-1]*1000)
         ax.set_ylim(ymin, ymax)
@@ -260,7 +261,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
     ax1.semilogx(f, noise_spectra_db[pix_zoom,:], marker='.')
     ax1.set_ylabel(ylabel)
     ax1.set_xlabel(frequency_label)
-    ax1.set_title("Pixel {0:2d}".format(1+pix_zoom))
+    ax1.set_title(pix_id_txt.format(1+pix_zoom))
     major_ticks=np.linspace(ymin,ymax,db_step)
     ax1.set_xlim(f[1], f[-1])
     ax1.set_ylim(ymin, ymax)
@@ -283,7 +284,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
     for pix in range(n_pix):
         ax = fig.add_subplot(nlines, ncols, 1+pix)
         ax.semilogx(f, noise_spectra_db[pix,:], marker='.')
-        ax.set_title("Pixel {0:2d}".format(1+pix))
+        ax.set_title(pix_id_txt.format(1+pix))
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         ax.set_ylim(ymin, ymax)
         ax.set_xlim(f[1], f[-1])
@@ -357,7 +358,7 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
 
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
-    mkr='.'
+    mkr=''
     if imax-imin<300:
         mkr='.'
 
