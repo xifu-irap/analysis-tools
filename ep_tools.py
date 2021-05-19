@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2021-2030 <FirstnameName>, IRAP Toulouse.
+#  Copyright (C) 2021-2030 Laurent Ravera, IRAP Toulouse.
 #  This file is part of the ATHENA X-IFU DRE data analysis tools software.
 #
 #  analysis-tools is free software: you can redistribute it and/or modify
