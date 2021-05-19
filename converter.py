@@ -24,31 +24,15 @@
 
 ###############################################################################
 def switch_bin2hexa_digit(digit):
-    switcher={
-    "0000": "0",
-    "0001": "1",
-    "0010": "2",  
-    "0011": "3", 
-    "0100": "4",   
-    "0101": "5",   
-    "0110": "6",   
-    "0111": "7",   
-    "1000": "8",   
-    "1001": "9",   
-    "1010": "A",   
-    "1011": "B",   
-    "1100": "C",   
-    "1101": "D",   
-    "1110": "E",   
-    "1111": "F"  
-    }
-    return(switcher[digit])
-
+    r"""
+    This function translates a binary string to an hexadecimal string
+    """
+    return(hex(int(digit,2))[2:].upper())
 
 ###############################################################################
 def twos_comp(val, bits):
     r"""
-    This function computes the 2's complement of int value val
+    This function computes the 2's complement of an int value
     """
     if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
         val = val - (1 << bits)        # compute negative value
@@ -59,21 +43,22 @@ def twos_comp_bin2int(binary_string):
     r"""
     This function converts a two's complement binary value (string) to an integer
     """
-    return(twos_comp(int(binary_string,2), len(binary_string)))
+    base=2
+    return(twos_comp(int(binary_string,base), len(binary_string)))
 
 ###############################################################################
 def twos_comp_hex2int(hex_string):
     r"""
     This function converts a two's complement hex value (string) to an integer
     """
-    return(twos_comp(int(hex_string,16), 32))
+    base=16
+    return(twos_comp(int(hex_string,base), 4*len(hex_string)))
 
 ###############################################################################
 def switch_bin2hexa(bin):
     r"""
     This function makes the conversion from binary ascii to hexadecimal ascci.
     """
-
     nbits=len(bin)
     offset=0
     hexa=''
@@ -171,18 +156,15 @@ def dec2natbin(dec, n):
     num : string to number conversion
 
     """
-    bin_str = ''
-    if dec >= 0:
-        while n > 0:
-            bin_str = str(dec % 2) + bin_str
-            dec >>= 1
-            n += -1
-    if dec > 0:
+    bin_str = bin(dec)[2:]
+    l=len(bin_str)
+    if l<=n:
+        bin_str = '0'*(n-l) + bin_str
+    else:
         raise ValueError('Requested size is too small for this value')
     return bin_str
 
 ###############################################################################
-
 def signed_hexa_2_dec(hexstr,nbits):
     r"""
     This function computes the decimal value of a 2's complement signed hexa string.
@@ -216,7 +198,6 @@ def signed_hexa_2_dec(hexstr,nbits):
     return value
 
 ###############################################################################
-
 def dec_to_signed_hexa(signeddec,nbits):
     r"""
     This function computes the hexadecimal string of a signed decimal value.
@@ -245,6 +226,6 @@ def dec_to_signed_hexa(signeddec,nbits):
     '0xfffe'
     """
 
-    return(hex(signeddec & (2**nbits-1)))
+    return(hex(signeddec & (2**nbits-1))[2:])
 
 ###############################################################################
