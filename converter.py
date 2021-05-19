@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -104,10 +103,8 @@ def dec2cad(dec, n):
     --------
     >>> dec2cad(7, 8)
     '00000111'
-
     >>> dec2cad(-7, 8)
     '11111001'
-
     >>> dec2cad(7, 2)
     ValueError: Requested size is too small for this value
 
@@ -218,10 +215,8 @@ def dec_to_signed_hexa(signeddec,nbits):
     --------
     >>> dec_to_signed_hexa(2,8)                                                           
     '0x2'
-
     >>> dec_to_signed_hexa(2,16)                                                          
     '0x2'
-
     >>> dec_to_signed_hexa(-2,16)                                                         
     '0xfffe'
     """
