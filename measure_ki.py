@@ -48,7 +48,7 @@ def measure_ki(ki_data):
     """
     plotdirname = os.path.join(os.path.normcase(ki_data.config['path']), ki_data.config['dir_plots'])
     general_tools.checkdir(plotdirname)
-    plotfilename=os.path.join(plotdirname,'ki_measurement.png')
+    plotfilename=os.path.join(plotdirname,'loop_gain_measurement.png')
 
     print("Measuring ki ...")
     data1, name1 = ki_data.values[:, 0], "Feedback SQ1"
@@ -92,15 +92,15 @@ def measure_ki(ki_data):
 
     fig = plt.figure(figsize=(10, 8))
     ax1 = fig.add_subplot(1, 1, 1)
+    ax1.plot(1000*t[i1:i2], data1[i1:i2], 'b', label="Feedback SQ1 signal")
     ax1.plot(1000*t[i1:i2], data2[i1:i2], 'k', label="Return signal")
     ax1.set_ylabel(name2)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
 
-    ax1.plot(1000*t[i1:i2], data1[i1:i2], 'b', label="Feedback SQ1 signal")
-    ax1.plot(1000*t[range_feedback1], data1[range_feedback1], 'r', marker=mkr, label="Feedback step size ={0:5.0f}".format(step_size_feedback))
+    ax1.plot(1000*t[range_feedback1], data1[range_feedback1], 'r', marker=mkr, label="Feedback step size ={0:6.0f}".format(step_size_feedback))
     ax1.plot(1000*t[range_feedback2], data1[range_feedback2], 'r', marker=mkr)
-    ax1.plot(1000*t[range_return1], data2[range_return1], 'g', marker=mkr, label="Return step size ={0:5.0f} ==>  ki={1:4.3f}".format(step_size_return, ki))
+    ax1.plot(1000*t[range_return1], data2[range_return1], 'g', marker=mkr, label="Return step size ={0:6.0f} ==> loop gain ={1:4.3f}".format(step_size_return, ki))
     ax1.plot(1000*t[range_return2], data2[range_return2], 'g', marker=mkr)
     ax1.set_ylabel(name1)
     ax1.set_xlabel(xtitle)
