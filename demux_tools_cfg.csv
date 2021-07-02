@@ -6,6 +6,7 @@ datafilename=x
 fulldatafilename=x
 plotfilename=x
 fullplotfilename=x
+length_of_date_in_filenames=16
 adc_1volt_in_adu=2048
 npix=34
 fs_ADC=39056000

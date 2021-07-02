@@ -111,7 +111,7 @@ def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, s
     print(plotting_message)
     plotfilename=config['fullplotfilename']
     plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
-    plotfilename_all = plotfilename[:-4]+"_all.png"
+    plotfilename_all = plotfilename[:-4]+".png"
     print("  >> " + plotfilename_zoom)
     print("  >> " + plotfilename_all)
 
@@ -228,7 +228,7 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=Fal
     print("Plotting noise from dump data...")
     plotfilename=config['fullplotfilename']
     plotfilename_zoom = plotfilename[:-4]+"_SP_zoom.png"
-    plotfilename_all = plotfilename[:-4]+"_SP_all.png"
+    plotfilename_all = plotfilename[:-4]+"_SP.png"
     print("  >> " + plotfilename_zoom)
     print("  >> " + plotfilename_all)
 
@@ -434,7 +434,7 @@ def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
 
         fig.tight_layout()
         #plt.show()
-        plt.savefig(plotfilename[:-4]+"_F.png", bbox_inches='tight')
+        plt.savefig(plotfilename[:-4]+"_SP.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
 def plot_5mega_dump(data1, data2, config, title1, title2, t0=0, duration=0):

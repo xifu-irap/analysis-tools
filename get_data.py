@@ -154,6 +154,9 @@ def read_data(datafilename):
     config=general_tools.configuration("demux_tools_cfg")
     config=config.config
 
+    """
+    Managing filenames
+    """
     dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
     fulldatafilename = os.path.join(dirname, datafilename)
     config['fulldatafilename']=fulldatafilename
@@ -161,11 +164,26 @@ def read_data(datafilename):
 
     plotdirname = os.path.join(os.path.normcase(config['path']), config['dir_plots'])
     general_tools.checkdir(plotdirname)
-    plotfilename = datafilename[:-4]+".png"
+    plotfilename = datafilename[int(config['length_of_date_in_filenames']):-4]+".png"
     fullplotfilename = os.path.join(plotdirname, plotfilename)
+    file_index=1
+    # Managing multiple plot files with same name
+    while os.path.isfile(fullplotfilename):
+        print(fullplotfilename + " already exists")
+        if file_index==1:
+            length_to_be_removed=4
+        else:
+            length_to_be_removed=len(plotfilename.split('-')[-1])+1
+        file_index+=1
+        plotfilename = plotfilename[:-length_to_be_removed]+"-{0:1d}.png".format(file_index)
+        fullplotfilename = os.path.join(plotdirname, plotfilename)
+
     config['fullplotfilename']=fullplotfilename
     config['plotfilename']=plotfilename
 
+    """
+    Opening file
+    """
     fdat=open(fulldatafilename, 'rb')
     data=np.fromfile(fdat, dtype='<h')
     fdat.close()
