@@ -39,6 +39,7 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-4:]==".dat" \
                 and f[-13:]!="_er_calib.dat" \
+                and f[-13:]!="_er_noise.dat" \
                 and f[-13:]!="_er_measu.dat" ]
 
 t0=0
@@ -47,12 +48,12 @@ pix_zoom=0
 spectral=True
 noise=True
 sav_noise_spectra=True
-for file in dumpfilenames:
+for filename in dumpfilenames:
     print(drawline)
-    d=get_data.data(file, config.config)
+    d=get_data.data(filename)
     d.print_dumptype()
     sav_spectra = False
-    if file[-13:]=="_er_noise.dat" or d.dumptype==5:
+    if d.dumptype==5:
         sav_spectra = sav_noise_spectra
     d.plot(t0, duration, pix_zoom, spectral, noise, sav_spectra)
 

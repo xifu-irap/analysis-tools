@@ -35,10 +35,9 @@ DADA=-9510      # 0xDADA interpreted as int16
 
 # -----------------------------------------------------------------------------
 class data:
-    def __init__(self, filename, config):
+    def __init__(self, filename):
         self.filename=filename
-        self.config=config
-        self.values, self.dumptype=read_data(filename, config)
+        self.values, self.dumptype, self.config=read_data(filename)
 
     def print_dumptype(self):
         if self.dumptype==0:
@@ -96,43 +95,39 @@ class data:
 
             """
 
-        plotdirname = os.path.join(os.path.normcase(self.config['path']), self.config['dir_plots'])
-        general_tools.checkdir(plotdirname)
-        plotfilename = os.path.join(plotdirname, self.filename[:-4]+".png")
-
         if self.dumptype == 0:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB1", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "Science", t0, duration)
         if self.dumptype == 1:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "ERROR", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "Science", t0, duration)
         if self.dumptype == 2:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB2", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB2", "Science", t0, duration)
         if self.dumptype == 4:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1]
-            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "DACFB1", "DACFB2", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "DACFB2", t0, duration)
         if self.dumptype == 5:
-            plotting_tools.plot_adc_dump(self.values, plotfilename, self.config, t0, duration, spectral, sav_spectra)
+            plotting_tools.plot_adc_dump(self.values, self.config, t0, duration, spectral, sav_spectra)
         if self.dumptype == 8:
-            plotting_tools.plot_science_dump(self.values, plotfilename, self.config, t0, duration, pix_zoom, noise, sav_spectra)
+            plotting_tools.plot_science_dump(self.values, self.config, t0, duration, pix_zoom, noise, sav_spectra)
         if self.dumptype == 9:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1]
-            plotting_tools.plot_5mega_dump(data1, data2, plotfilename, self.config, "ERROR", "DACFB1", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "DACFB1", t0, duration)
         if self.dumptype == 15:
-            plotting_tools.plot_counter_dump(self.values, plotfilename, self.config)
+            plotting_tools.plot_counter_dump(self.values, self.config)
 
 
 # -----------------------------------------------------------------------------
-def read_data(dumpfilename, config):
+def read_data(datafilename):
     r"""
         This function reads data from a DRE dump file, and returns 1 array
         (format <h).
@@ -140,11 +135,8 @@ def read_data(dumpfilename, config):
 
         Parameters
         ----------
-        dumpfilename : string
+        datafilename : string
         The name of the dump file (with the path and the extension)
-
-        config : dictionnary
-        contains different informations such as path and directory names
 
         Returns
         -------
@@ -153,12 +145,28 @@ def read_data(dumpfilename, config):
 
         dumptype : number
         Dumptype id.
+
+        config : dictionnary
+        contains different informations such as path and directory names
+
         """
 
-    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
-    fullfilename = os.path.join(dirname, dumpfilename)
+    config=general_tools.configuration("demux_tools_cfg")
+    config=config.config
 
-    fdat=open(fullfilename, 'rb')
+    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+    fulldatafilename = os.path.join(dirname, datafilename)
+    config['fulldatafilename']=fulldatafilename
+    config['datafilename']=datafilename
+
+    plotdirname = os.path.join(os.path.normcase(config['path']), config['dir_plots'])
+    general_tools.checkdir(plotdirname)
+    plotfilename = datafilename[:-4]+".png"
+    fullplotfilename = os.path.join(plotdirname, plotfilename)
+    config['fullplotfilename']=fullplotfilename
+    config['plotfilename']=plotfilename
+
+    fdat=open(fulldatafilename, 'rb')
     data=np.fromfile(fdat, dtype='<h')
     fdat.close()
         
@@ -214,6 +222,6 @@ def read_data(dumpfilename, config):
         data = np.resize(data, (len(data)//2, 2)).astype('uint16')
         data = data[:, 1]*2.**16 + data[:, 0]
 
-    return(data, dumptype)
+    return(data, dumptype, config)
 
 # -----------------------------------------------------------------------------

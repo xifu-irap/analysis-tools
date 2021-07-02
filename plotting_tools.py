@@ -76,7 +76,7 @@ def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
 
 
 # -----------------------------------------------------------------------------
-def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, noise=False, sav_spectra=False):
+def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, sav_spectra=False):
     r"""
         This function checks the data of a DRE-DEMUX science data dump.
 
@@ -84,9 +84,6 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
         ----------
         data: numpy array
         The data of the dump 
-
-        plotfilename: string
-        Name of the plot file (with the path)
 
         config: dictionnary
         contains different informations such as path and directory names
@@ -112,6 +109,7 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
 
         """
     print(plotting_message)
+    plotfilename=config['fullplotfilename']
     plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
     plotfilename_all = plotfilename[:-4]+"_all.png"
     print("  >> " + plotfilename_zoom)
@@ -198,12 +196,12 @@ def plot_science_dump(data, plotfilename, config, t0=0, duration=0, pix_zoom=0, 
     Plotting spectra
     """
     if noise:
-        plot_science_dump_noise(data, config, plotfilename[:-4]+"_noise.png", pix_zoom, 8192, sav_spectra)
+        plot_science_dump_spectra(data, config, pix_zoom, 8192, sav_spectra)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8192, sav=False):
+def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=False):
     r"""
-        This function measures noise spectra on science data
+        This function measures the spectra of science data
 
         Parameters
         ----------
@@ -212,9 +210,6 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
 
         config: dictionnary
         contains different informations such as path and directory names
-
-        plotfilename: string
-        Name of the plot file (with the path)
 
         pix_zoom: number (integer)
         pixel id refering to the pixel for which we plot a zoom (default=0)
@@ -231,8 +226,9 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
         The noise spectra
         """
     print("Plotting noise from dump data...")
-    plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
-    plotfilename_all = plotfilename[:-4]+"_all.png"
+    plotfilename=config['fullplotfilename']
+    plotfilename_zoom = plotfilename[:-4]+"_SP_zoom.png"
+    plotfilename_all = plotfilename[:-4]+"_SP_all.png"
     print("  >> " + plotfilename_zoom)
     print("  >> " + plotfilename_all)
 
@@ -323,7 +319,7 @@ def plot_science_dump_noise(data, config, plotfilename, pix_zoom=0, record_len=8
     return(noise_spectra)
 
 # -----------------------------------------------------------------------------
-def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, sav=False):
+def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -331,9 +327,6 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
         ----------
         data: numpy array
         The data of the dump 
-
-        plotfilename: string
-        Name of the plot file (with the path)
 
         config: dictionnary
         contains different informations such as path and directory names
@@ -358,6 +351,7 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
     ylabel_adu = "ADC values (ADU)"
     ylabel_v = "ADC values (V)"
 
+    plotfilename=config['fullplotfilename']
     print(plotting_message)
     print("  >> " + plotfilename)
 
@@ -443,7 +437,7 @@ def plot_adc_dump(data, plotfilename, config, t0=0, duration=0, spectral=False, 
         plt.savefig(plotfilename[:-4]+"_F.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_5mega_dump(data1, data2, plotfilename, config, title1, title2, t0=0, duration=0):
+def plot_5mega_dump(data1, data2, config, title1, title2, t0=0, duration=0):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -451,9 +445,6 @@ def plot_5mega_dump(data1, data2, plotfilename, config, title1, title2, t0=0, du
         ----------
         data1, data2 : numpy arrays
         Contains the 2 sets of data
-
-        plotfilename : string
-        Name of the plot file (with the path)
 
         config: dictionnary
         contains different informations such as path and directory names
@@ -475,6 +466,7 @@ def plot_5mega_dump(data1, data2, plotfilename, config, title1, title2, t0=0, du
         Nothing
 
         """
+    plotfilename=config['fullplotfilename']
     print(plotting_message)
     print("  >> " + plotfilename)
 
@@ -529,7 +521,7 @@ def plot_5mega_dump(data1, data2, plotfilename, config, title1, title2, t0=0, du
     plt.savefig(plotfilename, bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_counter_dump(data, plotfilename, config):
+def plot_counter_dump(data, config):
     r"""
         This function checks the data of a DRE-DEMUX COUNTER data dump.
 
@@ -537,9 +529,6 @@ def plot_counter_dump(data, plotfilename, config):
         ----------
         data : numpy array
         The data of the dump 
-
-        plotfilename : string
-        Name of the plot file (with the path)
 
         config: dictionnary
         contains different informations such as path and directory names
@@ -549,6 +538,7 @@ def plot_counter_dump(data, plotfilename, config):
         Nothing
 
         """
+    plotfilename=config['fullplotfilename']
     print(plotting_message)
     print("  >> " + plotfilename)
 
