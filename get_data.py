@@ -62,32 +62,23 @@ class data:
             raise ValueError('Wrong dump type')
         print(dumptype_str)
 
-    def plot(self, t0=0, duration=0, pix_zoom=0, spectral=False, noise=False, sav_spectra=False):
+    def plot(self, p):
         r"""
             This function checks the data of a DRE-DEMUX ADC data dump.
 
             Parameters
             ----------
-            t0: number, optional
-            begining of zoom in seconds (default is 0)
+ 
+            p: dictionnary including all the parameters
 
-            duration: number, optional
-            zoom duration in seconds. If 0 all the data are plotted (default is 0)
+                p['t0']: number, optional
+                begining of zoom in seconds (default is 0)
 
-            pix_zoom: number (integer)
-            pixel id refering to the pixel for which we plot a zoom (default=0)
+                p['duration']: duration: number, optional
+                zoom duration in seconds. If 0 all the data are plotted (default is 0)
 
-            spectral : boolean
-            If True a spectral nalysis shall be done (default=False)
-
-            noise: boolean
-            Indicates if a noise analysis shall be done (default=False)
-
-            check_noise_measurement: boolean
-            indicates if the function shall tested on fake data (default=False)
-
-            sav_spectra: boolean
-            indicates if spectra shall be saved in npy file (default=False)
+                p['pix_zoom']: number (integer)
+                pixel id refering to the pixel for which we plot a zoom (default=0)
 
             Returns
             -------
@@ -99,29 +90,29 @@ class data:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "Science", p)
         if self.dumptype == 1:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "Science", p)
         if self.dumptype == 2:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1].astype('float')
             data2[data2<0]+=2**16 # Convertion to 16-bit unsigned format 
-            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB2", "Science", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB2", "Science", p)
         if self.dumptype == 4:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1]
-            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "DACFB2", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "DACFB1", "DACFB2", p)
         if self.dumptype == 5:
-            plotting_tools.plot_adc_dump(self.values, self.config, t0, duration, spectral, sav_spectra)
+            plotting_tools.plot_adc_dump(self.values, self.config, p)
         if self.dumptype == 8:
-            plotting_tools.plot_science_dump(self.values, self.config, t0, duration, pix_zoom, noise, sav_spectra)
+            plotting_tools.plot_science_dump(self.values, self.config, p)
         if self.dumptype == 9:
             data1 = self.values[:, 0]
             data2 = self.values[:, 1]
-            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "DACFB1", t0, duration)
+            plotting_tools.plot_5mega_dump(data1, data2, self.config, "ERROR", "DACFB1", p)
         if self.dumptype == 15:
             plotting_tools.plot_counter_dump(self.values, self.config)
 

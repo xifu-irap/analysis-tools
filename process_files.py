@@ -24,9 +24,14 @@
 import numpy as np
 import os
 
-import general_tools, get_data, plotting_tools, ep_tools, measure_ki
+import general_tools, get_data, ep_tools, measure_ki
 
 config=general_tools.configuration("demux_tools_cfg")
+parameters={\
+        't0': 0, \
+        'duration':0.1, \
+        'pix_zoom':0 \
+        }
 
 datadirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_data'])
 
@@ -42,20 +47,11 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
                 and f[-13:]!="_er_noise.dat" \
                 and f[-13:]!="_er_measu.dat" ]
 
-t0=0
-duration=0.1
-pix_zoom=0
-spectral=True
-noise=True
-sav_noise_spectra=True
 for filename in dumpfilenames:
     print(drawline)
     d=get_data.data(filename)
     d.print_dumptype()
-    sav_spectra = False
-    if d.dumptype==5:
-        sav_spectra = sav_noise_spectra
-    d.plot(t0, duration, pix_zoom, spectral, noise, sav_spectra)
+    d.plot(parameters)
 
 """
 Processing ki measurements data #####################################
@@ -71,14 +67,14 @@ if len(kifilename)>0:
 """
 Processing energy resolution data ###################################
 """
-prebuffer=180
-record_len=4096
-rec_extension='_rec.npy'
 
 """
 Making noise records
 """
-pix=0
+record_len=4096
+prebuffer=180
+rec_extension='_rec.npy' 
+
 filename_er_noise = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-13:]=="_er_noise.dat"]
@@ -86,7 +82,12 @@ filename_er_noise_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_noise_rec.npy"]
 if len(filename_er_noise)>0 and len(filename_er_noise_rec)==0:
-    noise = ep_tools.get_noise_records(filename_er_noise[0], config.config, pix, record_len)
+    noise_parameters={\
+            'record_len':record_len, \
+            'pix':0 \
+            }
+    print('>>>>>>> ', filename_er_noise[0])
+    noise = ep_tools.get_noise_records(filename_er_noise[0], config.config, noise_parameters)
     # saving noise records
     noise_npy_file = os.path.join(datadirname, filename_er_noise[0][:-4]+rec_extension)
     with open(noise_npy_file, 'wb') as file:
@@ -95,7 +96,7 @@ if len(filename_er_noise)>0 and len(filename_er_noise_rec)==0:
 """
 Triggering calibration pulses
 """
-pix = 100 # if 100 the routine will look for pixels with pulses
+
 filename_er_calib = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-13:]=="_er_calib.dat"]
@@ -103,7 +104,14 @@ filename_er_calib_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_calib_rec.npy"]
 if len(filename_er_calib)>0 and len(filename_er_calib_rec)==0:
-    calib, t_calib, pix_calib = ep_tools.get_pulse_records(filename_er_calib[0], config.config, pix, record_len, prebuffer)
+    calib_parameters={\
+            'record_len':record_len, \
+            'prebuffer':prebuffer, \
+            'pix':100 \
+            }
+    # if pix==100 the routine will look for pixels with pulses
+
+    calib, t_calib, pix_calib = ep_tools.get_pulse_records(filename_er_calib[0], config.config, calib_parameters)
     # saving pulse records
     calib_npy_file = os.path.join(datadirname, filename_er_calib[0][:-4]+rec_extension)
     with open(calib_npy_file, 'wb') as file:
@@ -120,7 +128,13 @@ filename_er_measu_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_measu_rec.npy"]
 if len(filename_er_measu)>0 and len(filename_er_measu_rec)==0:
-    measu, t_measu, _ = ep_tools.get_pulse_records(filename_er_measu[0], config.config, pix_calib, record_len+4, prebuffer+2)
+    measu_parameters={\
+        'record_len':record_len+4, \
+        'prebuffer':prebuffer+2, \
+        'pix':pix_calib \
+        }
+
+    measu, t_measu, _ = ep_tools.get_pulse_records(filename_er_measu[0], config.config, measu_parameters)
     # saving pulse records
     measu_npy_file = os.path.join(datadirname, filename_er_measu[0][:-4]+rec_extension)
     with open(measu_npy_file, 'wb') as file:

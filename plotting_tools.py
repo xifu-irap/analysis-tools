@@ -76,32 +76,22 @@ def mosaic_labels(ax, box, n_cols, n_lines, x_lab, y_lab):
 
 
 # -----------------------------------------------------------------------------
-def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, sav_spectra=False):
+def plot_science_dump(data, config, p):
     r"""
         This function checks the data of a DRE-DEMUX science data dump.
 
         Parameters
         ----------
-        data: numpy array
-        The data of the dump 
+        p: dictionnary including several parameters
 
-        config: dictionnary
-        contains different informations such as path and directory names
+            p['t0']: number, optional
+            begining of zoom in seconds (default is 0)
 
-        t0: number, optional
-        begining of zoom in seconds (default is 0)
+            p['duration']: duration: number, optional
+            zoom duration in seconds. If 0 all the data are plotted (default is 0)
 
-        duration: number, optional
-        zoom duration in seconds. If 0 all the data are plotted (default is 0)
-
-        pix_zoom: number (integer)
-        pixel id refering to the pixel for which we plot a zoom (default=0)
-
-        noise: boolean
-        Indicates if a noise analysis shall be done (default=False)
-
-        sav_spectra: boolean
-        indicates if spactra shall be saved in npy file (default=False)
+            p['pix_zoom']: number (integer)
+            pixel id refering to the pixel for which we plot a zoom (default=0)
 
         Returns
         -------
@@ -131,14 +121,14 @@ def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, s
     """
     Plotting data in time domain
     """
-    imin = int(t0*fs)
+    imin = int(p['t0']*fs)
     if imin > len(data[0,:]):
         print(error_t0_message)
         imin = 0
-    if duration == 0 :
+    if p['duration'] == 0 :
         imax = len(data[0,:])
     else :
-        imax = min(int((t0+duration)*fs), len(data[0,:]))
+        imax = min(int((p['t0']+p['duration'])*fs), len(data[0,:]))
     mkr=''
     if imax - imin < 200:
         mkr='.'
@@ -176,8 +166,8 @@ def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, s
     """
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(1000*t[imin:imax], data[pix_zoom,imin:imax], 'b', marker=mkr)
-    ax.set_title("Pixel {0:2d}".format(1+pix_zoom))
+    ax.plot(1000*t[imin:imax], data[p['pix_zoom'],imin:imax], 'b', marker=mkr)
+    ax.set_title("Pixel {0:2d}".format(1+p['pix_zoom']))
     ax.set_xlabel(xtitle)
     ax.set_ylabel(r'ADU')
     ax.set_xlim(t[imin]*1000, t[imax-1]*1000)
@@ -195,11 +185,10 @@ def plot_science_dump(data, config, t0=0, duration=0, pix_zoom=0, noise=False, s
     """
     Plotting spectra
     """
-    if noise:
-        plot_science_dump_spectra(data, config, pix_zoom, 8192, sav_spectra)
+    plot_science_dump_spectra(data, config, p['pix_zoom'], 8192)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=False):
+def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
     r"""
         This function measures the spectra of science data
 
@@ -216,9 +205,6 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=Fal
 
         record_len: number (integer)
         number of samples per records (default = 8192)
-
-        sav: boolean
-        indicates if spactra shall be saved in npy file (default=False)
 
         Returns
         -------
@@ -261,12 +247,11 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=Fal
     n = len(noise_spectra_db[0])
     f = np.arange(n)*(fs/2)/n
 
-    if sav:
-        dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
-        npy_file = os.path.join(dirname, 'sc_spectra.npy')
-        with open(npy_file, 'wb') as file:
-            np.save(file, f)
-            np.save(file, noise_spectra_db)
+    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+    npy_file = os.path.join(dirname, 'sc_spectra.npy')
+    with open(npy_file, 'wb') as file:
+        np.save(file, f)
+        np.save(file, noise_spectra_db)
 
     # plotting zoom
     db_step = 5
@@ -319,7 +304,7 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192, sav=Fal
     return(noise_spectra)
 
 # -----------------------------------------------------------------------------
-def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
+def plot_adc_dump(data, config, p):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -331,17 +316,16 @@ def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
         config: dictionnary
         contains different informations such as path and directory names
 
-        t0: number, optional
-        begining of zoom in seconds (default is 0)
+        p: dictionnary including several parameters
 
-        duration: number, optional
-        zoom duration in seconds. If 0 all the data are plotted (default is 0)
+            p['t0']: number, optional
+            begining of zoom in seconds (default is 0)
 
-        spectral: boolean
-        If True a spectral nalysis shall be done (default=False)
+            p['duration']: duration: number, optional
+            zoom duration in seconds. If 0 all the data are plotted (default is 0)
 
-        sav: boolean
-        indicates if spectra shall be saved in npy file (default=False)
+            p['pix_zoom']: number (integer)
+            pixel id refering to the pixel for which we plot a zoom (default=0)
 
         Returns
         -------
@@ -361,14 +345,14 @@ def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
     """
     Plotting data in time domain
     """
-    imin = int(t0*fs)
+    imin = int(p['t0']*fs)
     if imin > len(data[:]):
         print(error_t0_message)
         imin = 0
-    if duration == 0 :
+    if p['duration'] == 0 :
         imax = len(data[:])
     else :
-        imax = min(int((t0+duration)*fs), len(data[:]))
+        imax = min(int((p['t0']+p['duration'])*fs), len(data[:]))
 
     fig = plt.figure(figsize=(6, 8))
     xtitle = time_label
@@ -400,44 +384,44 @@ def plot_adc_dump(data, config, t0=0, duration=0, spectral=False, sav=False):
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
 
-    if spectral:
-        # Plotting data in frequency domain
-        spt = general_tools.do_spectrum(data, int(2**20))
-        spt_db = spt*0
-        inotzero = np.where(spt != 0)[0]
-        spt_db[inotzero] = 20*np.log10(spt[inotzero])
+    """
+    Plotting data in frequency domain
+    """
+    spt = general_tools.do_spectrum(data, int(2**20))
+    spt_db = spt*0
+    inotzero = np.where(spt != 0)[0]
+    spt_db[inotzero] = 20*np.log10(spt[inotzero])
 
-        f = np.arange(len(spt_db))*(fs/2)/len(spt_db)
+    f = np.arange(len(spt_db))*(fs/2)/len(spt_db)
 
-        """
-        saving data in a npy file if requested
-        """
-        if sav:
-            dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
-            npy_file = os.path.join(dirname, 'adc_spectra.npy')
-            with open(npy_file, 'wb') as file:
-                np.save(file, f)
-                np.save(file, spt_db)
+    """
+    saving spectra in a npy file
+    """
+    dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
+    npy_file = os.path.join(dirname, 'adc_spectra.npy')
+    with open(npy_file, 'wb') as file:
+        np.save(file, f)
+        np.save(file, spt_db)
 
-        fig = plt.figure(figsize=(10, 8))
-        ax1 = fig.add_subplot(1, 1, 1)
-        ax1.semilogx(f, spt_db, 'b')
-        ax1.set_ylabel(spectral_power_density_label)
-        ax1.set_xlabel(frequency_label)
-        ax1.grid(color='k', linestyle=':', linewidth=0.5)
-        ax1.set_xlim(1e3, f[-1])
-        for item in ([ax1.title, ax1.xaxis.label, ax1.yaxis.label]):
-            item.set_weight('bold')
-            item.set_fontsize(14)
-        for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
-            item.set_fontsize(12)
+    fig = plt.figure(figsize=(10, 8))
+    ax1 = fig.add_subplot(1, 1, 1)
+    ax1.semilogx(f, spt_db, 'b')
+    ax1.set_ylabel(spectral_power_density_label)
+    ax1.set_xlabel(frequency_label)
+    ax1.grid(color='k', linestyle=':', linewidth=0.5)
+    ax1.set_xlim(1e3, f[-1])
+    for item in ([ax1.title, ax1.xaxis.label, ax1.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
+        item.set_fontsize(12)
 
-        fig.tight_layout()
-        #plt.show()
-        plt.savefig(plotfilename[:-4]+"_SP.png", bbox_inches='tight')
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(plotfilename[:-4]+"_SP.png", bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
-def plot_5mega_dump(data1, data2, config, title1, title2, t0=0, duration=0):
+def plot_5mega_dump(data1, data2, config, title1, title2, p):
     r"""
         This function checks the data of a DRE-DEMUX ADC data dump.
 
@@ -455,11 +439,16 @@ def plot_5mega_dump(data1, data2, config, title1, title2, t0=0, duration=0):
         title2 : string
         Name of the second data set
 
-        t0: number, optional
-        begining of zoom in seconds (default is 0)
+        p: dictionnary including several parameters
 
-        duration: number, optional
-        zoom duration in seconds. If 0 all the data are plotted (default is 0)
+            p['t0']: number, optional
+            begining of zoom in seconds (default is 0)
+
+            p['duration']: duration: number, optional
+            zoom duration in seconds. If 0 all the data are plotted (default is 0)
+
+            p['pix_zoom']: number (integer)
+            pixel id refering to the pixel for which we plot a zoom (default=0)
 
         Returns
         -------
@@ -477,14 +466,14 @@ def plot_5mega_dump(data1, data2, config, title1, title2, t0=0, duration=0):
     """
     Plotting data
     """
-    imin = int(t0*fs)
+    imin = int(p['t0']*fs)
     if imin > len(data1):
         print(error_t0_message)
         imin = 0
-    if duration == 0 :
+    if p['duration'] == 0 :
         imax = len(data1)
     else :
-        imax = min(int((t0+duration)*fs), len(data1))
+        imax = min(int((p['t0']+p['duration'])*fs), len(data1))
 
     fig = plt.figure(figsize=(10, 8))
     xtitle = "Time (ms)"
@@ -588,16 +577,16 @@ if __name__ == "__main__":
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-4:]==".dat"]
 
+    params={\
+            't0': 0, \
+            'duration':0.1, \
+            'pix_zoom':0 \
+            }
     for file in dumpfilenames:
         print('\n#---------------------')
         d=get_data.data(file, config.config)
         d.print_dumptype()
-        t0, duration = 0, 0
-        pix_zoom = 0
-        spectral = True
-        noise = True
-        check_noise_measurement = True
-        d.plot(t0, duration, pix_zoom, spectral, noise, check_noise_measurement)
+        d.plot(params)
 
 # -----------------------------------------------------------------------------
 def over_plot_records(records):

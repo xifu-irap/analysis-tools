@@ -39,7 +39,7 @@ sample_nb_label = 'Sample number'
 # ############################################################
 # Function to read noise records
 # ############################################################
-def get_noise_records(noise_file, config, pix, record_len):
+def get_noise_records(noise_file, config, noise_p):
     '''
     This function builds noise records from row dump files  
     
@@ -48,26 +48,27 @@ def get_noise_records(noise_file, config, pix, record_len):
           dump file name
         - config: dictionnary
           contains path and constants definitions
-        - pix: number
-          index of the pixel to be processed
-        - record_len: number
-          length of the records to be applied
+        - noise_p: dictionnary including several parameters
+            - noise_p['record_len']: number
+            length of the records to be applied
+            - noise_p['pix']: number
+            index of the pixel to be processed
     '''
     print("Getting noise data from file: ", noise_file)
     noisedat = get_data.data(noise_file, config)
     # selecting the data of the requested pixel
     # (offset of 1 is applyed) because the first line is the readout index
-    noise = noisedat.values[1+pix,:]
-    n_records = len(noise)//record_len
+    noise = noisedat.values[1+noise_p['pix'],:]
+    n_records = len(noise)//noise_p['record_len']
     # doing noise records
     print("  Found {0:4d} records".format(n_records))
-    noise_records = np.resize(noise, (n_records, record_len))
+    noise_records = np.resize(noise, (n_records, noise_p['record_len']))
     return(noise_records)
 
 # ############################################################
 # Function to read pulse records
 # ############################################################
-def get_pulse_records(pulse_file, config, pix, record_len, prebuff, check=False):
+def get_pulse_records(pulse_file, config, pulse_p, check=False):
     '''
     This function builds pulse records from row dump files  
     
@@ -76,12 +77,13 @@ def get_pulse_records(pulse_file, config, pix, record_len, prebuff, check=False)
           dump file name
         - config: dictionnary
           contains path and constants definitions
-        - pix: number
-          index of the pixel to be processed
-        - record_len: number
-          length of the records to be applied
-        - prebuff: number
-          length of prebuffer data available before each pulse
+        - pulse_p: dictionnary including several parameters
+            - pulse_p['record_len']: number
+            length of the records to be applied
+            - pulse_p['prebuffer']: number
+            length of prebuffer data available before each pulse
+            - pulse_p['pix']: number
+            index of the pixel to be processed. if 100 the routine will look for a pixel with pulses
         - check: boolean
           if true debugging plots are displayed (default is False)
 
@@ -92,42 +94,48 @@ def get_pulse_records(pulse_file, config, pix, record_len, prebuff, check=False)
         the routine returns the reference of a pixel where pulses have been found)
     '''
     print("Getting pulses data from file: ", pulse_file)
-    pulsedat = get_data.data(pulse_file, config)
+    pulsedat = get_data.data(pulse_file)
     if check:
-        plotting_tools.plot_science_dump(pulsedat.values, "science_mosaic.png", config, t0=0, duration=0, pix_zoom=0)
+        parameters={\
+        't0': 0, \
+        'duration':0.1, \
+        'pix_zoom':0 \
+        }
+        plotting_tools.plot_science_dump(pulsedat.values, config, parameters)
 
     # selecting the pixels data 
     # (offset of 1 is applyed) because the first line is the readout index
     pulses = pulsedat.values[1:,:]
     # Pulse detection
-    return(trig(pulses, pix, record_len, prebuff, config))
+    return(trig(pulses, pulse_p, config))
     
 # ############################################################
 # Function to detect pulses in data
 # ############################################################
-def trig(data, pix, record_len, prebuffer, config):
+def trig(data, pulse_p, config):
     '''
     This function builds pulse records from row dump files  
     
     Arguments:
         - data: numpy array
           contains the science data
-        - pix: number
-          index of the pixel to be processed
-          (if 100 the routine search for a pixel refernce containing data)
-        - record_len: number
-          length of the records to be applied
-        - prebuffer: number
-          length of prebuffer data available before each pulse
+        - pulse_p: dictionnary including several parameters
+            - pulse_p['record_len']: number
+            length of the records to be applied
+            - pulse_p['prebuffer']: number
+            length of prebuffer data available before each pulse
+            - pulse_p['pix']: number
+            index of the pixel to be processed. if 100 the routine will look for a pixel with pulses
         - config: dictionnary
           contains path and constants definitions
 
     Returns:
         - the records
         - the t0 (indicates the begining of the pulses)
-        - the pixel reference (if the input parameter pix is equal to 100,
+        - the pixel reference (if the input parameter pulse_p['pix'] is equal to 100,
         the routine returns the reference of a pixel where pulses have been found)
     '''
+    pix=pulse_p['pix']
     if pix==100: # looking for pixels with pulses
         npix=int(config['npix'])
         std=np.zeros(npix)
@@ -179,15 +187,15 @@ def trig(data, pix, record_len, prebuffer, config):
         print("  Found {0:4d} pulses".format(len(ipulses)))
 
         spacing1 = np.append(ipulses[1:], len(data)) - ipulses
-        spacing2 = ipulses - np.append(prebuffer+2, ipulses[:-1])
-        condition = (spacing1 > record_len) & (spacing2 > record_len)
+        spacing2 = ipulses - np.append(pulse_p['prebuffer']+2, ipulses[:-1])
+        condition = (spacing1 > pulse_p['record_len']) & (spacing2 > pulse_p['record_len'])
         ipulses = ipulses[condition]
 
         n_records = len(ipulses)
         print("    > {0:4d} records are long enough for processing".format(n_records))
-        data_records = np.zeros((n_records, record_len))
+        data_records = np.zeros((n_records, pulse_p['record_len']))
         for i in range(n_records):
-            data_records[i,:] = data[ipulses[i]-prebuffer-2: ipulses[i]-prebuffer-2+record_len]
+            data_records[i,:] = data[ipulses[i]-pulse_p['prebuffer']-2: ipulses[i]-pulse_p['prebuffer']-2+pulse_p['record_len']]
     return(data_records, t[ipulses], pix)
 
 # ############################################################
