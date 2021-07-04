@@ -21,7 +21,7 @@
 #  general_tools.py
 #
 
-import os, csv
+import os, csv, shutil
 import numpy as np
 
 # -----------------------------------------------------------------------
@@ -41,6 +41,26 @@ def checkdir(dirname):
         """
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
+    return()
+
+# -----------------------------------------------------------------------
+def purgedir(dirname):
+    r"""
+        This function erase a directory if it exists and it creates a new empty directory
+        
+        Parameters:
+        -----------
+        dirname: String
+        Name of the directory to be erased / created.
+
+        Returns
+        -------
+        Nothing
+
+        """
+    if os.path.isdir(dirname):
+        shutil.rmtree(dirname)
+    os.mkdir(dirname)
     return()
 
 # -----------------------------------------------------------------------

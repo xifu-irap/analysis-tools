@@ -27,6 +27,11 @@ import os
 import general_tools, get_data, ep_tools, measure_ki
 
 config=general_tools.configuration("demux_tools_cfg")
+
+# Creation of the plot directory
+plotdirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_plots'])
+general_tools.purgedir(plotdirname)
+
 parameters={\
         't0': 0, \
         'duration':0.1, \

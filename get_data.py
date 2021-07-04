@@ -154,7 +154,6 @@ def read_data(datafilename):
     config['datafilename']=datafilename
 
     plotdirname = os.path.join(os.path.normcase(config['path']), config['dir_plots'])
-    general_tools.checkdir(plotdirname)
     plotfilename = datafilename[int(config['length_of_date_in_filenames']):-4]+".png"
     fullplotfilename = os.path.join(plotdirname, plotfilename)
     file_index=1
