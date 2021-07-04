@@ -80,7 +80,7 @@ def measure_ki(ki_data):
     step_size_feedback = data1[range_feedback2].mean() - data1[range_feedback1].mean()
     step_size_return = data2[range_return2].mean() - data2[range_return1].mean()
     ki = -1*step_size_return/step_size_feedback
-    print("ki is equal to: {0:4.3f}".format(ki))
+    print("Loop gain is equal to: {0:4.3f}".format(ki))
 
     """
     Doing the plot

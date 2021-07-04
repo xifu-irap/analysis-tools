@@ -35,7 +35,7 @@ parameters={\
 
 datadirname = os.path.join(os.path.normcase(config.config['path']), config.config['dir_data'])
 
-drawline = '\n#---------------------'
+drawline = '\n#--------------------------------------'
 
 """
 Processing dumps files ###############################################
@@ -49,7 +49,9 @@ dumpfilenames = [f for f in os.listdir(datadirname) \
 
 for filename in dumpfilenames:
     print(drawline)
+    print('Analysing file ', filename)
     d=get_data.data(filename)
+    print('Dumptype is: ', end="")
     d.print_dumptype()
     d.plot(parameters)
 
@@ -61,7 +63,10 @@ kifilename = [f for f in os.listdir(datadirname) \
                 and f[-13:]=="_ki_check.dat" ]
 if len(kifilename)>0:
     print(drawline)
+    print('Analysing file ', kifilename[0])
     d=get_data.data(kifilename[0], config.config)
+    print('Dumptype is: ', end="")
+    d.print_dumptype()
     measure_ki.measure_ki(d)
 
 """
@@ -83,6 +88,7 @@ filename_er_noise_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_noise_rec.npy"]
 if len(filename_er_noise)>0 and len(filename_er_noise_rec)==0:
+    print(drawline)
     noise_parameters={\
         'record_len':record_len, \
         'pix':0, \
@@ -105,6 +111,7 @@ filename_er_calib_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_calib_rec.npy"]
 if len(filename_er_calib)>0 and len(filename_er_calib_rec)==0:
+    print(drawline)
     calib_parameters={\
         'record_len':record_len, \
         'prebuffer':prebuffer, \
@@ -130,6 +137,7 @@ filename_er_measu_rec = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-17:]=="_er_measu_rec.npy"]
 if len(filename_er_measu)>0 and len(filename_er_measu_rec)==0:
+    print(drawline)
     measu_parameters={\
         'record_len':record_len+4, \
         'prebuffer':prebuffer+2, \
@@ -162,6 +170,8 @@ if len(filename_er_noise_rec)>0 and len(filename_er_calib_rec)>0 and len(filenam
     print("Processing energy resolution data...")
     verbose=False
     _, _= ep_tools.ep(filename_er_noise_rec[0], filename_er_calib_rec[0], filename_er_measu_rec[0], config.config, prebuffer, verbose)
+
+print(drawline)
 
 """
 #####################################################################

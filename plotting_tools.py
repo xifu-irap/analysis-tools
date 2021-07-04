@@ -33,7 +33,8 @@ import general_tools, get_data
 """
 Some general text definitions
 """
-plotting_message="Plotting dump data..."
+plotting_message_time="Plotting dump data..."
+plotting_message_freq="Plotting spetra of dump data..."
 time_label="Time (ms)"
 frequency_label="Frequency (Hz)"
 spectral_power_density_label=r"Power spectral density (dB/$\sqrt{Hz}$)"
@@ -98,7 +99,7 @@ def plot_science_dump(data, config, p):
         Nothing
 
         """
-    print(plotting_message)
+    print(plotting_message_time)
     plotfilename=config['fullplotfilename']
     plotfilename_zoom = plotfilename[:-4]+"_zoom.png"
     plotfilename_all = plotfilename[:-4]+".png"
@@ -211,7 +212,7 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
         noise_spectra: 2-dimensional numpy array
         The noise spectra
         """
-    print("Plotting noise from dump data...")
+    print(plotting_message_freq)
     plotfilename=config['fullplotfilename']
     plotfilename_zoom = plotfilename[:-4]+"_SP_zoom.png"
     plotfilename_all = plotfilename[:-4]+"_SP.png"
@@ -336,7 +337,7 @@ def plot_adc_dump(data, config, p):
     ylabel_v = "ADC values (V)"
 
     plotfilename=config['fullplotfilename']
-    print(plotting_message)
+    print(plotting_message_time)
     print("  >> " + plotfilename)
 
     fs = float(config["fs_ADC"])
@@ -387,6 +388,9 @@ def plot_adc_dump(data, config, p):
     """
     Plotting data in frequency domain
     """
+    print(plotting_message_freq)
+    plotfilename=plotfilename[:-4]+"_SP.png"
+    print("  >> " + plotfilename)
     spt = general_tools.do_spectrum(data, int(2**20))
     spt_db = spt*0
     inotzero = np.where(spt != 0)[0]
@@ -418,7 +422,7 @@ def plot_adc_dump(data, config, p):
 
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plotfilename[:-4]+"_SP.png", bbox_inches='tight')
+    plt.savefig(plotfilename, bbox_inches='tight')
 
 # -----------------------------------------------------------------------------
 def plot_5mega_dump(data1, data2, config, title1, title2, p):
@@ -456,7 +460,7 @@ def plot_5mega_dump(data1, data2, config, title1, title2, p):
 
         """
     plotfilename=config['fullplotfilename']
-    print(plotting_message)
+    print(plotting_message_time)
     print("  >> " + plotfilename)
 
     # In these dumps the 5MHz data are over sampled at 20MHz
@@ -528,7 +532,7 @@ def plot_counter_dump(data, config):
 
         """
     plotfilename=config['fullplotfilename']
-    print(plotting_message)
+    print(plotting_message_time)
     print("  >> " + plotfilename)
 
     fs = float(config["frow"])*4 # Approx 20MHz
