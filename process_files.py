@@ -67,6 +67,7 @@ if len(kifilename)>0:
 """
 Processing energy resolution data ###################################
 """
+remove_raw_files=True
 
 """
 Making noise records
@@ -83,11 +84,11 @@ filename_er_noise_rec = [f for f in os.listdir(datadirname) \
                 and f[-17:]=="_er_noise_rec.npy"]
 if len(filename_er_noise)>0 and len(filename_er_noise_rec)==0:
     noise_parameters={\
-            'record_len':record_len, \
-            'pix':0 \
-            }
-    print('>>>>>>> ', filename_er_noise[0])
-    noise = ep_tools.get_noise_records(filename_er_noise[0], config.config, noise_parameters)
+        'record_len':record_len, \
+        'pix':0, \
+        'remove_raw_files':remove_raw_files \
+        }
+    noise = ep_tools.get_noise_records(filename_er_noise[0], noise_parameters)
     # saving noise records
     noise_npy_file = os.path.join(datadirname, filename_er_noise[0][:-4]+rec_extension)
     with open(noise_npy_file, 'wb') as file:
@@ -105,13 +106,14 @@ filename_er_calib_rec = [f for f in os.listdir(datadirname) \
                 and f[-17:]=="_er_calib_rec.npy"]
 if len(filename_er_calib)>0 and len(filename_er_calib_rec)==0:
     calib_parameters={\
-            'record_len':record_len, \
-            'prebuffer':prebuffer, \
-            'pix':100 \
-            }
+        'record_len':record_len, \
+        'prebuffer':prebuffer, \
+        'pix':100, \
+        'remove_raw_files':remove_raw_files \
+        }
     # if pix==100 the routine will look for pixels with pulses
 
-    calib, t_calib, pix_calib = ep_tools.get_pulse_records(filename_er_calib[0], config.config, calib_parameters)
+    calib, t_calib, pix_calib = ep_tools.get_pulse_records(filename_er_calib[0], calib_parameters)
     # saving pulse records
     calib_npy_file = os.path.join(datadirname, filename_er_calib[0][:-4]+rec_extension)
     with open(calib_npy_file, 'wb') as file:
@@ -131,10 +133,11 @@ if len(filename_er_measu)>0 and len(filename_er_measu_rec)==0:
     measu_parameters={\
         'record_len':record_len+4, \
         'prebuffer':prebuffer+2, \
-        'pix':pix_calib \
+        'pix':pix_calib, \
+        'remove_raw_files':remove_raw_files \
         }
 
-    measu, t_measu, _ = ep_tools.get_pulse_records(filename_er_measu[0], config.config, measu_parameters)
+    measu, t_measu, _ = ep_tools.get_pulse_records(filename_er_measu[0], measu_parameters)
     # saving pulse records
     measu_npy_file = os.path.join(datadirname, filename_er_measu[0][:-4]+rec_extension)
     with open(measu_npy_file, 'wb') as file:

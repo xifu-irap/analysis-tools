@@ -39,7 +39,7 @@ sample_nb_label = 'Sample number'
 # ############################################################
 # Function to read noise records
 # ############################################################
-def get_noise_records(noise_file, config, noise_p):
+def get_noise_records(noise_file, noise_p):
     '''
     This function builds noise records from row dump files  
     
@@ -53,9 +53,15 @@ def get_noise_records(noise_file, config, noise_p):
             length of the records to be applied
             - noise_p['pix']: number
             index of the pixel to be processed
+            - noise_p['remove_raw_files']: boolean
+            indicates if the raw dta files shall be removed
     '''
     print("Getting noise data from file: ", noise_file)
-    noisedat = get_data.data(noise_file, config)
+    noisedat = get_data.data(noise_file)
+    if noise_p['remove_raw_files']:
+        dirname = os.path.join(os.path.normcase(noisedat.config['path']), noisedat.config['dir_data'])
+        fulldatafilename = os.path.join(dirname, noise_file)
+        os.remove(fulldatafilename)
     # selecting the data of the requested pixel
     # (offset of 1 is applyed) because the first line is the readout index
     noise = noisedat.values[1+noise_p['pix'],:]
@@ -68,15 +74,13 @@ def get_noise_records(noise_file, config, noise_p):
 # ############################################################
 # Function to read pulse records
 # ############################################################
-def get_pulse_records(pulse_file, config, pulse_p, check=False):
+def get_pulse_records(pulse_file, pulse_p, check=False):
     '''
     This function builds pulse records from row dump files  
     
     Arguments:
         - pulse_file: string
           dump file name
-        - config: dictionnary
-          contains path and constants definitions
         - pulse_p: dictionnary including several parameters
             - pulse_p['record_len']: number
             length of the records to be applied
@@ -84,6 +88,8 @@ def get_pulse_records(pulse_file, config, pulse_p, check=False):
             length of prebuffer data available before each pulse
             - pulse_p['pix']: number
             index of the pixel to be processed. if 100 the routine will look for a pixel with pulses
+            - pulse_p['remove_raw_files']: boolean
+            indicates if the raw dta files shall be removed
         - check: boolean
           if true debugging plots are displayed (default is False)
 
@@ -95,19 +101,23 @@ def get_pulse_records(pulse_file, config, pulse_p, check=False):
     '''
     print("Getting pulses data from file: ", pulse_file)
     pulsedat = get_data.data(pulse_file)
+    if pulse_p['remove_raw_files']:
+        dirname = os.path.join(os.path.normcase(pulsedat.config['path']), pulsedat.config['dir_data'])
+        fulldatafilename = os.path.join(dirname, pulse_file)
+        os.remove(fulldatafilename)
     if check:
         parameters={\
         't0': 0, \
         'duration':0.1, \
         'pix_zoom':0 \
         }
-        plotting_tools.plot_science_dump(pulsedat.values, config, parameters)
+        plotting_tools.plot_science_dump(pulsedat.values, pulsedat.config, parameters)
 
     # selecting the pixels data 
     # (offset of 1 is applyed) because the first line is the readout index
     pulses = pulsedat.values[1:,:]
     # Pulse detection
-    return(trig(pulses, pulse_p, config))
+    return(trig(pulses, pulse_p, pulsedat.config))
     
 # ############################################################
 # Function to detect pulses in data
