@@ -146,7 +146,7 @@ def plot_science_dump(data, config, p):
         ax.grid(color='k', linestyle=':', linewidth=0.5)
         ax.set_xlim(t[imin]*1000, t[imax-1]*1000)
         ax.set_ylim(ymin, ymax)
-        mosaic_labels(ax, pix, ncols, nlines, xtitle, r'ADU')
+        mosaic_labels(ax, pix, ncols, nlines, xtitle, r'Demux output (ADU)')
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
             item.set_weight('bold')
             item.set_fontsize(12)
@@ -158,6 +158,7 @@ def plot_science_dump(data, config, p):
     ax.set_xlabel(xtitle)
     ax.grid(color='k', linestyle=':', linewidth=0.5)
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
@@ -179,6 +180,7 @@ def plot_science_dump(data, config, p):
     for item in (ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(12)
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_zoom, bbox_inches='tight')
@@ -275,6 +277,7 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
     for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
         item.set_fontsize(12)
     #plt.show()
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
@@ -298,6 +301,8 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
             item.set_fontsize(12)
         for item in (ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontsize(10)
+
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename_all, bbox_inches='tight')
@@ -381,6 +386,7 @@ def plot_adc_dump(data, config, p):
     ax22.set_ylabel(ylabel_adu)
     ax22.set_ylim(y2min*float(config["adc_1volt_in_adu"]), y2max*float(config["adc_1volt_in_adu"]))
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
@@ -420,6 +426,7 @@ def plot_adc_dump(data, config, p):
     for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
         item.set_fontsize(12)
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
@@ -509,6 +516,7 @@ def plot_5mega_dump(data1, data2, config, title1, title2, p):
     ax4.set_xlabel(xtitle)
     ax4.grid(color='k', linestyle=':', linewidth=0.5)
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
@@ -561,6 +569,7 @@ def plot_counter_dump(data, config):
     ax2.set_xlabel(xtitle)
     ax2.grid(color='k', linestyle=':', linewidth=0.5)
 
+    fig.suptitle(config['datafilename'])
     fig.tight_layout()
     #plt.show()
     plt.savefig(plotfilename, bbox_inches='tight')
