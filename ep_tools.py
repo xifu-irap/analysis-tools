@@ -122,11 +122,12 @@ def get_pulse_records(pulse_file, pulse_p, check=False):
 # ############################################################
 # Function to search for pixels containing pulses
 # ############################################################
-def search_pix_with_pulses(data, snr_threshold=100):
+def search_pix_with_pulses_from_snr(data, snr_threshold=100):
     '''
     This function search in a data set pixels containing pulses.
-    the function compares the SNR of the pixels. If there are pulses
-    in all the pixels the function will not work.
+    the function compares the SNR of the pixels. 
+    !!! If there are pulses in all the pixels the function will 
+    not work !!!
     
     Arguments:
         - data: numpy array
@@ -153,7 +154,36 @@ def search_pix_with_pulses(data, snr_threshold=100):
     """
     pixels_with_pulses=np.arange(len(data[0:]))[data_snr>snr_threshold]
     return(pixels_with_pulses)
+
+def search_pix_with_pulses(data, min_threshold=0.95):
+    '''
+    This function search in a data set pixels containing pulses.
+    the function compares the minimum of the pixel values with 
+    the maximun (should be the baseline).
     
+    Arguments:
+        - data: numpy array
+          contains the science data
+        - min_threshold: number
+          if the minimum value of the pixels data is below this ratio
+          we consider that this pixel contains pulses.
+
+    Returns:
+        - pixels_with_pulses: an array of pixel indexes.
+        contains indexes of pixels containing pulses.
+    '''
+
+    """
+    Estimating signal to noise ratio
+    """
+    min_to_baseline_ratio=data.min(axis=1)/data.max(axis=1)
+
+    """
+    Recherche des pixels avec pulses
+    """
+    pixels_with_pulses=np.arange(len(data[0:]))[min_to_baseline_ratio<min_threshold]
+    return(pixels_with_pulses)
+
 # ############################################################
 # Function to detect pulses in data
 # ############################################################
