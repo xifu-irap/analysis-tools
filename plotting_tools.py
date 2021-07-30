@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['agg.path.chunksize'] = 10000
 
-import general_tools, get_data
+import general_tools, get_data, ep_tools
 
 """
 Some general text definitions
@@ -188,12 +188,12 @@ def plot_science_dump(data, config, p):
     """
     Plotting spectra
     """
-    plot_science_dump_spectra(data, config, p['pix_zoom'], 8192)
+    compute_science_dump_spectra(data, config, p['pix_zoom'], 8192)
 
 # -----------------------------------------------------------------------------
-def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
+def compute_science_dump_spectra(data, config, pix_zoom, record_len=8192):
     r"""
-        This function measures the spectra of science data
+        This function computes the spectra of science data for all pixels
 
         Parameters
         ----------
@@ -203,7 +203,7 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
         config: dictionnary
         contains different informations such as path and directory names
 
-        pix_zoom: number (integer)
+        pix_zoom: number
         pixel id refering to the pixel for which we plot a zoom (default=0)
 
         record_len: number (integer)
@@ -213,17 +213,13 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
         -------
         noise_spectra: 2-dimensional numpy array
         The noise spectra
-        """
-    print(plotting_message_freq)
-    plotfilename=config['fullplotfilename']
-    plotfilename_zoom = plotfilename[:-4]+"_SP_zoom.png"
-    plotfilename_all = plotfilename[:-4]+"_SP.png"
-    print("  >> " + plotfilename_zoom)
-    print("  >> " + plotfilename_all)
 
+        f: numpy array
+        the frequencies
+        """
+    print("Computing spectra...")
     n_pix = int(config["npix"])
     fs = float(config["frow"]/n_pix)
-    ylabel=r"Power density (dB/$\sqrt{Hz}$)"
 
     if record_len > len(data[0]):
         print("  Requested record length is too high ({0:5d})...".format(record_len))
@@ -250,22 +246,119 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
     n = len(noise_spectra_db[0])
     f = np.arange(n)*(fs/2)/n
 
+    """
+    Saving spectra
+    """
     dirname = os.path.join(os.path.normcase(config['path']), config['dir_data'])
     npy_file = os.path.join(dirname, 'sc_spectra.npy')
     with open(npy_file, 'wb') as file:
         np.save(file, f)
         np.save(file, noise_spectra_db)
 
-    # plotting zoom
+    """
+    Plotting spectra
+    """
+    plot_science_dump_spectra(noise_spectra_db, f, config)
+    pixels_with_pulses=ep_tools.search_pix_with_pulses(data)
+    if pix_zoom!=100:
+        plot_science_dump_spectrum(noise_spectra_db, pix_zoom, f, config)
+    if len(pixels_with_pulses)>0:
+        plot_science_dump_spectrum(noise_spectra_db, pixels_with_pulses[0], f, config)
+
+    return(noise_spectra, f)
+
+# -----------------------------------------------------------------------------
+def plot_science_dump_spectra(noise_spectra_db, f, config):
+    r"""
+        This function plots the spectra of science data for all pixels
+
+        Parameters
+        ----------
+        noise_spectra_db: 2-dimensional numpy array
+        The noise spectral density in dB/sqrt(Hz)
+
+        f: numpy array
+        Frequencies of the spectra plot
+
+        config: dictionnary
+        contains different informations such as path and directory names
+
+        Returns
+        -------
+        Nothing
+        """
+    print(plotting_message_freq)
+    plotfilename=config['fullplotfilename']
+    plotfilename_all = plotfilename[:-4]+"_SP.png"
+    print("  >> " + plotfilename_all)
+
+    n_pix = int(config["npix"])
     db_step = 5
-    ymin = db_step*(noise_spectra_db[pix_zoom, 1:].min()//db_step)
-    ymax = db_step*(noise_spectra_db[pix_zoom, 1:].max()//db_step+1)
+
+    fig = plt.figure(figsize=(18, 12))
+    ncols, nlines = 9, 4
+    ymin = db_step*(noise_spectra_db[:, 1:].min()//db_step)
+    ymax = db_step*(noise_spectra_db[:, 1:].max()//db_step+1)
+    major_ticks=np.linspace(ymin,ymax,db_step)
+    for pix in range(n_pix):
+        ax = fig.add_subplot(nlines, ncols, 1+pix)
+        ax.semilogx(f, noise_spectra_db[pix,:], marker='.')
+        ax.set_title(pix_id_txt.format(1+pix))
+        ax.grid(color='k', linestyle=':', linewidth=0.5)
+        ax.set_ylim(ymin, ymax)
+        ax.set_xlim(f[1], f[-1])
+        ax.set_yticks(major_ticks)
+        mosaic_labels(ax, pix, ncols, nlines, frequency_label, spectral_power_density_label)
+        ax.grid(which="major",alpha=0.6)
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+            item.set_weight('bold')
+            item.set_fontsize(12)
+        for item in (ax.get_xticklabels() + ax.get_yticklabels()):
+            item.set_fontsize(10)
+
+    fig.suptitle(config['datafilename'])
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(plotfilename_all, bbox_inches='tight')
+
+
+# -----------------------------------------------------------------------------
+def plot_science_dump_spectrum(noise_spectra_db, pix, f, config):
+    r"""
+        This function plots the spectrum of science data for a single pixel
+
+        Parameters
+        ----------
+        noise_spectra_db: 2-dimensional numpy array
+        The noise spectral density in dB/sqrt(Hz)
+
+        pix: number
+        The index of the pixel we want to be plotted
+        
+        f: numpy array
+        Frequencies of the spectra plot
+
+        config: dictionnary
+        contains different informations such as path and directory names
+
+        Returns
+        -------
+        Nothing
+        """
+    print(plotting_message_freq + '(pixel {0:1d})'.format(pix))
+    plotfilename=config['fullplotfilename']
+    plotfilename_zoom = plotfilename[:-4]+"_SP_{0:1d}.png".format(pix)
+    print("  >> " + plotfilename_zoom)
+
+    db_step = 5
+    ymin = db_step*(noise_spectra_db[pix, 1:].min()//db_step)
+    ymax = db_step*(noise_spectra_db[pix, 1:].max()//db_step+1)
     fig = plt.figure(figsize=(10, 7))
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.semilogx(f, noise_spectra_db[pix_zoom,:], marker='.')
-    ax1.set_ylabel(ylabel)
+    ax1.semilogx(f, noise_spectra_db[pix,:], marker='.')
+    ax1.set_ylabel(spectral_power_density_label)
     ax1.set_xlabel(frequency_label)
-    ax1.set_title(pix_id_txt.format(1+pix_zoom))
+    ax1.set_title(pix_id_txt.format(1+pix))
     major_ticks=np.linspace(ymin,ymax,db_step)
     ax1.set_xlim(f[1], f[-1])
     ax1.set_ylim(ymin, ymax)
@@ -281,33 +374,6 @@ def plot_science_dump_spectra(data, config, pix_zoom=0, record_len=8192):
     fig.tight_layout()
     plt.savefig(plotfilename_zoom, bbox_inches='tight')
 
-    fig = plt.figure(figsize=(18, 12))
-    ncols, nlines = 9, 4
-    ymin = db_step*(noise_spectra_db[:, 1:].min()//db_step)
-    ymax = db_step*(noise_spectra_db[:, 1:].max()//db_step+1)
-    major_ticks=np.linspace(ymin,ymax,db_step)
-    for pix in range(n_pix):
-        ax = fig.add_subplot(nlines, ncols, 1+pix)
-        ax.semilogx(f, noise_spectra_db[pix,:], marker='.')
-        ax.set_title(pix_id_txt.format(1+pix))
-        ax.grid(color='k', linestyle=':', linewidth=0.5)
-        ax.set_ylim(ymin, ymax)
-        ax.set_xlim(f[1], f[-1])
-        ax.set_yticks(major_ticks)
-        mosaic_labels(ax, pix, ncols, nlines, frequency_label, ylabel)
-        ax.grid(which="major",alpha=0.6)
-        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
-            item.set_weight('bold')
-            item.set_fontsize(12)
-        for item in (ax.get_xticklabels() + ax.get_yticklabels()):
-            item.set_fontsize(10)
-
-    fig.suptitle(config['datafilename'])
-    fig.tight_layout()
-    #plt.show()
-    plt.savefig(plotfilename_all, bbox_inches='tight')
-
-    return(noise_spectra)
 
 # -----------------------------------------------------------------------------
 def plot_adc_dump(data, config, p):

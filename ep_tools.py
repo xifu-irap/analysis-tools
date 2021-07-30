@@ -118,6 +118,41 @@ def get_pulse_records(pulse_file, pulse_p, check=False):
     pulses = pulsedat.values[1:,:]
     # Pulse detection
     return(trig(pulses, pulse_p, pulsedat.config))
+
+# ############################################################
+# Function to search for pixels containing pulses
+# ############################################################
+def search_pix_with_pulses(data, snr_threshold=100):
+    '''
+    This function search in a data set pixels containing pulses.
+    the function compares the SNR of the pixels. If there are pulses
+    in all the pixels the function will not work.
+    
+    Arguments:
+        - data: numpy array
+          contains the science data
+        - snr_threshold: number
+          indicates the snr value above which we consider that a 
+          pixel contains pulses
+
+    Returns:
+        - pixels_with_pulses: an array of pixel indexes.
+        contains indexes of pixels containing pulses.
+    '''
+
+    """
+    Estimating signal to noise ratio
+    """
+    data_std=data.std(axis=1).min()
+    data_pp=data.max(axis=1)-data.min(axis=1)
+    data_snr=data_pp/data_std
+    print(data_snr)
+
+    """
+    Recherche des pixels avec pulses
+    """
+    pixels_with_pulses=np.arange(len(data[0:]))[data_snr>snr_threshold]
+    return(pixels_with_pulses)
     
 # ############################################################
 # Function to detect pulses in data
@@ -147,17 +182,11 @@ def trig(data, pulse_p, config):
     '''
     pix=pulse_p['pix']
     if pix==100: # looking for pixels with pulses
-        npix=int(config['npix'])
-        std=np.zeros(npix)
-        for p in range(npix):
-            std[p]=data[p,:].std()
-        limit = std.min()*5
-
-        pixels_with_pulses=np.arange(npix)[std>limit]
+        pixels_with_pulses=search_pix_with_pulses(data)
         if len(pixels_with_pulses)>0:
             print("  There are probably pulses in the following pixels:")
             print(pixels_with_pulses)
-            pix = np.arange(npix)[std==std.max()][0]
+            pix = pixels_with_pulses[0]
         else:
             print("there are probably no pulses in these data")
 
