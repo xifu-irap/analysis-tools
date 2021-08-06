@@ -66,10 +66,10 @@ Processing ki measurements data #####################################
 kifilename = [f for f in os.listdir(datadirname) \
                 if os.path.isfile(os.path.join(datadirname, f)) \
                 and f[-13:]=="_ki_check.dat" ]
-if len(kifilename)>0:
+for i in range(len(kifilename)):
     print(drawline)
-    print('Analysing file ', kifilename[0])
-    d=get_data.data(kifilename[0])
+    print('Analysing file ', kifilename[i])
+    d=get_data.data(kifilename[i])
     print('Dumptype is: ', end="")
     d.print_dumptype()
     measure_ki.measure_ki(d)
