@@ -49,10 +49,11 @@ def measure_ki(ki_data, verbose=False):
     """
     Defining path and file names
     """
+    datafilename=ki_data.config['datafilename']
     plotdirname = os.path.join(os.path.normcase(ki_data.config['path']), ki_data.config['dir_plots'])
     general_tools.checkdir(plotdirname)
-    plotfilename_steps=os.path.join(plotdirname,'steps.png')
-    plotfilename_gains=os.path.join(plotdirname,'loop_gains.png')
+    plotfilename_steps=os.path.join(plotdirname, datafilename[:-4]+'_steps.png')
+    plotfilename_gains=os.path.join(plotdirname, datafilename[:-4]+'_loop-gains.png')
 
     print("Measuring ki ...")
 
@@ -130,7 +131,7 @@ def measure_ki(ki_data, verbose=False):
         item.set_fontsize(14)
     for item in (ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_xticklabels() + ax2.get_yticklabels()):
         item.set_fontsize(12)
-    fig.suptitle(ki_data.config['datafilename'])
+    fig.suptitle(datafilename)
 
     fig.tight_layout()
     #plt.show()
@@ -160,7 +161,7 @@ def measure_ki(ki_data, verbose=False):
         item.set_fontsize(14)
     for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
         item.set_fontsize(12)
-    fig.suptitle(ki_data.config['datafilename'])
+    fig.suptitle(datafilename)
 
     fig.tight_layout()
     #plt.show()
