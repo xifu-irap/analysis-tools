@@ -217,12 +217,12 @@ def read_data(datafilename):
         # the first header has been removed by read_dump function. I need it here. I add a fake one.
         data = np.append(np.zeros(1), data)
 
-        # reordering data
+        # demultiplexing data
         npix = int(config["npix"])
         data = np.transpose(np.resize(data, (len(data)//(npix+2), npix+2)))
 
         # removing periodic headers
-        # keeping packet_number
+        # keeping packet_number and pixel's data
         data = data[1:,:]
 
     ## 32-bit counter data

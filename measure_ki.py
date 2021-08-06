@@ -25,9 +25,9 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-import general_tools, get_data
+import general_tools
 
-def measure_ki(ki_data):
+def measure_ki(ki_data, verbose=False):
     r"""
         This function analyses a SQ1 feedback and SQ2 feedback dump to
         measure the ki gain. The function makes plot in order to measure
@@ -37,6 +37,9 @@ def measure_ki(ki_data):
         ----------
         ki_data: data object
         Contains the SQ1 feedback and SQ2 feedback dumps.
+
+        verbose: boolean
+        if True some debug messages are printed
 
         Returns
         -------
@@ -48,66 +51,119 @@ def measure_ki(ki_data):
     """
     plotdirname = os.path.join(os.path.normcase(ki_data.config['path']), ki_data.config['dir_plots'])
     general_tools.checkdir(plotdirname)
-    plotfilename=os.path.join(plotdirname,'loop_gain_measurement.png')
+    plotfilename_steps=os.path.join(plotdirname,'steps.png')
+    plotfilename_gains=os.path.join(plotdirname,'loop_gains.png')
 
     print("Measuring ki ...")
-    data1, name1 = ki_data.values[:, 0], "Feedback SQ1"
-    data2, name2 = ki_data.values[:, 1], "Feedback return"
 
-    # In these dumps the 5MHz data are over sampled at 20MHz
-    fs = float(ki_data.config["frow"])*4 # Approx 20MHz
-    t = np.arange(len(data1))/fs
+    npix = int(ki_data.config["npix"])
 
     """
-    Looking for step
+    Keeping a single value per row
+    (In these dumps the 5MHz data are over sampled at 20MHz : x4)
     """
-    beginning = data1[:100].mean()
-    end = data1[-100:].mean()
-    threshold = 0.5*(end+beginning)
-    lower = data1 < threshold
-    step = (lower[:-1] & ~lower[1:]) | (lower[1:] & ~lower[:-1])
-    i_step = np.where(step)[0][0]
+    ratio=4
+    n_rows = len(ki_data.values[:,0])//ratio
+    data1 = np.resize(ki_data.values[:n_rows*ratio, 0], (n_rows, ratio))
+    data2 = np.resize(ki_data.values[:n_rows*ratio, 1], (n_rows, ratio))
+    data1 = data1[:,0]
+    data2 = data2[:,0]
 
     """
-    Computing ki
+    demultiplexing data
     """
-    width = 40
-    npts_delay = int(ki_data.config['npix']*4)
-    range_feedback1=i_step-width-2+np.arange(width)
-    range_feedback2=i_step+2+np.arange(width)
-    range_return1=i_step+npts_delay-width-2+np.arange(width)
-    range_return2=i_step+npts_delay+2+np.arange(width)
-    step_size_feedback = data1[range_feedback2].mean() - data1[range_feedback1].mean()
-    step_size_return = data2[range_return2].mean() - data2[range_return1].mean()
-    ki = -1*step_size_return/step_size_feedback
-    print("Loop gain is equal to: {0:4.3f}".format(ki))
+    n_frames = len(data1)//npix
+    data1 = np.transpose(np.resize(data1[:n_frames*npix], (n_frames, npix)))
+    data2 = np.transpose(np.resize(data2[:n_frames*npix], (n_frames, npix)))
 
     """
-    Doing the plot
+    Looking for step for each pixel
     """
+    i_step=np.empty(npix, np.int32)
+    window_size=10
+    for pixel in range(npix):
+        beginning = data1[pixel,:window_size].mean()
+        end = data1[pixel,-window_size:].mean()
+        threshold = 0.5*(end+beginning)
+        lower = data1[pixel,:] < threshold
+        step = (lower[:-1] & ~lower[1:]) | (lower[1:] & ~lower[:-1])
+        i_step[pixel] = np.arange(len(step))[step][0]
+    
+    """
+    Computing ki for each pixel
+    """
+    decal = 0  # shift of pixel index between the 2 outputs (should be 0)
+    delay = 1  # round-trip delay of the step is equal to 1 frame
+    ki=np.empty(npix)
+    for pixel in range(npix):
+        step_size_feedback=data1[pixel,i_step[pixel]+1]-data1[pixel,i_step[pixel]]
+        step_size_return=data2[(pixel+decal)%npix,i_step[(pixel+decal)%npix]+delay+1]\
+                        -data2[(pixel+decal)%npix,i_step[(pixel+decal)%npix]+delay]
+        ki[pixel] = -1*step_size_return/step_size_feedback
+
+        if verbose:
+            print("return before: ", data2[(pixel+decal)%npix,i_step[(pixel+decal)%npix]+delay])
+            print("return after: ", data2[(pixel+decal)%npix,i_step[(pixel+decal)%npix]+delay+1])
+            print("Return step: ", step_size_return)
+
+    print("Pixel's loop gains are:\n", ki)
+
+    """
+    Doing the plots
+    """
+    # Plotting the loop gain per pixel
+    fig = plt.figure(figsize=(10, 10))
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax1.scatter(np.arange(npix), ki)
+    ax1.set_ylabel("Loop gain")
+    ax1.grid(color='k', linestyle=':', linewidth=0.5)
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    ax2.scatter(np.arange(npix), ki)
+    ax2.set_ylabel("Loop gain")
+    ax2.set_xlabel("Pixel id")
+    ax2.set_ylim([0,2])
+    ax2.grid(color='k', linestyle=':', linewidth=0.5)
+
+    for item in ([ax1.yaxis.label, ax2.yaxis.label, ax2.xaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_xticklabels() + ax2.get_yticklabels()):
+        item.set_fontsize(12)
+    fig.suptitle(ki_data.config['datafilename'])
+
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(plotfilename_gains, bbox_inches='tight')
+
+    # Plotting the steps on the feedback and rturn signals
     xtitle = "Time (ms)"
-    mkr='.'
-    i1 = i_step - width - 20
-    i2 = i_step + npts_delay + width + 20
+    fs = float(ki_data.config["frow"]) * ratio
+    i1 = (i_step[0]-1)*ratio*npix
+    i2 = (i_step[0]+3)*ratio*npix
+    t = np.arange(i2-i1)*1e3/fs
 
     fig = plt.figure(figsize=(10, 8))
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.plot(1000*t[i1:i2], data1[i1:i2], 'b', label="Feedback SQ1 signal")
-    ax1.plot(1000*t[i1:i2], data2[i1:i2], 'k', label="Return signal")
-    ax1.set_ylabel(name2)
+    #print('t ', t[i1:i2])
+    ax1.plot(t, ki_data.values[i1:i2,1], 'k', label="Return signal")
+    ax1.plot(t, ki_data.values[i1:i2,0], 'b', label="Feedback SQ1 signal")
+    ax1.set_ylabel("DACs outputs (ADU)")
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
-
-    ax1.plot(1000*t[range_feedback1], data1[range_feedback1], 'r', marker=mkr, label="Feedback step size ={0:6.0f}".format(step_size_feedback))
-    ax1.plot(1000*t[range_feedback2], data1[range_feedback2], 'r', marker=mkr)
-    ax1.plot(1000*t[range_return1], data2[range_return1], 'g', marker=mkr, label="Return step size ={0:6.0f} ==> loop gain ={1:4.3f}".format(step_size_return, ki))
-    ax1.plot(1000*t[range_return2], data2[range_return2], 'g', marker=mkr)
-    ax1.set_ylabel(name1)
     ax1.set_xlabel(xtitle)
     ax1.grid(color='k', linestyle=':', linewidth=0.5)
     ax1.legend(loc="best")
 
+    for item in ([ax1.xaxis.label, ax1.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(14)
+    for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
+        item.set_fontsize(12)
+    fig.suptitle(ki_data.config['datafilename'])
+
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plotfilename, bbox_inches='tight')
-
+    plt.savefig(plotfilename_steps, bbox_inches='tight')
+    
+# -----------------------------------------------------------------------------

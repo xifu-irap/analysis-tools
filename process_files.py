@@ -69,7 +69,7 @@ kifilename = [f for f in os.listdir(datadirname) \
 if len(kifilename)>0:
     print(drawline)
     print('Analysing file ', kifilename[0])
-    d=get_data.data(kifilename[0], config.config)
+    d=get_data.data(kifilename[0])
     print('Dumptype is: ', end="")
     d.print_dumptype()
     measure_ki.measure_ki(d)
