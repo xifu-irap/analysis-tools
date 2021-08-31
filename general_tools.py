@@ -89,7 +89,7 @@ def get_csv(filename):
             for row in dict_reader:
                 try:    # for numbers
                     dictionnary[row[0]]=float(row[1].replace(',','.'))
-                except: # for strings
+                except Exception: # for strings
                     dictionnary[row[0]]=row[1]
     return(dictionnary)
 
