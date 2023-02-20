@@ -33,7 +33,56 @@ fs=125e6
 time_label_us='Time (µs)'
 samples_label='Sample number'
 
-  
+#---------------------------------------------------------------------------------    
+def rising_edge_fit(t, a, b, c, d):
+    return(a*np.exp(-(t-b)/c)+d)
+
+
+
+#---------------------------------------------------------------------------------    
+def check_cutoff_freq(data, fs, plot=True):
+
+    from scipy.optimize import curve_fit
+
+    depth_before = 1
+    depth_after = 40
+    ratio=0.1
+    threshold = data.min()+ratio*(data.max()+data.min())
+    i_high = np.where(data > threshold)
+    
+    i_first = max(0, i_high[0][0]-depth_before)
+    i_last = i_high[0][0]+depth_after
+    
+    data_rise = data[i_first: i_last]
+    samples_rise = i_first + np.arange(depth_before+depth_after)
+    #time_rise = samples_rise / fs
+    
+    # Fitting the rising edge
+    guess = [-(data.max()-data.min()), i_high[0][0], 5, data_rise[-1]]
+    print(guess)
+    popt, pcov = curve_fit(rising_edge_fit, samples_rise, data_rise, p0=guess, bounds=([-2**12, 0, 0, 0], [0, 500, 20, 2**12]))
+    fit = rising_edge_fit(samples_rise, popt[0], popt[1], popt[2], popt[3])
+
+    # Computation of the time constant and the 3dB cut frequency    
+    tau = popt[2]/fs
+    fc = 1/(2*np.pi*tau)
+
+    # Plot
+    if plot:
+        fig = plt.figure(figsize=(6, 8))
+        ax1 = fig.add_subplot(2, 1, 1)
+        ax1.plot(data, label="Input data")
+        ax1.set_xlabel(samples_label)
+        ax1.legend(loc='best')
+        ax2 = fig.add_subplot(2, 1, 2)
+        ax2.plot(samples_rise, data_rise, '.', label="Input data")
+        ax2.plot(samples_rise, fit, label=r'Fit ($\tau$={0:5.2f}ns, $f_c$={1:5.2f}MHz)'.format(tau*1e9, fc/1e6))
+        ax2.set_xlabel(samples_label)
+        ax2.set_ylim(data.min(), data.max())
+        ax2.legend(loc='best')
+            
+        fig.tight_layout()
+            
 
 #---------------------------------------------------------------------------------    
 def check_sampling_freq(data, threshold_ratio=0.1, mux=34, nsamp=20, plot=True):
@@ -113,13 +162,14 @@ def butter_lowpass_filter(data, cutoff, fs, order=1):
 
 
 #---------------------------------------------------------------------------------    
-def mk_fake_square_error_data(fs:125e6, amp=1, ok=True, mux=34, nsamp=20, plot=True):
+def mk_fake_square_error_data(fs:125e6, amp=1, cutoff=6e6, ok=True, mux=34, nsamp=20, plot=True):
     """This function computes a fake data set to simulate the content of a 
     DEMUX ADC dump when a square wave is fed into the error input.
 
     Args:
         fs (Boolean): Expected sampling frequency. Defaults to 125e6.
         amp (int, optional): Square wave amplitude. Defaults to 1.
+        cutoff (float, optional): cutoff frequency in Hz. Defaults 6MHz.
         ok (bool, optional): If OK the data set shall correspond to a correct 
             sampling frequency. Defaults to True.
         mux (int, optional): Multiplexing factor. Defaults to 34.
@@ -129,25 +179,26 @@ def mk_fake_square_error_data(fs:125e6, amp=1, ok=True, mux=34, nsamp=20, plot=T
     from scipy import signal
 
     npts = 2*mux*nsamp
-    sigma_noise=amp*0.008
+    sigma_noise=amp*0.01
 
     if ok:
         nb_periods=2  # The period corresponds to fs=125MHz
     else:
         nb_periods=2.1  # The period does not correspond to 125MHz
 
-    shift_radians=0
+    # Computing square signal
+    shift_radians=np.pi*3/2
     x=shift_radians+np.arange(npts)*2*np.pi*nb_periods/npts    
     fake_square = amp*(1+signal.square(x))
 
+    # Time values
     t=np.arange(npts)/fs
                 
     # Adding some noise
-    fake_square = fake_square+sigma_noise*np.random.randn(npts)
+    fake_square += sigma_noise*np.random.randn(npts)
 
     # Simulating analog low pass filter 
-    order=1
-    cutoff=6e6
+    order=1    
     fake_sig = butter_lowpass_filter(fake_square, cutoff, fs, order)
         
     if plot:
@@ -164,7 +215,8 @@ def mk_fake_square_error_data(fs:125e6, amp=1, ok=True, mux=34, nsamp=20, plot=T
 
 _, sig = mk_fake_square_error_data(fs, ok=True, plot=False)
 
-check_sampling_freq(sig, plot=True)
+#check_sampling_freq(sig, plot=True)
+check_cutoff_freq(sig, fs, plot=True)
 
 plt.show()
 
