@@ -169,9 +169,17 @@ def smooth(y, n):
     return(smoothed)
 
 # -----------------------------------------------------------------------
-
 class configuration:
     def __init__(self, csv_file):
         self.config = get_csv(csv_file+".csv")
 
+# -----------------------------------------------------------------------
+
+def madate():
+    """This function returns a string containing the date and time"""
+    from datetime import datetime
+    n=datetime.now()
+    return("{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}"\
+        .format(n.year, n.month, n.day, n.hour, n.minute, n.second))
+    
 # -----------------------------------------------------------------------
