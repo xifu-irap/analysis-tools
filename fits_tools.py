@@ -26,7 +26,7 @@ from astropy.io import fits
 
 
 #---------------------------------------------------------------------------------    
-VERSION = "FAKE-1"
+VERSION = "FAKE-2"
 ADC_DUMP_EXTENSION = "ADC_DUMP"
 
 #---------------------------------------------------------------------------------    
@@ -37,9 +37,14 @@ def write_adc_dump_fits_file(file_name, dump):
         file_name (string): Name of the fits file.
         dump (np_array): dump dataset
     """
+        
     # Empty primary HDU with header only    
     hdr = fits.Header()
     hdr['BITSMP'] = (16, 'Number of bits per sample')
+    hdr['VERSION'] = VERSION
+    hdr['INSTRUME'] = 'FAKE-XIFU'
+    hdr['ORIGIN'] = 'IRAP'
+    hdr['FILETYPE'] = 'AdcDump'
     empty_primary = fits.PrimaryHDU(header=hdr)
         
     # Secondary HDU (contains the fake dump)
@@ -48,10 +53,6 @@ def write_adc_dump_fits_file(file_name, dump):
     hdu = fits.BinTableHDU.from_columns(cols)
     
     hdu.header['EXTNAME']=ADC_DUMP_EXTENSION
-    hdu.header['VERSION']=VERSION
-    hdu.header['INSTRUME']='XIFU'
-    hdu.header['ORIGIN']='IRAP'
-    hdu.header['FILETYPE']='AdcDump'
     
     hdul = fits.HDUList([empty_primary, hdu])
     hdul.writeto(file_name, overwrite=True)
@@ -66,14 +67,18 @@ def read_adc_dump_fits_file(file_name, verbose=False):
         verbose (boolean): verbosity level. Defaults to False.    
     """
     hdul = fits.open(file_name)
-    hdul.info()
+    
+    primary_header = hdul['PRIMARY']
+    
     header = hdul['ADC_DUMP'].header
     if header['EXTNAME'] != ADC_DUMP_EXTENSION:
         raise NameError("Error ! This is not an ADC dump fits file. hdu extension is: ", header['EXTNAME'])
     if verbose:
         print("-------------------------------------------------")
         print(" Reading ADC dump from file :", file_name)
-        print(" File format version:", header['VERSION'])
+        print(" Instrument:", primary_header['INSTRUME'])
+        print(" Origin:", primary_header['ORIGIN'])
+        print(" File format version:", primary_header['VERSION'])
         print("-------------------------------------------------")
     
     data = hdul['ADC_DUMP'].data

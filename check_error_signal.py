@@ -54,7 +54,7 @@ def rising_edge_fit(t, a, b, c, d):
 
 
 #---------------------------------------------------------------------------------    
-def measure_cutoff_freq(file_name, plot=True):
+def measure_cutoff_freq(file_name, plot=True, guess_plot=False):
     """This function reads an ADC dump from a fits file and measures the cut off 
     frequency. The dump shall correspond to a measuremnt with a square signal at 
     DEMUX input.
@@ -62,6 +62,8 @@ def measure_cutoff_freq(file_name, plot=True):
     Args:
         file_name (string): Name of the fits file.
         plot (bool, optional): If True a plot is done. Defaults to True.
+        guess_plot (bool, optional): If True the fit with first-guess parameters
+                                     is over plotted. Default to False.
     """
     from scipy.optimize import curve_fit
 
@@ -82,10 +84,9 @@ def measure_cutoff_freq(file_name, plot=True):
     
     # Fitting the rising edge
     guess = [-(data.max()-data.min()), i_high[0][0], 4, data_rise[-1]]
-    print(guess)
     popt, pcov = curve_fit(rising_edge_fit, samples_rise, data_rise, p0=guess, bounds=([-2**14, 0, 0, 0], [0, 500, 20, 2**14]))
     fit = rising_edge_fit(samples_rise, popt[0], popt[1], popt[2], popt[3])
-    #fit0 = rising_edge_fit(samples_rise, guess[0], guess[1], guess[2], guess[3])
+    fit_guess = rising_edge_fit(samples_rise, guess[0], guess[1], guess[2], guess[3])
 
     # Computation of the time constant and the 3dB cut frequency    
     tau = popt[2]/cst.fsamp
@@ -101,16 +102,16 @@ def measure_cutoff_freq(file_name, plot=True):
         ax2 = fig.add_subplot(2, 1, 2)
         ax2.plot(samples_rise, data_rise, '.', label="Input data")
         ax2.plot(samples_rise, fit, label=r'Fit ($\tau$={0:5.2f}ns, $f_c$={1:5.2f}MHz)'.format(tau*1e9, fc/1e6))
-    #    ax2.plot(samples_rise, fit0, label=r'XXXXXXXXX')
+        if guess_plot:
+            ax2.plot(samples_rise, fit_guess, '--', color='grey', label=r'Fit with first-guess parameters')
         ax2.set_xlabel(samples_label)
         extra = 0.2*(data.max()-data.min())
         ax2.set_ylim(data.min()-extra, data.max()+extra)
         ax2.legend(loc='best')
-            
         fig.tight_layout()
     
         plot_file_name = file_name.split('.')[0]+'_cutoff_freq.png'
-        plt.savefig(plot_file_name, bbox_inches='tight')
+        plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
         print(" Cutoff frequency measurement plotted in file: ", plot_file_name)
         
 
@@ -174,7 +175,7 @@ def measure_sampling_freq(file_name, threshold_ratio=0.1, plot=True):
             fig.tight_layout()
 
             plot_file_name = file_name.split('.')[0]+'_measure_fs.png'
-            plt.savefig(plot_file_name, bbox_inches='tight')
+            plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
             print(" Sampling measurement plotted in file: ", plot_file_name)
 
             
