@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # custom imports
-import constants, general_tools
+import constants as cst
+import general_tools as gtl
 
 #----------------------------------------------------------------
 def get_tm_mode(value):
@@ -18,7 +19,7 @@ def get_tm_mode(value):
     Returns:
         string: The name of the tm mode
     """    
-    return [key for key, val in constants.tm_dict.items() if val == value][0]
+    return [key for key, val in cst.tm_dict.items() if val == value][0]
 
 
 #----------------------------------------------------------------
@@ -53,7 +54,7 @@ class packet:
         Args:
             pixel (integer): pixel index whose data will be printed
         """
-        if self.tm_mode != constants.sci_name:
+        if self.tm_mode != cst.sci_name:
             print("Impossible to do this print in this tm mode")            
         else:
             print("--------------")
@@ -62,7 +63,7 @@ class packet:
                 print("Telemetry mode: ", self.tm_mode[frame])
             print("Nframes: ", self.nframes)
             print("Multiplexing factor: ", self.mux)
-            for column in range(constants.nb_col):
+            for column in range(cst.nb_col):
                 print("\nb_cols {0:d}, pixel {1:d}:".format(column, pixel))
                 for frame in range(self.nframes):
                     print('{0:X} '.format(self.data[column][frame, pixel]), end='')
@@ -81,7 +82,7 @@ class packet:
         print("Telemetry mode: ", self.tm_mode[frame])
         print("Nframes: ", self.nframes)
         print("Multiplexing factor: ", self.mux)
-        for column in range(constants.nb_col):
+        for column in range(cst.nb_col):
             print("\nb_cols {0:d}, frame {1:d}:".format(column, frame))
             for pix in range(self.mux):
                 print('{0:X} '.format(self.data[column][frame, pix]), end='')
@@ -107,7 +108,7 @@ class packet:
         
 
     #------------------------------------------------------------
-    def plot(self, column=4, pixel=34, zoom=0):
+    def plot(self, column=4, pixel=34, zoom=0, xy_limits=[0, 0, 0, 0]):
         """
         Method to plot the content of an ADC dump file
 
@@ -124,25 +125,26 @@ class packet:
 
         filename = self.fullfilename.split('/')[-1]
 
-        if (self.tm_mode[0] == constants.dmp_name):
+        if (self.tm_mode[0] == cst.dmp_name):
             plot_attributes = {
                 "ticks" : '.-',
                 "xlabel" : "Samples",
                 "title" : filename + ", dump file"
             }
             plot_tm_adc_dmp(self.data, self.fullfilename, plot_attributes, column, zoom)
-        elif (self.tm_mode[0] == constants.adc_name):
+        elif (self.tm_mode[0] == cst.adc_name):
             plot_attributes = {
                 "ticks" : '.',
                 "xlabel" : "Samples",
                 "title" : filename + ", ADC file"
             }
             plot_tm_adc_dmp(self.data, self.fullfilename, plot_attributes, column, zoom)
-        elif (self.tm_mode[0] == constants.sci_name):
+        elif (self.tm_mode[0] == cst.sci_name):
             plot_attributes = {
                 "ticks" : ' ',
                 "xlabel1" : "Time (µs)",
                 "xlabel2" : "Frames",
+                "xy_limits" : xy_limits,
                 "title" : filename + ", science file"
             }
             plot_tm_sci(self.data, self.fullfilename, plot_attributes, column, pixel)
@@ -175,9 +177,9 @@ class packet:
             col (int, optional): index of the column to consider. Defaults to 0.
         """        
         trigger = self.mean()
-        x_higher = np.where(self.data[col][0] > trigger[col])[0]
+        x_higher = np.nonzero(self.data[col][0] > trigger[col])[0]
         if x_higher[0] == 0:    # case of a rising edge
-            x_edge = np.where(self.data[col][0] < trigger[col])[0][0]
+            x_edge = np.nonzero(self.data[col][0] < trigger[col])[0][0]
         else:                   # case of a falling edge
             x_edge = x_higher[0]
         return(x_edge)
@@ -192,9 +194,9 @@ def dac_vs_adc_delay_plot(p1, p2, p3, dac_name, zoom=0):
         If 0, no zoom is applied (defaut = 0)
     """
 
-    if (p1.tm_mode[0] != constants.dmp_name) \
-        or (p2.tm_mode[0] != constants.dmp_name) \
-        or (p3.tm_mode[0] != constants.dmp_name) :
+    if (p1.tm_mode[0] != cst.dmp_name) \
+        or (p2.tm_mode[0] != cst.dmp_name) \
+        or (p3.tm_mode[0] != cst.dmp_name) :
         raise ValueError("Wrong file header!")
     else:
         start_test_ref=8    # Beginning of the test reference in the file name (i.e. UT_5018)
@@ -216,12 +218,12 @@ def dac_vs_adc_delay_plot(p1, p2, p3, dac_name, zoom=0):
             last_sample = zoom
 
         fig = plt.figure(figsize=(13, 13))
-        for col in range(constants.nb_col):
+        for col in range(cst.nb_col):
             ax1 = fig.add_subplot(4, 1, 1+col)
             ax1.plot(p1.data[col][0,:last_sample], ticks1, color=col1)
             if col == 0:
                 ax1.set_title(title)
-            elif col == constants.nb_col-1 :
+            elif col == cst.nb_col-1 :
                 ax1.set_xlabel(xlabel)
             ax1.set_ylabel("FAS -> ADC, col {0:d} (ADU)".format(col))
             
@@ -235,10 +237,9 @@ def dac_vs_adc_delay_plot(p1, p2, p3, dac_name, zoom=0):
             ax2.legend(loc="best")
 
         fig.tight_layout()
-        
         plot_file_name = p2.fullfilename.split('.')[0]+ ' ' + dac_name + '.png'
-
         plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
+        plt.close()
 
 #----------------------------------------------------------------
 def import_packet(lines_chunk, verbose=False):
@@ -271,21 +272,21 @@ def import_packet(lines_chunk, verbose=False):
     col2,_=read_column(lines_chunk[6])
     col3,_=read_column(lines_chunk[7])
     
-    if tm_mode == constants.dmp_name:
-        col0[0,:] = general_tools.to_signed((col0[0,:]),14)
-        col1[0,:] = general_tools.to_signed((col1[0,:]),14)
-        col2[0,:] = general_tools.to_signed((col2[0,:]),14)
-        col3[0,:] = general_tools.to_signed((col3[0,:]),14)
-    elif tm_mode == constants.adc_name or tm_mode == constants.dtv_name:
-        col0[0,:] = general_tools.to_signed((col0[0,:]),16)/4
-        col1[0,:] = general_tools.to_signed((col1[0,:]),16)/4
-        col2[0,:] = general_tools.to_signed((col2[0,:]),16)/4
-        col3[0,:] = general_tools.to_signed((col3[0,:]),16)/4
-    elif tm_mode == constants.sci_name:
-        col0[0,:] = general_tools.to_signed((col0[0,:]),16)
-        col1[0,:] = general_tools.to_signed((col1[0,:]),16)
-        col2[0,:] = general_tools.to_signed((col2[0,:]),16)
-        col3[0,:] = general_tools.to_signed((col3[0,:]),16)
+    if tm_mode == cst.dmp_name:
+        col0[0,:] = gtl.to_signed((col0[0,:]),14)
+        col1[0,:] = gtl.to_signed((col1[0,:]),14)
+        col2[0,:] = gtl.to_signed((col2[0,:]),14)
+        col3[0,:] = gtl.to_signed((col3[0,:]),14)
+    elif tm_mode == cst.adc_name or tm_mode == cst.dtv_name:
+        col0[0,:] = gtl.to_signed((col0[0,:]),16)/4
+        col1[0,:] = gtl.to_signed((col1[0,:]),16)/4
+        col2[0,:] = gtl.to_signed((col2[0,:]),16)/4
+        col3[0,:] = gtl.to_signed((col3[0,:]),16)/4
+    elif tm_mode == cst.sci_name:
+        col0[0,:] = gtl.to_signed((col0[0,:]),16)
+        col1[0,:] = gtl.to_signed((col1[0,:]),16)
+        col2[0,:] = gtl.to_signed((col2[0,:]),16)
+        col3[0,:] = gtl.to_signed((col3[0,:]),16)
            
     p=packet('', time, tm_mode, nframes, mux, col0, col1, col2, col3)
 
@@ -311,7 +312,7 @@ def read_column(line):
 
 
 #----------------------------------------------------------------
-def read_scd(fullfilename, verbose=False):
+def read_tm(fullfilename, verbose=False):
     """
     This function imports a data packet from a science data file
     into a packet object
@@ -326,16 +327,16 @@ def read_scd(fullfilename, verbose=False):
     lines = f.readlines()
     
     nblines = len(lines)
-    nbpackets = int((nblines - constants.nb_lines_end_tmfile) / constants.nb_lines_packet)
+    nbpackets = int((nblines - cst.nb_lines_end_tmfile) / cst.nb_lines_packet)
     
     if verbose:
         print("The file ", filename, " contains {0:3d} packets".format(nbpackets))
 
-    p=import_packet(lines[0:constants.nb_lines_packet]) # reading data of first packet
+    p=import_packet(lines[0:cst.nb_lines_packet]) # reading data of first packet
     p.fullfilename = fullfilename
 
     for ipacket in range(nbpackets-1): # appending the data of other packets
-        p.packet_append(lines[(ipacket+1)*constants.nb_lines_packet:(ipacket+2)*constants.nb_lines_packet])
+        p.packet_append(lines[(ipacket+1)*cst.nb_lines_packet:(ipacket+2)*cst.nb_lines_packet])
     
     return(p)
 
@@ -358,7 +359,7 @@ def split_scd(fullfilename, verbose=False):
     lines = f.readlines()
     
     nb_lines = len(lines)
-    nb_packets = int((nb_lines - constants.nb_lines_end_tmfile) / constants.nb_lines_packet)
+    nb_packets = int((nb_lines - cst.nb_lines_end_tmfile) / cst.nb_lines_packet)
     if verbose:
         print("Splitting file ", filename, "...")
         print("   This file contains {0:3d} packets".format(nb_packets))
@@ -372,12 +373,12 @@ def split_scd(fullfilename, verbose=False):
         split_filename = fullfilename+"{0:d}".format(split_index)
 
         # Checking tm mode of the next packet
-        current_tm_mode = get_tm_mode(lines[2 + packet_index * constants.nb_lines_packet].split(':')[1][1:-1])
+        current_tm_mode = get_tm_mode(lines[2 + packet_index * cst.nb_lines_packet].split(':')[1][1:-1])
         
         # Comparing the tm mode of the packets to the tm mode of the first packet
         while packet_index < nb_packets-1 \
-            and get_tm_mode(lines[2 + (packet_index+1) * constants.nb_lines_packet].split(':')[1][1:-1]) == current_tm_mode \
-            and current_tm_mode != constants.dmp_name:
+            and get_tm_mode(lines[2 + (packet_index+1) * cst.nb_lines_packet].split(':')[1][1:-1]) == current_tm_mode \
+            and current_tm_mode != cst.dmp_name:
             packet_index += 1
             current_nb_packet += 1
         if verbose:
@@ -389,22 +390,22 @@ def split_scd(fullfilename, verbose=False):
         if not all_the_packets_of_the_file_have_same_tm_mode: 
             files_list.append(split_filename)
             f_split = open(split_filename, "w")
-            for l in range (current_nb_packet*constants.nb_lines_packet):
+            for l in range (current_nb_packet*cst.nb_lines_packet):
                 f_split.write(lines[line_index+l])
             # printing end of file
-            for l in range (constants.nb_lines_end_tmfile):
-                f_split.write(lines[-constants.nb_lines_end_tmfile + l])
+            for l in range (cst.nb_lines_end_tmfile):
+                f_split.write(lines[-cst.nb_lines_end_tmfile + l])
             f_split.close()
 
         packet_index += 1
         split_index += 1
-        line_index += current_nb_packet * constants.nb_lines_packet
+        line_index += current_nb_packet * cst.nb_lines_packet
 
     return(files_list)
 
 #----------------------------------------------------------------
 
-def plot_tm_adc_dmp(data, fullfilename, plt_at, column=constants.nb_col, zoom=0):
+def plot_tm_adc_dmp(data, fullfilename, plt_at, column=cst.nb_col, zoom=0):
     
     length = len(data[0][0,:]) * len(data[0][:,0])
     if zoom == 0:
@@ -414,7 +415,7 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=constants.nb_col, zoom=0)
 
     if column == 4:
         fig = plt.figure(figsize=(12, 12))
-        for col in range(constants.nb_col):
+        for col in range(cst.nb_col):
             ax = fig.add_subplot(4, 1, 1+col)
             
             d = np.reshape(data[col],(len(data[col][:,0])*len(data[col][0,:])))
@@ -426,7 +427,7 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=constants.nb_col, zoom=0)
 
             if col == 0:
                 ax.set_title(plt_at["title"])
-            elif col == constants.nb_col-1 :
+            elif col == cst.nb_col-1 :
                 ax.set_xlabel(plt_at["xlabel"])
 
         fig.tight_layout()
@@ -448,29 +449,31 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=constants.nb_col, zoom=0)
         plot_file_name = fullfilename.split('.')[0]+'_col{0:d}.png'.format(column)
     
     plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
+    plt.close()
     print("  Plot saved in ", plot_file_name)
 
 #----------------------------------------------------------------
 
-def plot_tm_sci(data, fullfilename, plt_at, column=constants.nb_col, pixel=constants.nb_pix):
+def plot_tm_sci(data, fullfilename, plt_at, column=cst.nb_col, pixel=cst.nb_pix):
     
-    if column == constants.nb_col:
+    # Here we do one plot per column 
+    if column == cst.nb_col:
         fig = plt.figure(figsize=(12, 12))
         plot_file_name = fullfilename.split('.')[0]
         for col in range(column):
             ax = fig.add_subplot(4, 1, 1+col)
             plot_file_name = column_plot_tm_sci(ax, data, plot_file_name, plt_at, col, pixel)                                            
-#            if col == constants.nb_col-1 :
-#                ax.set_xlabel(plt_at["xlabel1"])
+    # Here we do the plot for a single column 
     else:
         fig = plt.figure(figsize=(8, 5))
         plot_file_name = fullfilename.split('.')[0] + '_col{0:d}'.format(column)
         ax = fig.add_subplot(1, 1, 1)
         plot_file_name = column_plot_tm_sci(ax, data, plot_file_name, plt_at, column, pixel)                 
-#        ax.set_xlabel(plt_at["xlabel1"])
 
     fig.tight_layout()    
     plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
+    plt.close()
+
     print("  Plot saved in ", plot_file_name)
 
 #----------------------------------------------------------------
@@ -479,13 +482,30 @@ def column_plot_tm_sci(ax, data, plot_file_name, plt_at, col, pixel):
     char_size = 8
     
     l = len(data[0][:,0])
-    time = np.arange(l)/constants.f_frame
-    if pixel == constants.nb_pix:
-        for pix in range(pixel):
-            ax.plot(time, data[col][:,pix], marker=plt_at["ticks"])
+    time = np.arange(l)*1e6/cst.f_frame
+    # Here we do the plot for all the pixels 
+    if pixel == cst.nb_pix:
+        cmap = plt.get_cmap('hsv')
+        colors = cmap(np.linspace(0, 1.0, cst.nb_pix))
+        pixels = np.arange(cst.nb_pix)
+        for pix, color in zip(pixels, colors):
+            ax.plot(time, data[col][:,pix], marker=plt_at["ticks"], linewidth=0.8, color=color)
         ax.set_title(plt_at["title"] + ', Column {0:d}'.format(col))
         ax.set_xlabel(plt_at["xlabel1"])
+        # Doing x zoom if requested
+        if plt_at["xy_limits"][0] != 0 or plt_at["xy_limits"][1] != 0:
+            ax.set_xlim(plt_at["xy_limits"][0], plt_at["xy_limits"][1])
+            plot_file_name = plot_file_name+'_xzoom'
+        # Doing y zoom if requested
+        if plt_at["xy_limits"][2] != 0 or plt_at["xy_limits"][3] != 0:
+            ax.set_ylim(plt_at["xy_limits"][2], plt_at["xy_limits"][3])
+            plot_file_name = plot_file_name+'_yzoom'
+        ax2 = ax.twiny()
+        ax2.plot(np.arange(l), np.zeros(l), ' ') # fake plot
+        ax2.set_xlim(0, l)
+        ax2.set_xlabel(plt_at["xlabel2"])
         plot_file_name = plot_file_name+'.png'
+    # Here we do the plot for a single pixel 
     else:
         ax.plot(time, data[col][:,pixel], marker=plt_at["ticks"])
         ax.set_title(plt_at["title"] + ', Column {0:d}, pixel {1:d}'.format(col, pixel))

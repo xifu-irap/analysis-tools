@@ -1,6 +1,6 @@
 
 #imports
-import scd_tools, constants
+import scd_tools as stl
 
 path='/Users/laurent/Data/TestPlan_10_cosim/'
 
@@ -16,7 +16,7 @@ do_carac_sqm_tf_8phi = True
 
 def plot_tm_curve(fullfilename):
     print("  Processing file...")
-    p = scd_tools.read_scd(fullfilename, verbose=True)
+    p = stl.read_tm(fullfilename, verbose=True)
     mini, maxi = p.data[0].min(), p.data[0].max()
     print("  The characteristic ranges from {0:d} to {1:d}".format(mini, maxi))
     print("  The full scale range for this signal is -8192 / 8191 (14 bits signed).")

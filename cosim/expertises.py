@@ -1,8 +1,11 @@
 
 #imports
 import numpy as np
-import scd_tools, general_tools, constants
 import matplotlib.pyplot as plt
+
+import constants as cst
+import general_tools as gtl
+import scd_tools as stl
 
 
 #----------------------------------------------------------------
@@ -16,13 +19,13 @@ def sampling_delay(path, filename_err, col=0):
         col (int, optional): index of the column to be characterized. Defaults to 0.
     """
 
-    print(constants.draw_line)
+    print(cst.draw_line)
     print("Characterizing the sampling delay")
     print("    Pixel 0 has a specific TES setting point.")
-    print(constants.measure_file_text, filename_err)
+    print(cst.measure_file_text, filename_err)
     fullfilename_err = path+filename_err
-    files_err = scd_tools.split_scd(fullfilename_err)
-    p_err = scd_tools.read_scd(files_err[1])
+    files_err = stl.split_scd(fullfilename_err)
+    p_err = stl.read_tm(files_err[1])
     p_err.plot(column=col)
    
     x_edge_err = p_err.edge_detect(col=col)
@@ -30,7 +33,7 @@ def sampling_delay(path, filename_err, col=0):
 
     sample_id = 16
     delay = sample_id + x_edge_err
-    if delay > constants.sampling_max_delay:
+    if delay > cst.sampling_max_delay:
         raise ValueError(" >> The sampling is too high, it cannot be corrected")
     else:
         print(" Considering we want the sample # {0:d}/20 of each pixel, the delay shall be set to {1:d}".format(sample_id, delay))
@@ -49,26 +52,26 @@ def dac_delay(path, filename_err, filename_dac, dac_delay_dict, col=0):
         col (int, optional): index of the column to be characterized. Defaults to 0.
     """
 
-    print(constants.draw_line)
+    print(cst.draw_line)
     print("Characterizing the delay of the", dac_delay_dict["signal_name"], "signal with respect to the error signal")
 
     # Processing delay reference data
     print("  Measurement 1:")
     print("    Pixel 0 has a specific TES setting point")
-    print(constants.measure_file_text, filename_err)
+    print(cst.measure_file_text, filename_err)
     fullfilename_err = path+filename_err
-    files_err = scd_tools.split_scd(fullfilename_err)
-    p_err = scd_tools.read_scd(files_err[1])
+    files_err = stl.split_scd(fullfilename_err)
+    p_err = stl.read_tm(files_err[1])
     x_edge_err = p_err.edge_detect(col=col)
     print("    The pixel 0 starts at sample # {0:d} after the synchronisation".format(x_edge_err))
 
     # Processing data generated from a DRE DAC (no delay correction)
     print("\n  Measurement 2:")
     print("    In open loop, pixel 0 has a specific FB0")
-    print(constants.measure_file_text, filename_dac)
+    print(cst.measure_file_text, filename_dac)
     fullfilename_dac = path+filename_dac
-    files_dac = scd_tools.split_scd(fullfilename_dac)
-    p_dac = scd_tools.read_scd(files_dac[0])
+    files_dac = stl.split_scd(fullfilename_dac)
+    p_dac = stl.read_tm(files_dac[0])
     x_edge_dac = p_dac.edge_detect(col=col)
     print("    The pixel 0 starts at sample # {0:d} after the synchronisation".format(x_edge_dac))
 
@@ -76,14 +79,14 @@ def dac_delay(path, filename_err, filename_dac, dac_delay_dict, col=0):
     delay = x_edge_err - x_edge_dac
     nbits_format = 10
     print("\n  -> The " + dac_delay_dict["signal_name"] + " signal shall be delayed by {0:d} samples".format(delay))
-    print("\n " + dac_delay_dict["parameter_name"] + " = " + general_tools.dec_to_signed_hexa(delay, nbits_format) + "\n")    
+    print("\n " + dac_delay_dict["parameter_name"] + " = " + gtl.dec_to_signed_hexa(delay, nbits_format) + "\n")    
 
     # Processing data generated from a DRE DAC (after delay correction)
-    p_dac_corrected = scd_tools.read_scd(files_dac[1])
+    p_dac_corrected = stl.read_tm(files_dac[1])
     x_edge_dac_corrected = p_dac_corrected.edge_detect(col=col)
     print("    The edge of the", dac_delay_dict["signal_name"], "signal after delay correction is on sample {0:d}\n".format(x_edge_dac_corrected))
     
-    scd_tools.dac_vs_adc_delay_plot(p_err, p_dac, p_dac_corrected, dac_delay_dict["signal_name"], zoom=200)
+    stl.dac_vs_adc_delay_plot(p_err, p_dac, p_dac_corrected, dac_delay_dict["signal_name"], zoom=200)
         
 #----------------------------------------------------------------
 def amp_sq_vphi(path, filename, setup, col=0):
@@ -103,13 +106,13 @@ def amp_sq_vphi(path, filename, setup, col=0):
     label1 = "Data from pattern"
     label2 = "Data from shifted pattern"
     
-    print(constants.draw_line)
+    print(cst.draw_line)
     print("Characterizing the V/Phi curve of the AMP SQUID on column {0:d}".format(col))
     print(" TM error file:     ", filename)
     fullfilename = path+filename
 
     # Getting data from file
-    p = scd_tools.read_scd(fullfilename, verbose=True)
+    p = stl.read_tm(fullfilename, verbose=True)
 
     #   - In a frame pixels 0-16 use an offset of 0, pixels 17-33 use an offset of FSR/2
     #   - The few first data needs to be ignored (settling time of the slow DAC)
@@ -126,7 +129,7 @@ def amp_sq_vphi(path, filename, setup, col=0):
     nbits_amp_sq = 12
     nbits_pattern = 14
     correction_factor = nbits_amp_sq - nbits_pattern
-    v_offset_low = 1/6 * (setup["start_value"] + np.arange(n_steps)*setup["step_size"]) * constants.amp_sq_quantum * 2**(correction_factor)
+    v_offset_low = 1/6 * (setup["start_value"] + np.arange(n_steps)*setup["step_size"]) * cst.amp_sq_quantum * 2**(correction_factor)
     v_offset_high = v_offset_low + 1/6 * ( setup["shift_OFFSET"])
     
     # Making Y array
