@@ -9,7 +9,7 @@ import scd_tools as stl
 
 
 #----------------------------------------------------------------
-def sampling_delay(path, filename_err, col=0):
+def sync_delay(path, filename_err, col=0, reference=False):
     """This function characterize the delay of a DAC signal
     with respect to the address line signal
 
@@ -17,28 +17,76 @@ def sampling_delay(path, filename_err, col=0):
         path (string): path to the data files
         filename_err (string): name of the error dump tm file
         col (int, optional): index of the column to be characterized. Defaults to 0.
+        reference (boolean, optional): indicates if the measurement has been done 
+            with a delay correction set to 0. Default to False.
     """
 
     print(cst.draw_line)
-    print("Characterizing the sampling delay")
-    print("    Pixel 0 has a specific TES setting point.")
+    print("Characterizing the RAS SYNC delay...")
+    print("  Pixel 0 has a specific TES setting point.")
     print(cst.measure_file_text, filename_err)
     fullfilename_err = path+filename_err
     files_err = stl.split_scd(fullfilename_err)
     p_err = stl.read_tm(files_err[1])
     p_err.plot(column=col)
+    p_err.plot(column=col, zoom=22)
    
-    x_edge_err = p_err.edge_detect(col=col)
-    print("\n The pixel 0 starts at sample # {0:d} after the synchronisation".format(x_edge_err))
+    delay = p_err.edge_detect(col=col)
+    print("\n  The pixel 0 starts at sample # {0:d} after the DEMUX synchronisation".format(delay))
+    print("  The RAS SYNC signal shall be delayed by {0:d} samples".format(delay))
 
-    sample_id = 16
-    delay = sample_id + x_edge_err
-    if delay > cst.sampling_max_delay:
-        raise ValueError(" >> The sampling is too high, it cannot be corrected")
-    else:
-        print(" Considering we want the sample # {0:d}/20 of each pixel, the delay shall be set to {1:d}".format(sample_id, delay))
-        print("\n CY_SAMPLING_DELAY = " + hex(delay) + "\n")    
+    if reference:   # We measure the delay correction to be applied
+        if delay > cst.sampling_max_delay:
+            raise ValueError(" >> The sampling is too high, it cannot be corrected")
+        else:
+            print("   =>    SEQ_DELAY  = " + hex(delay) + " (with the RAS)")    
+            print("   =>    g_RA_DELAY = " + hex(delay) + " (with co-simulations)\n")   
     
+
+#----------------------------------------------------------------
+def sequence_delay(path, filename_err, error_delay_dict, col=0):
+    """This function characterize the delay of the pixel sequence
+    with respect to the synchronisation signal
+
+    Args:
+        path (string): path to the data files
+        filename_err (string): name of the error dump tm file
+        error_delay_dict (dictionnary) with:
+            "config" (string): "FPAsim" or "RAS"
+            "g_RA_DELAY" (int) if FPAsim, "none" if RAS
+            "g_ERROR_DELAY" (int) if FPAsim, "SEQ_DELAY" if RAS
+        col (int, optional): index of the column to be characterized. Defaults to 0.
+    """
+
+    print(cst.draw_line)
+    print("Characterizing the RAS sequence delay...")
+    print("  Pixel 0 has a specific TES setting point.")
+    print(cst.measure_file_text, filename_err)
+    fullfilename_err = path+filename_err
+    files_err = stl.split_scd(fullfilename_err)
+    p_err = stl.read_tm(files_err[1])
+    p_err.plot(column=col)
+    p_err.plot(column=col, zoom=22)
+   
+    delay = -1 * p_err.edge_detect(col=col)
+    if delay == 0:
+        print("\n  The pixel 0 starts with the DEMUX synchronisation")
+        print("  The RAS sequence delay setting is correct")
+    else:
+        print("\n  The pixel 0 starts {0:d} sample before the DEMUX synchronisation".format(delay))
+        print("  The RAS sequence shall be delayed by {0:d} sample(s)".format(delay))
+
+    param_name = list(error_delay_dict.keys())[2]
+    if error_delay_dict["config"]=="ras":  # for the RAS settings
+        param = error_delay_dict[param_name] + delay  
+    if error_delay_dict["config"]=="fpasim":  # for the FPAsim settings
+        param = error_delay_dict[param_name] + delay * 2 # x2 because in the fpasim the delay is made with clk250
+        if param > 63:
+            raise ValueError("  We have a problem, the delay can't be corrected...")  
+
+    print("   =>    " + param_name + " = " + hex(param) )
+
+
 #----------------------------------------------------------------
 def dac_delay(path, filename_err, filename_dac, dac_delay_dict, col=0):
     """This function characterize the delay of a DAC signal

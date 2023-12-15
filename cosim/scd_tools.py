@@ -127,7 +127,7 @@ class packet:
 
         if (self.tm_mode[0] == cst.dmp_name):
             plot_attributes = {
-                "ticks" : '.-',
+                "ticks" : 'o-',
                 "xlabel" : "Samples",
                 "title" : filename + ", dump file"
             }
@@ -170,7 +170,7 @@ class packet:
         return(np.array([np.mean(self.data[0][0][:]), np.mean(self.data[1][0][:]), np.mean(self.data[2][0][:]), np.mean(self.data[3][0][:])]))             
 
     #------------------------------------------------------------
-    def edge_detect(self, col=0):
+    def edge_detect_old(self, col=0):
         """This function detects the edges of the signal and returns the sample number
 
         Args:
@@ -182,6 +182,61 @@ class packet:
             x_edge = np.nonzero(self.data[col][0] < trigger[col])[0][0]
         else:                   # case of a falling edge
             x_edge = x_higher[0]
+        return(x_edge)
+    
+    #------------------------------------------------------------
+    def edge_detect_0(self, col=0):
+        """This function detects a pulse upward or downward in a signal and 
+           it measures the position of the rising or falling edge.
+           
+        Args:
+            col (int, optional): index of the column to consider. Defaults to 0.
+        """        
+        trigger = self.mean()[col]
+        ratio_high = 100 * (trigger - self.min()[col]) / (self.max()[col] - self.min()[col])
+        pulse_high = ratio_high < 50 # Signal is low with a short pulse upward
+        
+        x_higher = np.nonzero(self.data[col][0] > trigger)[0]
+
+        if pulse_high:  # case of a pulse upward
+            print("  The signal is low with a pulse upward", end="")
+            x_edge = x_higher[0]
+        else:           # case of a pulse downward
+            print("  The signal is high with a pulse downward", end="")
+            x_edge = np.nonzero(self.data[col][0] < trigger)[0][0]
+        print("(the signal is ~{0:2.1f}% low and ~{1:2.1f}% high)".format(100-ratio_high, ratio_high))
+
+        return(x_edge)
+    
+    #------------------------------------------------------------
+    def edge_detect(self, col=0):
+        """This function detects a pulse upward or downward in a signal and 
+           it measures the position of the rising or falling edge.
+           
+        Args:
+            col (int, optional): index of the column to consider. Defaults to 0.
+        """        
+        trigger = self.mean()[col]
+        data=self.data[col][0]
+
+        ratio_high = 100 * (trigger - self.min()[col]) / (self.max()[col] - self.min()[col])
+        pulse_high = ratio_high < 50 # Signal is low with a short pulse upward
+        
+        if pulse_high:  # case of a pulse upward
+            print("  The signal is low with a pulse upward", end="")
+            x_edges = np.flatnonzero((data[:-1] < trigger) & (data[1:] > trigger))+1
+        else:           # case of a pulse downward
+            print("  The signal is high with a pulse downward", end="")
+            x_edges = np.flatnonzero((data[:-1] > trigger) & (data[1:] < trigger))+1
+        print("(the signal is ~{0:2.1f}% low and ~{1:2.1f}% high)".format(100-ratio_high, ratio_high))
+
+        if len(x_edges) > 2 :
+            print(x_edges)
+            raise ValueError('  --> The number of Edges in the signal is incorrect (>2)!')
+        
+        frame_length = cst.nb_pix * cst.nb_samples_per_col
+        x_edge =  x_edges[0] - frame_length        
+
         return(x_edge)
 
 #------------------------------------------------------------
@@ -409,9 +464,13 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=cst.nb_col, zoom=0):
     
     length = len(data[0][0,:]) * len(data[0][:,0])
     if zoom == 0:
-        last_sample = length
+        last_sample = length    # plot range
+        extension = ""          # filename extension
+        mksz = 1                # markersie on the plot
     else:
         last_sample = min(zoom, length)
+        extension="_zoom"
+        mksz = 4
 
     if column == 4:
         fig = plt.figure(figsize=(12, 12))
@@ -419,7 +478,7 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=cst.nb_col, zoom=0):
             ax = fig.add_subplot(4, 1, 1+col)
             
             d = np.reshape(data[col],(len(data[col][:,0])*len(data[col][0,:])))
-            ax.plot(d[:last_sample], plt_at["ticks"], markersize=0.5, label='Column {0:d}, '.format(col))
+            ax.plot(d[:last_sample], plt_at["ticks"], markersize=mksz, label='Column {0:d}, '.format(col))
 
             ax.grid()
             ax.set_ylabel("ADU")
@@ -431,14 +490,14 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=cst.nb_col, zoom=0):
                 ax.set_xlabel(plt_at["xlabel"])
 
         fig.tight_layout()
-        plot_file_name = fullfilename.split('.')[0]+'_4cols.png'
+        plot_file_name = fullfilename.split('.')[0]+extension+'_4cols.png'
             
     else:
         fig = plt.figure(figsize=(8, 5))
         ax = fig.add_subplot(1, 1, 1)
         
         d = np.reshape(data[column],(len(data[column][:,0])*len(data[column][0,:])))
-        ax.plot(d[:last_sample],plt_at["ticks"], markersize=0.5)
+        ax.plot(d[:last_sample],plt_at["ticks"], markersize=mksz)
         
         ax.grid()
         ax.set_ylabel("ADU")
@@ -446,7 +505,7 @@ def plot_tm_adc_dmp(data, fullfilename, plt_at, column=cst.nb_col, zoom=0):
         ax.set_xlabel(plt_at["xlabel"])
 
         fig.tight_layout()
-        plot_file_name = fullfilename.split('.')[0]+'_col{0:d}.png'.format(column)
+        plot_file_name = fullfilename.split('.')[0]+extension+'_col{0:d}.png'.format(column)
     
     plt.savefig(plot_file_name, dpi=300, bbox_inches='tight')
     plt.close()

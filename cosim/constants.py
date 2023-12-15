@@ -31,4 +31,4 @@ nb_lines_end_tmfile = 3
 
 # strings
 draw_line = "\n------------------------------------------------"   
-measure_file_text = "    We measure the following dump file:     "                
+measure_file_text = "  We measure the following dump file:     "                
