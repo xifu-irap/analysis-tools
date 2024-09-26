@@ -1,4 +1,3 @@
-# ---------------------------------------------------------------------------------
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -18,26 +17,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# ---------------------------------------------------------------------------------
-#
 #  laurent.ravera@irap.omp.eu
 #  constants.py
 #
-# ---------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------------
-fSamp = 125e6
-muxFactor = 34
-nSamplesPerRow = 20
-fRow = fSamp / nSamplesPerRow
-fFrame = fRow / muxFactor
-nBitsAdc = 14
-fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
-nBitsDac = 14
+#---------------------------------------------------------------------------------    
+fsamp = 125e6
+mux_factor = 34
+n_samples_per_row = 20
+adc_nbits = 14
+dac_nbits = 14
 
-# ---------------------------------------------------------------------------------
-# Directories
-dataDirName = 'DATA'
-plotDirName = 'PLOTS'
-
-# ---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------    

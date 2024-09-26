@@ -22,60 +22,6 @@
 #
 
 ###############################################################################
-def sInt_to_twoCompInt(value_p, width_p):
-    r"""
-    This function computes the 2s complement binary value of an integer.
-
-    Parameters
-    ----------
-    dec : number
-        The decimal input integer to be converted
-    n : number
-        The number of bits of the output
-
-    Output
-    ------
-    cad : number
-        The cad value
-
-    Raises
-    ------
-    ValueError
-        When n is too small to do the conversion
-
-    Examples
-    --------
-    >>> sInt_to_twoCompInt(7, 8)
-    00000111
-    >>> sInt_to_twoCompInt(-7, 8)
-    249
-    >>> print('{0:b}'.format(sInt_to_twoCompInt(-7,8)))
-    11111001
-    >>> sInt_to_twoCompInt(7, 2)
-    ValueError: Requested size is too small for this value
-
-    """
-
-    if (value_p < -2 ** (width_p - 1)) or (value_p > 2 ** (width_p - 1) - 1):
-        raise ValueError('Requested size is too small for this value')
-    else:
-        if value_p < 0:
-            val = 2 ** (width_p - 1) | (value_p + 2 ** (width_p - 1))
-        else:
-            val = value_p
-        return val
-
-###############################################################################
-def twoCompInt_to_sInt(value_p, width_p):
-    if value_p >> width_p != 0:
-        print("ERROR: Incorrect number of bits.")
-    else:
-        if value_p >> (width_p-1) == 0:  # Value is positive
-            return value_p
-        else:  # Value is negative
-            return -(2**(width_p-1)) + value_p % (2**(width_p-1))
-
-###############################################################################
 def switch_bin2hexa_digit(digit):
     r"""
     This function translates a binary string to an hexadecimal string
@@ -128,7 +74,7 @@ def switch_natbin2dec(bin):
     return(int(bin,2))
 
 ###############################################################################
-def dec2cad_str(dec, n):
+def dec2cad(dec, n):
     r"""
     This function computes the 2s complement binary value of an integer.
     

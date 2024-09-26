@@ -29,7 +29,7 @@ class packet:
     A packet is defined with:
         A filename (includes the path)
         A time in ns
-        An array witth the tm_mode
+        An array with the tm_mode
         A number of frame
         A multiplexing factor mux
         An array with the data containing one sub-array per column:

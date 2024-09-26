@@ -45,11 +45,11 @@ def test_switch_bin2hexa_digit():
 
 ###############################################################################
 def test_twos_comp():
-    assert converter.twos_comp(0,4) == 0
-    assert converter.twos_comp(4,4) == 4
-    assert converter.twos_comp(4,3) == -4
-    assert converter.twos_comp(15,4) == -1
-    assert converter.twos_comp(7,4) == 7
+    assert converter.twos_comp(0, 4) == 0
+    assert converter.twos_comp(4, 4) == 4
+    assert converter.twos_comp(4, 3) == -4
+    assert converter.twos_comp(15, 4) == -1
+    assert converter.twos_comp(7, 4) == 7
     
 ###############################################################################
 def test_twos_comp_bin2int():
@@ -99,16 +99,16 @@ def test_dec2natbin():
     
 ###############################################################################
 def test_signed_hexa_2_dec():
-    assert converter.signed_hexa_2_dec('FFFE',16) == -2
-    assert converter.signed_hexa_2_dec('7FFF',16) == 32767
-    assert converter.signed_hexa_2_dec('7F',8) == 127
-    assert converter.signed_hexa_2_dec('FF',8) == -1
+    assert converter.signed_hexa_2_dec('FFFE', 16) == -2
+    assert converter.signed_hexa_2_dec('7FFF', 16) == 32767
+    assert converter.signed_hexa_2_dec('7F', 8) == 127
+    assert converter.signed_hexa_2_dec('FF', 8) == -1
 
 ###############################################################################
 def test_dec_to_signed_hexa():
-    assert converter.dec_to_signed_hexa(2,8) == '2'
-    assert converter.dec_to_signed_hexa(2,16) == '2'
-    assert converter.dec_to_signed_hexa(-2,16) == 'fffe'
-    assert converter.dec_to_signed_hexa(-32768,16) == '8000'
+    assert converter.dec_to_signed_hexa(2, 8) == '2'
+    assert converter.dec_to_signed_hexa(2, 16) == '2'
+    assert converter.dec_to_signed_hexa(-2, 16) == 'fffe'
+    assert converter.dec_to_signed_hexa(-32768, 16) == '8000'
 
 ###############################################################################

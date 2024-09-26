@@ -1,3 +1,4 @@
+# ---------------------------------------------------------------------------------
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -17,12 +18,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+# ---------------------------------------------------------------------------------
+#
 #  laurent.ravera@irap.omp.eu
 #  general_tools.py
 #
+# ---------------------------------------------------------------------------------
 
-import os, csv, shutil
+import csv
+import os
+import shutil
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+
+import constants as cst
+
+# definition of equivalent noise bandwidth for some well known windows
+enb = {'boxcar': 1.0, 'hann': 1.5, 'hamming': 1.363, 'blackman': 1.727, 'blackmanharris': 2.004,
+       'barlett': 1.333, 'flattop': 3.77, 'triang': 1.333}
+
 
 # -----------------------------------------------------------------------
 def checkdir(dirname):
@@ -41,13 +57,14 @@ def checkdir(dirname):
         """
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
-    return()
+    return ()
+
 
 # -----------------------------------------------------------------------
 def purgedir(dirname):
     r"""
-        This function erase a directory if it exists and it creates a new empty directory
-        
+        This function erase a directory if it exists, and it creates a new empty directory
+
         Parameters:
         -----------
         dirname: String
@@ -61,7 +78,28 @@ def purgedir(dirname):
     if os.path.isdir(dirname):
         shutil.rmtree(dirname)
     os.mkdir(dirname)
-    return()
+    return ()
+
+
+# -----------------------------------------------------------------------
+def createdir(dirname):
+    r"""
+        This function creates a directory if it doesn't exist
+
+        Parameters:
+        -----------
+        dirname: String
+        Name of the directory to be erased / created.
+
+        Returns
+        -------
+        Nothing
+
+        """
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    return ()
+
 
 # -----------------------------------------------------------------------
 def get_csv(filename):
@@ -79,64 +117,67 @@ def get_csv(filename):
 
         """
 
-    dictionnary={}
+    dictionnary = {}
 
     if not os.path.exists(os.path.join(filename)):
-        print("File "+filename+" not found.")
+        print("File " + filename + " not found.")
     else:
         with open(filename, newline='') as csvfile:
             dict_reader = csv.reader(csvfile, delimiter='=', quotechar='|')
             for row in dict_reader:
-                try:    # for numbers
-                    dictionnary[row[0]]=float(row[1].replace(',','.'))
-                except Exception: # for strings
-                    dictionnary[row[0]]=row[1]
-    return(dictionnary)
+                try:  # for numbers
+                    dictionnary[row[0]] = float(row[1].replace(',', '.'))
+                except Exception:  # for strings
+                    dictionnary[row[0]] = row[1]
+    return dictionnary
+
 
 # -----------------------------------------------------------------------
-def do_spectrum(x, npts, window="none"):
-    r"""
-        This function computes the spectrum of the input vector.
-        If the input vector is long enough, several computations are averaged.
-        A Blackman window is applied before the rfft.
+def compute_spectrum(signal, period, fileName, window='blackman', plot=False):
+    from scipy.signal import blackman
+    from scipy.signal import blackmanharris
+    from scipy.signal import hann
 
-        Parameters:
-        -----------
-        x: numpy array
-        input vector
+    plotFileName = os.path.join(cst.plotDirName, fileName[:-5] + '_sp.png')
+    nPts = len(signal)
 
-        npts: number
-        Number of values to be used in the rfft.
+    w = np.ones(nPts)
+    # create blackman window
+    if window == 'blackman':
+        w = blackman(nPts)
+    if window == 'blackmanharris':
+        w = blackmanharris(nPts)
+    if window == 'hann':
+        w = hann(nPts)
 
-        window: string
-        indicates if a window shall be applied ("blackman" or "none") 
-        (default is "none")
+    # Calculer la FFT
+    fft_result = np.fft.rfft(signal*w)
 
-        Returns
-        -------
-        spectrum: numpy array
-        computed spectrum.
+    # Normaliser le résultat en ADU
+    fft_norm = np.abs(fft_result) / nPts * np.sqrt(2)
 
-        """
-    from numpy.fft import rfft
-    from scipy import signal
+    # Ajuster la normalisation pour les composantes à zéro et à la fréquence d'échantillonnage / 2
+    fft_norm[0] /= np.sqrt(2)
+    if len(signal) % 2 == 0:
+        fft_norm[-1] /= np.sqrt(2)
 
-    if window=="blakman":
-        w=signal.blackman(npts)
-    else:
-        w=np.ones(npts)
+    # Créer les fréquences pour l'axe des x
+    xf = np.linspace(0, 0.5/period, len(fft_norm))
 
-    if len(x)<npts:
-        raise ValueError("Not enough values in input vector to compute spectra.")
-    else:
-        if is_even(npts):
-            spectrum=np.zeros(int(npts/2)+1)
-        else:
-            spectrum=np.zeros(int((npts+1)/2))
-        nslices=int(len(x)/npts)
-        for slice in range(nslices):
-            spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*w))
-    return(spectrum/nslices)
+    # Afficher le spectre
+    if plot:
+        fig = plt.figure(figsize=(10, 5))
+        ax = fig.add_subplot(111)
+        ax.loglog(xf, fft_norm)
+        ax.set_title('Spectrum')
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Amplitude (ADU)')
+        ax.grid(True)
+        fig.tight_layout()
+        plt.savefig(plotFileName, dpi=300, format='png', bbox_inches='tight')
+
+    return xf, fft_norm
+
 
 # -----------------------------------------------------------------------
 def is_even(x):
@@ -154,32 +195,48 @@ def is_even(x):
         True if the input is even, False if the input is odd.
 
         """
-    return(x%2==0)
+    return x % 2 == 0
+
 
 # -----------------------------------------------------------------------
-
-def smooth(y, n):
-    box = np.ones(n)/n
-    smoothed=np.convolve(y, box, mode='same')
+def first_order_low_pass_filter(data_vector, tau):
     """
-    removind side effects
+    Applies a first-order low-pass filter to a data vector.
+
+    Args:
+        data_vector (numpy.ndarray): The input data vector.
+        tau (float): Time constant of the filter (in seconds).
+
+    Returns:
+        numpy.ndarray: The filtered vector.
     """
-    smoothed=np.append(np.repeat(smoothed[n],n), smoothed[n:])
-    smoothed=np.append(smoothed[:-n], np.repeat(smoothed[-n],n))
-    return(smoothed)
+    dt = 1.0 / cst.fSamp  # Time interval (can be adjusted as needed)
+    alpha = dt / (tau + dt)  # Filter coefficient
+
+    filtered_vector = np.zeros_like(data_vector)
+    filtered_vector[0] = data_vector[0]  # Initial condition
+
+    for i in range(1, len(data_vector)):
+        filtered_vector[i] = alpha * data_vector[i] + (1 - alpha) * filtered_vector[i - 1]
+
+    return filtered_vector
+
 
 # -----------------------------------------------------------------------
-class configuration:
-    def __init__(self, csv_file):
-        self.config = get_csv(csv_file+".csv")
-
-# -----------------------------------------------------------------------
-
-def madate():
+def maDate():
     """This function returns a string containing the date and time"""
     from datetime import datetime
-    n=datetime.now()
-    return("{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}"\
-        .format(n.year, n.month, n.day, n.hour, n.minute, n.second))
-    
+    n = datetime.now()
+    return ("{0:04d}-{1:02d}-{2:02d}_{3:02d}h{4:02d}mn{5:02d}s"
+            .format(n.year, n.month, n.day, n.hour, n.minute, n.second))
+
+
+# -----------------------------------------------------------------------
+def readHkFromCsv(filename):
+    """This function reads a set of HK and a set of time from a csv file"""
+    df = np.array(pd.read_csv(filename, sep=";"))
+    time = df[:, 0]
+    hk = df[:, 1]
+    return time, hk
+
 # -----------------------------------------------------------------------
