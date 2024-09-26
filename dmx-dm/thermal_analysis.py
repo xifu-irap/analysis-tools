@@ -31,8 +31,8 @@ import glob
 
 import general_tools as gentools
 
-path = "/Users/laurent/Data/20.001/test_hk_temp_2/"
-#path = "/Users/laurent/Data/20.001/test_hk_temp_3/"
+#path = "/Users/laurent/Data/20.001/test_hk_temp_2/"
+path = "/Users/laurent/Data/20.001/test_hk_temp_3/"
 
 
 def calculate_allan_variance(data, fs, num_blocks=5):
@@ -83,7 +83,8 @@ def analyseThermalAccuracy(path, start=0):
     """
 
     files = glob.glob(path + "*.csv")
-    plotfilename = path+'tempSensorAccuracy.png'
+    date = files[0].split("/")[-1][:8]
+    plotfilename = path+date+'-tempSensorAccuracy.png'
 
     nFiles = len(files)
     fig = plt.figure(figsize=(6*nFiles, 10))

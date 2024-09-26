@@ -43,7 +43,6 @@ def calibHkTemp(path):
     fileName4 = glob.glob(path + "*-PT104_channel2Value.csv")[0]
     date = fileName1.split("/")[-1][:8]
     plotfilename = path+date+'-calibHkTemp.png'
-    print(plotfilename)
 
     print("Reading temperature data from file " + fileName1)
     time1, hk1 = gentools.readHkFromCsv(fileName1)
