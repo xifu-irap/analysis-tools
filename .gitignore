@@ -1,0 +1,9 @@
+# Data
+/DATA
+*.fits
+*.hdf5
+
+# Plots
+/PLOTS
+*.png
+

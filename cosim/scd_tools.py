@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # custom imports
-import constants as cst
+import cosim_constants as cst
 import general_tools as gtl
 
 #----------------------------------------------------------------

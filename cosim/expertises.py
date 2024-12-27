@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import constants as cst
+import cosim_constants as cst
 import general_tools as gtl
 import scd_tools as stl
 

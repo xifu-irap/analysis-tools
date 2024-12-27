@@ -1,6 +1,6 @@
 # imports
 import expertises as exp
-import constants as cst
+import cosim_constants as cst
 
 path = '/Users/laurent/Data/TestPlan_10_cosim/'
 

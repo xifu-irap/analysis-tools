@@ -21,19 +21,31 @@
 # ---------------------------------------------------------------------------------
 #
 #  laurent.ravera@irap.omp.eu
-#  constants.py
+#  cosim_constants.py
 #
 # ---------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
 fSamp = 125e6
+nColPerDemux = 4
 muxFactor = 34
 nSamplesPerRow = 20
 fRow = fSamp / nSamplesPerRow
 fFrame = fRow / muxFactor
-nBitsAdc = 14
+# Error signal ADC
+dmxNbBitsADCError = 14
+fsrADCErrorADU = 2**dmxNbBitsADCError
+fsrADCErrorV = 2
+# Feedback signal DAC
+dmxNbBitsDACFdbk = 14
+fsrDACFdbkADU = 2**dmxNbBitsDACFdbk
+fsrDACFdbkV = 2
+# Offset compensation signal DAC
+dmxNbBitsDACOfcoCoarse = 12
+fsrDACOfcoCoarseADU = 2**dmxNbBitsDACOfcoCoarse
+fsrDACOfcoCoarseV = 1
+
 fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
-nBitsDac = 14
 
 # ---------------------------------------------------------------------------------
 # Directories

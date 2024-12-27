@@ -80,8 +80,6 @@ def fake_dump(path, fileName, shift=0, sigmaNoise=0, shape='single'):
     return data
 
 def fake_error(fileName, nPatterns, shape = 'square', sigmaNoise=0):
-    import matplotlib.pyplot as plt
-
     gentools.createdir(cst.dataDirName)
     fullFileName = os.path.join(cst.dataDirName, fileName)
     addingNoise = True

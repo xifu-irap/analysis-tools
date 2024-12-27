@@ -2,7 +2,7 @@
 import os
 
 import scd_tools as stl
-import constants as cst
+import cosim_constants as cst
 
 path = '/Users/laurent/Data/TestPlan_10_cosim/'
 col = 0  # column_index
