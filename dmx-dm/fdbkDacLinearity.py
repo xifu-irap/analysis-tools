@@ -17,7 +17,25 @@ ylim = [-1, 1]
 xlim = [-2**(dacNbBits-1), 2**(dacNbBits-1)]
 
 
-def setGrid(ax, majorOn, MinorOn, xmajor, xminor, ymajor, yminor):
+def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
+    """
+    This function plots minor and major grids on a sub_plot
+
+    Parameters
+    ----------
+    ax: sub_plot id
+    major_on: boolean, if True the major grid is plotted
+    minor_on: boolean, if True the minor grid is plotted
+    xmajor: integer, xspacing of major grid
+    xminor: integer, xspacing of minor grid
+    ymajor: integer, yspacing of major grid
+    yminor: integer, yspacing of minor grid
+
+    Returns
+    -------
+    Nothing
+    """
+
     # Définir le pas de la grille majeure
     ax.xaxis.set_major_locator(MultipleLocator(xmajor))
     ax.yaxis.set_major_locator(MultipleLocator(ymajor))
@@ -27,31 +45,58 @@ def setGrid(ax, majorOn, MinorOn, xmajor, xminor, ymajor, yminor):
     ax.yaxis.set_minor_locator(MultipleLocator(yminor))
 
     # Activation de la grille majeure
-    ax.grid(majorOn, which='major', linestyle='-', linewidth='0.8', color='black')  # Grille majeure
+    ax.grid(major_on, which='major', linestyle='-', linewidth='0.8', color='black')
 
     # Activer la grille mineure
-    if (MinorOn):
+    if minor_on:
         ax.minorticks_on()  # Activer les ticks mineurs
         ax.grid(True, which='minor', linestyle=':', linewidth='0.5', color='gray')
 
-# Checking the indexes are associated by pairs
-def checkPairs(indx):
+
+def check_pairs(indx):
+    """
+    This function checks whether the values in a 1-dimension array
+    are associated in pairs.
+
+    Args:
+        indx: array, a 1-dimension array
+
+    Returns:
+        the array with only the remaining pairs
+
+    Exemples:
+        a=np.array([ 2, 3, 4, 5, 9, 10, 11, 12, 16, 17])
+        check_pairs(a)
+        > array([ 2,  3,  4,  5, 10, 11, 16, 17])
+    """
     diff = indx[1:] - indx[:-1]
     jumps = np.where(abs(diff) > 1)[0]
     toBeDeleted = []
     if indx[0]%2==1:
         toBeDeleted.append(0)
-    for i in range(len(jumps)):
-        if indx[jumps[i]+1] % 2 == 1:
-            toBeDeleted.append(jumps[i]+1)
-        if indx[jumps[i]] % 2 == 0:
-            toBeDeleted.append(jumps[i])
+    for ii in range(len(jumps)):
+        if indx[jumps[ii]+1] % 2 == 1:
+            toBeDeleted.append(jumps[ii]+1)
+        if indx[jumps[ii]] % 2 == 0:
+            toBeDeleted.append(jumps[ii])
     return np.delete(indx, toBeDeleted)
 
-#a=np.array([0,1,2,3,4,5,9,10,11,12,13,16,17])
-#print(checkPairs(a))
 
-def plotLinearity(adu, meas, indx, axx):
+def plot_linearity(adu, meas, indx, axx):
+    """
+    This function plots the linearity of the DMX feedback signal.
+    The x values are the feedback ADU values.
+    The y values are the feedback V values measured with the oscilloscope.
+
+    Args:
+        adu: array, feedback ADU values
+        meas: array, measured V values
+        indx: indexes of values to be plotted
+        axx: subplot id
+
+    Returns:
+        nothing
+    """
     meas = meas[indx]
     measUp = meas[::2]
     measDown = meas[1::2]
@@ -117,13 +162,13 @@ for colId in range(nbCols):
 
     derivative = np.concatenate((col[:-2] - col[2:], [0,0]))
     indexes = np.where((col < 2) & (np.abs(derivative) < 0.1))[0]
-    indexes = checkPairs(indexes)
+    indexes = check_pairs(indexes)
     k2 = 0.03
-    indexes2 = indexes[(indexes >= k2 * (2 ** (dacNbBits))) & (indexes <= (1-k2) * (2 ** (dacNbBits)))]
-    indexes2 = checkPairs(indexes2)
+    indexes2 = indexes[(indexes >= k2 * (2 ** dacNbBits)) & (indexes <= (1 - k2) * (2 ** dacNbBits))]
+    indexes2 = check_pairs(indexes2)
     k3 = 0.2
-    indexes3 = indexes[(indexes >= k3 * (2 ** (dacNbBits))) & (indexes <= (1-k3) * (2 ** (dacNbBits)))]
-    indexes3 = checkPairs(indexes3)
+    indexes3 = indexes[(indexes >= k3 * (2 ** dacNbBits)) & (indexes <= (1 - k3) * (2 ** dacNbBits))]
+    indexes3 = check_pairs(indexes3)
 
     plotFileName = os.path.join(pathPlot, 'fdbkLinearity_col{0:}.png'.format(colId))
 
@@ -131,15 +176,15 @@ for colId in range(nbCols):
     fig.suptitle('Feedback linearity measurement for column {0:}'.format(colId), fontsize=16)
 
     ax1 = fig.add_subplot(3, 2, 2)
-    min1, max1, ytit1 = plotLinearity(adu_base, col, indexes, ax1)
+    min1, max1, ytit1 = plot_linearity(adu_base, col, indexes, ax1)
     ax1.text(-2**(dacNbBits-1)+256, ytit1, "Linearity on the full range: {0:3.2f} / {1:3.2f} % of FSR".format(min1, max1))
 
     ax2 = fig.add_subplot(3, 2, 4)
-    min2, max2, ytit2 = plotLinearity(adu_base, col, indexes2, ax2)
+    min2, max2, ytit2 = plot_linearity(adu_base, col, indexes2, ax2)
     ax2.text(-2**(dacNbBits-1)+256, ytit2, "Linearity on 95% of the range: {0:3.2f} / {1:3.2f} % of FSR".format(min2, max2))
 
     ax3 = fig.add_subplot(3, 2, 6)
-    min3, max3, ytit3 = plotLinearity(adu_base, col, indexes3, ax3)
+    min3, max3, ytit3 = plot_linearity(adu_base, col, indexes3, ax3)
     ax3.text(-2**(dacNbBits-1)+256, ytit3, "Linearity on 60% of the range: {0:3.2f} / {1:3.2f} % of FSR".format(min3, max3))
 
     meas = col[indexes]
