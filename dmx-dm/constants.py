@@ -50,6 +50,7 @@ fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
 # ---------------------------------------------------------------------------------
 # Directories
 dataDirName = 'DATA'
+scanDirName = 'scans'
 plotDirName = 'PLOTS'
 
 # ---------------------------------------------------------------------------------

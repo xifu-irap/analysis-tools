@@ -7,8 +7,6 @@ import readData as rddt
 import constants as cst
 from matplotlib.ticker import MultipleLocator
 
-path = "/Users/laurent/Data/TestPlan21-perfo/errorLinearity_20241213-112110/"
-
 
 def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
     """
@@ -46,7 +44,7 @@ def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
         ax.grid(True, which='minor', linestyle=':', linewidth='0.5', color='gray')
 
 
-def plot_non_linearity(dir_path, pixel_id):
+def plot_non_linearity(dir_path):
     """
     This functions characterises the non-linearity of DMX signals from scan data.
     This is applicable to feedback + error signals or offset + error signals.
@@ -56,12 +54,22 @@ def plot_non_linearity(dir_path, pixel_id):
 
     Args:
         dir_path: string, the path of the data directory
-        pixel_id: integer, the id of the pixel to be considered
 
     Returns:
         nothing
 
     """
+
+    # Pixel dont les données doivent être utilisées
+    # Utiliser un id >> 0 pour ne pas être impacté par le changement rapide de niveau
+    # entre le dernier et le premier pixel surtout en fin / début de scan
+    pixel_id = 30
+
+    # Data directory
+    pathData = os.path.join(dir_path, cst.scanDirName)
+
+    # Session name
+    session_name = os.path.basename(dir_path)
 
     # Creation of a directory for the plot files
     pathPlot = os.path.join(dir_path, cst.plotDirName)
@@ -69,21 +77,21 @@ def plot_non_linearity(dir_path, pixel_id):
 
     ytit1 = "Error values (ADU)"
     ytit2 = "Non Linearity (% FSR)"
-    ylim1 = [-cst.fsrADCErrorADU / 2, cst.fsrADCErrorADU / 2 - 1]
+    dotsize = 1
 
     print("/----------------------------------------------------------")
-    print("/ Processing feedback + error non linearity from directory:")
-    print("/ ", dir_path)
+    print("/ Processing non linearity from directory:")
+    print("/ ", pathData)
     print("/----------------------------------------------------------\n")
 
     for col in range(cst.nColPerDemux):
 
         # Searching fits files
-        files = [f for f in os.listdir(path) \
-                 if os.path.isfile(os.path.join(path, f)) \
+        files = [f for f in os.listdir(pathData) \
+                 if os.path.isfile(os.path.join(pathData, f)) \
                  and f[-10:] == "_col{0:}.fits".format(col) and f[:5] == "scan_"]
 
-        # Checking file length
+        # Checking number of files
         if len(files) == 0:
             print("No fits file found for column {0:}".format(col))
         else:
@@ -92,30 +100,50 @@ def plot_non_linearity(dir_path, pixel_id):
             else:
                 print("Found {0:} fits files for column {1:}".format(len(files), col))
 
-            # Detecting the scan type (feedback or offset)
-            scan_type = np.array([file[21:27] for file in files])
-            if np.all(scan_type == "Feedba"):
-                xtit = "Feedback values (ADU)"
-                xlim = [-cst.fsrDACFdbkADU / 2, cst.fsrDACFdbkADU / 2 - 1]
-                plotFileName = 'fdbkAndErrorLinearity_col{0:}.png'.format(col)
-                figsuptitle = 'Feedback + Error linearity measurement for column {0:}'.format(col)
-            elif np.all(scan_type == "Offset"):
-                xtit = "Offset values (ADU)"
-                xlim = [-cst.fsrDACOfcoCoarseADU / 2, cst.fsrDACOfcoCoarseADU / 2 - 1]
-                plotFileName = 'ofcoAndErrorLinearity_col{0:}.png'.format(col)
-                figsuptitle = 'Offset + Error linearity measurement for column {0:}'.format(col)
-            else:
-                raise ValueError("Error, found different scan types!")
-
             # Reading and concatenating the data of the different fits files
             error=np.array([])  # Empty array
             scan=np.array([])  # Empty array
+            scan_type=np.array([])  # Empty array
             for file in files:
                 print("Reading data from file ", file)
-                xName, ctrl, file_scan, fileError = rddt.readScan(os.path.join(dir_path, file))
+                xName, ctrl, file_scan, fileError = rddt.readScan(os.path.join(pathData, file))
                 fileError = fileError[pixel_id, :]  # keeping the error value of a single pixel
                 error = np.append(error, fileError)
                 scan = np.append(scan, file_scan)
+                scan_type = np.append(scan_type, xName)
+
+            # Checking the scan type (feedback or offset)
+            if np.all(scan_type == "Feedback"):
+                xtit = "Feedback values (ADU)"
+                xlim = [-cst.fsrDACFdbkADU / 2, cst.fsrDACFdbkADU / 2]
+                ylim1 = [-cst.fsrADCErrorADU / 2, cst.fsrADCErrorADU / 2]
+                plotFileName = 'fdbkAndErrorLinearity_col{0:}.png'.format(col)
+                figsuptitle = ('Feedback + Error linearity measurement for column {0:}   ('.format(col)
+                               + session_name + ')')
+            elif np.all(scan_type == "Offset"):
+                # For the offset scans we use 4 frames per steps because of the settling time
+                # We keep only the last frame
+                scan = scan[3::4]
+                error = error[3::4]
+
+                xtit = "Offset values (ADU)"
+                xlim = [0, cst.fsrDACOfcoCoarseADU]
+                ylim1 = [0, cst.fsrADCErrorADU / 2]
+                plotFileName = 'ofcoAndErrorLinearity_col{0:}.png'.format(col)
+                figsuptitle = ('Offset + Error linearity measurement for column {0:}   ('.format(col)
+                               + session_name + ')')
+            else:
+                raise ValueError("Error, found different scan types!")
+
+
+            # Checking if all DAC values are used
+            expected_array = np.arange(scan.min(), scan.max()+1)
+            #expected_array = np.arange(xlim[0], xlim[1]+1)
+            scan_copy = np.unique(scan.copy())
+            scan_copy.sort()
+            if not (expected_array == scan_copy).all():
+                print("   Error, values are missing in the scan!")
+                print(expected_array, scan_copy)
 
             # Linear fit of the data
             coeffs = np.polyfit(scan, error, 1)
@@ -125,12 +153,17 @@ def plot_non_linearity(dir_path, pixel_id):
             # Doing the plots
             fig = plt.figure(figsize=(12, 8))
             plotFullFileName = os.path.join(pathPlot, plotFileName)
-            fig.suptitle(figsuptitle, fontsize=16)
+            fig.suptitle(figsuptitle, fontsize=14)
 
             ax1 = fig.add_subplot(2, 1, 1) # output vs input
 
-            ax1.plot(scan, error, linewidth = 2, label='Scan')
-            ax1.plot(scan, fit, ':r', linewidth = 1, label='Fit')
+            ax1.scatter(scan, error, s = dotsize, label='Scan')
+            if coeffs[1]>0:
+                sign_str = ' + '
+            else:
+                sign_str = ' - '
+            lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(abs(coeffs[1]))
+            ax1.plot(scan, fit, ':r', linewidth = 1, label=lbl)
             ax1.set_xlim(xlim)
             ax1.set_ylim(ylim1)
             ax1.set_xlabel(xtit)
@@ -140,17 +173,21 @@ def plot_non_linearity(dir_path, pixel_id):
 
             ax2 = fig.add_subplot(2, 1, 2) # non linearity
 
-            ax2.scatter(scan, deviationPercentFSR, label='100 * (Scan - Fit) / FSR')
+            ax2.scatter(scan, deviationPercentFSR, s = dotsize, label='100 * (Scan - Fit) / FSR')
             ax2.set_xlim(xlim)
             ax2.set_xlabel(xtit)
             ax2.set_ylabel(ytit2)
             ylimits = ax2.get_ylim()
             deltay = ylimits[1] - ylimits[0]
-            ax2.set_ylim([ylimits[0]-deltay/2, ylimits[1]+deltay/2])
+            ylim_extension = 0.75
+            ax2.set_ylim([ylimits[0]-ylim_extension*deltay, ylimits[1]+ylim_extension*deltay])
             ax2.legend(loc='upper left')
 
-            ymajor = 10 ** np.floor(np.log10(deltay))
-            yminor = ymajor / 5
+            #ymajor = 10 ** np.floor(np.log10(ylim_extension*deltay))*4
+            grid_ratio = 10
+            ymajor = np.round((ylim_extension*deltay)*grid_ratio)/grid_ratio
+            print(ymajor)
+            yminor = ymajor/5
             set_grid(ax2, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
 
             fig.tight_layout()
@@ -160,4 +197,12 @@ def plot_non_linearity(dir_path, pixel_id):
 
         print("/---------------")
 
-plot_non_linearity(path, 0)
+pathes = ["/Users/laurent/Data/TestPlan21-perfo/20250106_fdbkAndErrorLinearity",
+        "/Users/laurent/Data/TestPlan21-perfo/20250108_150256_fdbkAndErrorLinearity",
+        "/Users/laurent/Data/TestPlan21-perfo/20250108_152522_fdbkAndErrorLinearity",
+        "/Users/laurent/Data/TestPlan21-perfo/20250108_163003_ofcoAndErrorLinearity"
+        ]
+
+#for path in pathes[-1:]:
+for path in pathes:
+    plot_non_linearity(path)
