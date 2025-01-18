@@ -240,3 +240,58 @@ def readHkFromCsv(filename):
     return time, hk
 
 # -----------------------------------------------------------------------
+def do_power_spectrum(x, fs, npts, window="none"):
+    r"""
+        This function computes the spectrum of the input vector.
+        If the input vector is long enough, several computations are averaged.
+        A Blackman window is applied before the rfft.
+
+        Parameters:
+        -----------
+        x: numpy array
+        input vector
+
+        fs: float
+        sampling frequency
+
+        npts: number
+        Number of values to be used in the rfft.
+
+        window: string
+        indicates if a window shall be applied ("blackman" or "none")
+        (default is "none")
+
+        Returns
+        -------
+        xf: numpy array
+        frequencies
+
+        spectrum: numpy array
+        computed spectrum.
+        """
+    from numpy.fft import rfft
+    from scipy.signal.windows import blackman
+
+    if window=="blackman":
+        w=blackman(npts, False)
+    else:
+        w=np.ones(npts)
+
+    if len(x)<npts:
+        raise ValueError("Not enough values in input vector to compute spectra.")
+    else:
+        if is_even(npts):
+            power_spectrum=np.zeros(int(npts/2)+1)
+        else:
+            power_spectrum=np.zeros(int((npts+1)/2))
+        nslices=int(len(x)/npts)
+        for slice in range(nslices):
+            power_spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*w))**2
+
+    # computing frequency scale
+    df = (fs / 2) / len(power_spectrum)
+    xf = np.arange(0, len(power_spectrum))*df
+
+    return xf, power_spectrum/nslices
+
+# -----------------------------------------------------------------------

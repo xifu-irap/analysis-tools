@@ -49,7 +49,7 @@ fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
 
 # ---------------------------------------------------------------------------------
 # Directories
-dataDirName = 'DATA'
+dataDirName = 'dmx_data'
 scanDirName = 'scans'
 plotDirName = 'PLOTS'
 
