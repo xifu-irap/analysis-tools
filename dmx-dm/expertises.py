@@ -5,8 +5,6 @@ import dmxTools as tools
 import general_tools as gt
 import os
 
-file_path = '/Users/laurent/Data/TestPlan20-TDM/scanSquids20241206_120125'
-
 def process_scanSquids(dirPath, pixel, fb0):
     xmin, xmax = -2**10, 2**10
     ymin, ymax = -2**13, 2**13
@@ -107,6 +105,57 @@ def process_scanSquids(dirPath, pixel, fb0):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
 
 
+def plot_scan(dirPath, pixel):
+
+    plotDirname = "PLOTS"
+    pathPlot = os.path.join(dirPath, plotDirname)
+    gt.createdir(pathPlot)
+
+    files = [f for f in os.listdir(dirPath) \
+             if os.path.isfile(os.path.join(dirPath, f)) \
+             and f[-5:] == ".fits"]
+
+    if len(files) == 0:
+        raise ValueError("No FITS files.")
+    if len(files) > 1:
+        raise ValueError("Too much FITS files.")
+
+    print("Processing file ", files[0])
+    xName, ctrl, xscan, error = rddt.readScan(os.path.join(dirPath, files[0]))
+    error = error[pixel,:] # keeping the data of a single pixel
+    plotFileName = os.path.join(pathPlot, 'scan_'+xName+'.png')
+
+    # Doing the plot
+    fig = plt.figure(figsize=(10, 6))
+    fig.suptitle('Scan ' + xName + ' ' + files[0].split('_')[1], fontsize=16)
+    loc = 'upper right'
+
+    ax1 = fig.add_subplot(1, 1, 1)
+    mksz = 2
+    ax1.plot(xscan, error, '.b', markersize=mksz)
+    ax1.grid()
+    ax1.set_xlabel(xName + ' (ADU)')
+    ax1.set_ylabel('Error (ADU)')
+
+    for item in ([ax1.xaxis.label, ax1.yaxis.label]):
+        item.set_weight('bold')
+        item.set_fontsize(10)
+    for item in (ax1.get_xticklabels() + ax1.get_yticklabels()):
+        item.set_fontsize(10)
+
+    fig.tight_layout()
+    plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
+
+
+#dirPath = '/Users/laurent/Data/TestPlan20-TDM/scanSquids20241206_120125'
+#pixel = 0
+#fb0 = -528
+#process_scanSquids(dirPath, pixel, fb0)
+
+dirPath = '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162135_Offset'
 pixel = 0
-fb0 = -528
-process_scanSquids(file_path, pixel, fb0)
+plot_scan(dirPath, pixel)
+
+dirPath = '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162403_Feedback'
+pixel = 0
+plot_scan(dirPath, pixel)

@@ -29,14 +29,14 @@ def power_spectrum_from_dumps(dataPath, npts, win, remove_dc=True):
 
         # removing DC
         if remove_dc:
-            dumpData = dumpData[col] - dumpData.mean()
+            dumpData = dumpData[col] - dumpData[col].mean()
 
         # Computing spectrum
         xf, spectrum = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win)
 
         spectrum_total += spectrum
 
-    spectrum_db = 10*np.log10(spectrum)
+    spectrum_db = 10*np.log10(spectrum_total)
 
     return xf, spectrum_db
 
@@ -65,7 +65,7 @@ def pltNspOneCol(dir_path, win, remove_dc = True, enob=11.5, npts=2**18):
     xf, spectrum_db = power_spectrum_from_dumps(pathData, npts, win, remove_dc=remove_dc)
 
     # Translation to dbFSR (considering that the sine wave is at full scale)
-    # Few spectral channels are considered in case a window has been applied befire FFT
+    # Few spectral channels are considered in case a window has been applied before FFT
     # or in case the line is not well centered on a spectral channel. The extra noise power
     # added doing this is negligible.
     iline = np.where(spectrum_db == spectrum_db[1:].max())[0][0]
@@ -138,7 +138,7 @@ def pltNspOneCol(dir_path, win, remove_dc = True, enob=11.5, npts=2**18):
 
 
 path = [
-    "/Users/laurent/Data/TestPlan21-perfo/20250113_165326_errorEnob-col3_dump"
+    "/Users/laurent/Data/TestPlan21-perfo/20250113_165326_errorEnob_dump-col3"
 ]
 #win = "none"
 win = "blackman"

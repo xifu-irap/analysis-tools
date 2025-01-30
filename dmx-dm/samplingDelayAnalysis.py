@@ -17,7 +17,10 @@ path = ["/Users/laurent/Data/TestPlan21-perfo/20241024_140448_samplingDelay-col2
         "/Users/laurent/Data/TestPlan21-perfo/20241114_155055_samplingDelay-col3-Bxl01",
         "/Users/laurent/Data/TestPlan21-perfo/20241118_174434_samplingDelay-col2-Bxl01",
         "/Users/laurent/Data/TestPlan21-perfo/20241220_115812_samplingDelay-col3-Bxl03",
-        "/Users/laurent/Data/TestPlan21-perfo/20241220_115846_samplingDelay-col3-Bxl01"
+        "/Users/laurent/Data/TestPlan21-perfo/20241220_115846_samplingDelay-col3-Bxl01",
+        "/Users/laurent/Data/TestPlan21-perfo/20250121_101447_samplingDelay-col2-Bxl00",
+        "/Users/laurent/Data/TestPlan21-perfo/20250121_101346_samplingDelay-col2-Bxl01",
+        "/Users/laurent/Data/TestPlan21-perfo/20250121_101520_samplingDelay-col2-Bxl07"
         ]
 
 
@@ -48,34 +51,43 @@ def samplingDelay(path):
 
     print("Processing data from directory " + path)
     #---------------------------------------------
-    # Processing Dump data
+
+    # #######
+    # Processing the dumps
+    # #######
+
     print("  Processing dump files")
 
+    # Searching dump files
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
              and f[-5:] == ".fits" and f[:5] == "dump_"]
 
+    # Reading and accumulating the dumps
     dump = np.zeros(2 * cst.nSamplesPerRow * cst.muxFactor)
     for file in files:
-        colDumps, errors = rddt.readDumpFile(os.path.join(pathData, file))
+        colDumps, _ = rddt.readDumpFile(os.path.join(pathData, file))
         dump+=colDumps[col, :]
     dump /= len(files)
+
     # Simulating the impact of the boxcar
     dump_avg = dump.copy()
     for i in range(bxl):
         dump_avg += np.roll(dump, -1*(i+1))
-        print(np.roll(dump, -1*(i+1))[:4])
     dump_avg /= (bxl+1)
 
+    # Doing the plot
     ax1 = fig.add_subplot(1, 1, 1)
     ax1.plot(t, dump_avg, color='k', label='Dump data')
 
-    #---------------------------------------------
-    # Processing Error data
+    # #######
+    # Processing the error data files
+    # #######
+
     print("  Processing error files")
 
+    # Searching error files
     suffix = "_C{0:}.fits".format(col)
-
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
              and f[-8:] == suffix]
@@ -83,21 +95,16 @@ def samplingDelay(path):
     if len(files) != cst.nSamplesPerRow:
         raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), cst.nSamplesPerRow))
 
-    nVal = 256
+    nVal = 256 # Number of values to average over
     ratio = 4 # Ratio between dump and error data (due to unused LSB in error data)
 
     for index, file in enumerate (np.sort(files)):
         print("  {0:} > ".format(index) + file)
 
         colData, ctrl = rddt.readScienceFile(os.path.join(pathData, file))
-        print(colData[0, :4])
         pix0 = colData[0, :nVal].mean() / ratio
-        print(pix0)
 
-        #if index == 14:
-            #print(colData[0, :nVal])
-            #print(colData[33, :nVal])
-
+        # Adding error data on the plot
         ax1.plot(t[index], pix0, 'o', color=colors[index], label='Samp Delay = {0:} ns'.format(int(index*1e9/cst.fSamp)))
 
     ax1.set_ylabel(ylabel1)
@@ -129,6 +136,6 @@ def samplingDelay(path):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
     print("results plotted in file " + plotFileName)
 
-for p in path[-2:]:
+for p in path[-3:]:
 #for p in path:
     samplingDelay(p)

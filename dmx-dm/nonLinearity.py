@@ -60,10 +60,10 @@ def plot_non_linearity(dir_path):
 
     """
 
-    # Pixel dont les données doivent être utilisées
-    # Utiliser un id >> 0 pour ne pas être impacté par le changement rapide de niveau
-    # entre le dernier et le premier pixel surtout en fin / début de scan
-    pixel_id = 20
+    # Index of the first pixel that shall be used
+    pixel_id = 10
+    # Number of pixels to be averaged
+    nb_pix_avg = 16
 
     # Data directory
     pathData = os.path.join(dir_path, cst.scanDirName)
@@ -106,10 +106,11 @@ def plot_non_linearity(dir_path):
             error=np.array([])  # Empty array
             scan=np.array([])  # Empty array
             scan_type=np.array([])  # Empty array
+
             for file in files:
                 print("Reading data from file ", file)
                 xName, ctrl, file_scan, fileError = rddt.readScan(os.path.join(pathData, file))
-                fileError = fileError[pixel_id, :]  # keeping the error value of a single pixel
+                fileError = np.mean(fileError[pixel_id:pixel_id+nb_pix_avg, :], axis=0)  # averaging the error value of few pixels
                 error = np.append(error, fileError)
                 scan = np.append(scan, file_scan)
                 scan_type = np.append(scan_type, xName)
@@ -130,7 +131,7 @@ def plot_non_linearity(dir_path):
                                 + session_name + ')')
             elif np.all(scan_type == "Offset"):
                 # For the offset scans we use 4 frames per steps because of the settling time
-                # We keep only the last frame
+                # We keep only the data of the last frame
                 scan = scan[3::4]
                 error = error[3::4]
 
@@ -184,6 +185,10 @@ def plot_non_linearity(dir_path):
             coeffs_red2 = np.polyfit(scan[i_red2], error[i_red2], 1)
             fit_red2 = coeffs_red2[1] + coeffs_red2[0] * scan[i_red2]
             deviationPercentFSR_red2 = 100 * (error[i_red2] - fit_red2) / cst.fsrADCErrorADU
+
+
+
+
 
             # Computing DNL and INL
             lsb_ideal = (error[i_ok].max() - error[i_ok].min()) / len(error[i_ok])
