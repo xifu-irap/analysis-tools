@@ -1,16 +1,17 @@
 # imports
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy.signal import resample
 import matplotlib.pyplot as plt
 import os
 import zipfile
 import readData as rddt
 import constants as cst
 import general_tools as gt
-from cosim.cosim_constants import nb_col
+from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 
 
-def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
+def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
     """
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
@@ -26,6 +27,7 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
         npts (int): Number of points for computing the power spectrum. Should be consistent
             with the sampling rate and signal properties.
         win_name (str): Name of the window function to be applied during the computation.
+        verbose (boolean): if True, some info is printed
 
     Raises:
         ValueError: If no valid dump files are found in the specified directory.
@@ -46,7 +48,7 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
 
     print("Processing {0:} DUMP files from ".format(len(files)) + data_path)
 
-    rmsInTime_ADU = 0
+    rmsInTime_ADU_square = 0
     power_spectrum_total = np.zeros(int(npts/2)+1)
 
     for i in range(len(files)):
@@ -59,14 +61,22 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
         xf, power_spectrum = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
 
         # Averaging
-        rmsInTime_ADU += dumpData.std()
+        rmsInTime_ADU_square += (dumpData.std())**2   # a verifier
         power_spectrum_total += power_spectrum
 
     # normalisation wrt signal rms
-    rmsInTime_ADU /= len(files)
-    rmsInTime_V = rmsInTime_ADU * cst.fsrADCErrorV / cst.fsrADCErrorADU
-    rmsInFreq = np.sqrt(power_spectrum_total.sum())
-    power_spectrum_total *= (rmsInTime_V / rmsInFreq)**2
+    rms_in_time_adu = np.sqrt(rmsInTime_ADU_square / len(files))
+    rms_in_time_v = rms_in_time_adu * cst.fsrADCErrorV / cst.fsrADCErrorADU
+    rms_in_freq_v = np.sqrt(power_spectrum_total.sum())
+    power_spectrum_total *= (rms_in_time_v / rms_in_freq_v)**2
+
+    if verbose:
+        print("rms in time: {0:6.3f} ADU".format(rms_in_time_adu))
+        print("rms in time: {0:6.3f} μV".format(rms_in_time_v * 1e6))
+        txt1 = "rms in frequency: {0:6.3f} μV".format(rms_in_freq_v*1e6)
+        txt2 = " Equivalent to {0:6.3f} nV/sqrt(Hz)".format(rms_in_freq_v*1e9/np.sqrt(cst.fSamp/2))
+        txt3 = " over {0:3.1f} MHz".format(cst.fSamp/1e6/2)
+        print(txt1+txt2+txt3)
 
     return xf, power_spectrum_total
 
@@ -143,6 +153,88 @@ def one_over_f(f, num):
     """
     return num / np.sqrt(f)
 
+
+def read_two_vectors_from_file(nom_fichier):
+    """
+    Reads two vectors from a specified file, ignoring header rows.
+
+    This function loads numerical data from a given file, skipping the first row that is
+    presumed to contain headers. The data is expected to be structured into two columns.
+    The first column is interpreted as a vector of frequencies, while the second column
+    is interpreted as a corresponding vector of noise values. The two vectors are then
+    returned separately.
+
+    Args:
+        nom_fichier: The path to the file containing the data to be read. The file should
+            have a specific structure with two columns of numerical data. The first row
+            of the file is ignored as it is assumed to be a header.
+
+    Returns:
+        A tuple containing:
+            - frequency: A NumPy array representing the first vector (frequency values)
+              extracted from the specified file.
+            - onoise: A NumPy array representing the second vector (noise values)
+              extracted from the specified file.
+    """
+    # Charger les données en ignorant les lignes d'en-tête
+    data = np.loadtxt(nom_fichier, skiprows=1)
+
+    # Séparer les colonnes en deux vecteurs
+    frequency = data[:, 0]
+    onoise = data[:, 1]
+
+    return frequency, onoise
+
+
+def undersampling_with_aliasing(frequencies, signal, new_fs, old_fs, new_n = 2048):
+    """
+    Computes the downsampled and aliased frequencies and amplitudes of a signal when
+    undersampling is employed. This function takes a signal sampled at a higher sampling
+    frequency and recalculates its frequencies and spectrum at a lower sampling
+    frequency with aliasing included.
+
+    Args:
+        frequencies (ndarray): The array of original frequency components of the
+            signal, corresponding to the sampling frequency `old_fs`.
+        signal (ndarray): The amplitude or power values of the signal corresponding
+            to the `frequencies`.
+        new_fs (float): The desired lower sampling frequency to undersample the
+            signal.
+        old_fs (float): The original higher sampling frequency of the signal.
+        new_n (int, optional): The number of equally-spaced frequency points for the
+            output signal. Defaults to 2048.
+
+    Returns:
+        tuple: A tuple containing:
+            - new_frequencies (ndarray): The new frequency bins after downsampling
+              and aliasing, up to `new_fs/2`.
+            - folded_pow (ndarray): The aliased and recalculated amplitude or power
+              spectrum based on the new sampling frequency.
+    """
+    # Calculer le facteur entier de sous-échantillonnage
+    if old_fs % new_fs != 0:
+        raise ValueError("old_fs must be a multiple of new_fs")
+    downsampling_factor = int(old_fs // new_fs)
+
+    # re-sampling frequencies and signal at regularly spaced frequencies
+    freq = np.arange(0, old_fs/2, old_fs/2/(downsampling_factor*new_n))
+    sig = np.interp(freq, frequencies, signal)
+    pow = sig**2
+
+    # Aliasing of the signal around new_fs/2
+    folded_pow = np.zeros(new_n)
+    for i in range(downsampling_factor):
+        if i % 2 == 0:
+            folded_pow += pow[i*new_n : (i+1)*new_n]
+        else:
+            folded_pow += np.flip(pow[i*new_n : (i+1)*new_n])
+
+    # New frequency array
+    new_frequencies = freq[:new_n]  # Repliement spectral
+
+    return new_frequencies, np.sqrt(folded_pow)
+
+
 # Plotting noise spectral density for one column
 def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
     """
@@ -165,59 +257,74 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
     """
 
     signal = dir_path[-9:]
-    xlabel1 = r'Frequencies (MHz)'
-    xlabel2 = r'Frequencies (Hz)'
-    ylabel = r'Error signal (V / $\sqrt{Hz}$)'
-    ylims = [1e-9, 1e-4]
+    xlabel_lin = r'Frequencies (MHz)'
+    xlabel_log = r'Frequencies (Hz)'
+    ylabel = r'Error signal (nV / $\sqrt{Hz}$)'
+    xlims_erro = [1, cst.fRow/2]
+    xlims_dump = [1e5, cst.fSamp/2]
+    ylims_erro = [10, 1e4]
+    ylims_dump = [10, 100]
+
+    # Selection of noise model
+    path_models = 'noise_models'
+    model = True # a model exists
+    if signal == 'erro-only':
+        model_filename = os.path.join(path_models, "erro-only.txt")
+    elif signal == 'erro-fdbk':
+        model_filename = os.path.join(path_models, "erro-fdbk.txt")
+    elif signal == 'erro-ofco':
+        model_filename = os.path.join(path_models, "erro-ofco.txt")
+    else:
+        model = False # file type is unknown, no model exists
 
     # Data directory
-    pathData = os.path.join(dir_path, cst.dataDirName)
+    path_data = os.path.join(dir_path, cst.dataDirName)
 
     # Session name
     session_name = os.path.basename(dir_path)
 
     # Creation of a directory for the plot files
-    pathPlot = os.path.join(dir_path, cst.plotDirName)
-    gt.createdir(pathPlot)
+    path_plot = os.path.join(dir_path, cst.plotDirName)
+    gt.createdir(path_plot)
 
     # Processing science files
     if acq_mode == 'dump':
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
-        xf, power_spectrum = power_spectrum_from_dumps(pathData, col_id, npts, win_name)
-        plotFileName = 'noise_'+signal+'_dumps_c{0:}'.format(col_id)
+        xf, power_spectrum = power_spectrum_from_dumps(path_data, col_id, npts, win_name)
+        plot_file_name = 'noise_'+signal+'_dumps_c{0:}'.format(col_id)
         fs = cst.fSamp
-        xlims2 = [1e5, fs / 2]
+        xlims = xlims_dump
+        ylims = ylims_dump
 
     elif acq_mode == 'error':
         npts = 2**23
-        xf, power_spectrum = power_spectrum_from_error(pathData, col_id, npts, win_name)
-        plotFileName = 'noise_'+signal+'_error_c{0:}'.format(col_id)
+        xf, power_spectrum = power_spectrum_from_error(path_data, col_id, npts, win_name)
+        plot_file_name = 'noise_'+signal+'_error_c{0:}'.format(col_id)
         fs = cst.fRow
-        xlims2 = [1, fs / 2]
+        xlims = xlims_erro
+        ylims = ylims_erro
     xlims1 = [0, fs / 2 / 1e6]
-    plotFullFileName = os.path.join(pathPlot, plotFileName)
-
-    # Equivalent Noise BandWidth (ENBW)
-    if win_name == "blackman":
-        ENBW = 1.727
-    else:
-        ENBW = 1
-    rbw = xf[1] * ENBW
+    plot_full_file_name = os.path.join(path_plot, plot_file_name)
 
     # converting the spectrum to V/sqrt(Hz)
+    rbw = xf[1]
     spectrum = np.sqrt(power_spectrum/rbw)
 
     # Computation of the SNR equivalent to the requested ENOB
     snr_db = 6.02*enob + 1.76
     snr = 10**(snr_db/20)
 
-    # Computation of the noise floor corresponding to the ENOB
+    # Computation of the noise floor per sqrt(Hz) corresponding to the ENOB
     noise_floor = cst.fsrADCErrorV / (snr * np.sqrt(fs/2))
 
     # Measuring the noise floor at high frequencies
     noise_floor_hf = spectrum[-100:-2].mean()
 
-    # Fit of 1/f behaviour
+    # Getting theoretical noise data for fs=125MHz
+    if model:
+        f_theo, noise_theo = read_two_vectors_from_file(model_filename)
+
+    # Fit of 1/f behavior
     if acq_mode == 'error':
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e3 # max frequency of 1/f area
@@ -225,50 +332,79 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
         params, params_covariance = curve_fit(one_over_f, xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
         a = params[0]
 
+        # Computing theoretical noise data after aliasing at fRow
+        if model:
+            f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, cst.fRow, cst.fSamp)
+
     # Doing plot
     fig = plt.figure(figsize=(8, 10))
     title = session_name
     ax1 = fig.add_subplot(2, 1, 1)
 
-    lbl1 = "Spectrum".format(rbw/1e3)
-    ax1.semilogy(xf/1e6, spectrum, label=lbl1)
-    lbl3 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs/2/1e6)
-    ax1.semilogy(xlims1, [noise_floor, noise_floor], ':', color='purple', label=lbl3)
-    lbl5 = r'{0:3.1f}'.format(noise_floor_hf*1e9)+r' nV/$\sqrt{Hz}$'
-    ax1.semilogy([xf[0]/1e6, xf[-1]/1e6], [noise_floor_hf, noise_floor_hf], '--', color='red', label=lbl5)
+    lbl1 = "Spectrum"
+    ax1.semilogy(xf/1e6, spectrum*1e9, label=lbl1)
+    lbl2 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs/2/1e6)
+    ax1.semilogy(xlims1, [noise_floor*1e9, noise_floor*1e9], ':', color='purple', label=lbl2)
+    #lbl3 = r'{0:3.1f}'.format(noise_floor_hf*1e9)+r' nV/$\sqrt{Hz}$'
+    #ax1.semilogy([xf[0]/1e6, xf[-1]/1e6], [noise_floor_hf, noise_floor_hf], '--', color='red', label=lbl3)
+    if model:
+        lbl4 = 'Model (from datasheets)'
+        ax1.semilogy(f_theo/1e6, noise_theo*1e9, '--', color='r', label=lbl4)
 
-    ax1.set_xlim(xlims1)
+    ax1.set_xlim([xlims[0]/1e6, xlims[1]/1e6])
     ax1.set_ylim(ylims)
     ax1.set_title(title)
     ax1.set_ylabel(ylabel)
-    ax1.set_xlabel(xlabel1)
-    ax1.grid()
+    ax1.set_xlabel(xlabel_lin)
+
+    if acq_mode == 'dump':
+        # Désactiver la notation scientifique pour l'axe Y
+        ax1.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
+        ax1.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
+        ax1.ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
+
+        # Configurer les ticks pour afficher uniquement des entiers
+        ax1.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+
+    ax1.grid(True, which='both', linestyle='--')
     ax1.legend(loc='best', framealpha=1)
 
 
     ax2 = fig.add_subplot(2, 1, 2)
 
-    ax2.loglog(xf[1:], spectrum[1:], label=lbl1)
-    ax2.loglog(xlims2, [noise_floor, noise_floor], ':', color='purple', label=lbl3)
-    #ax2.loglog([-1, 1e12], [ref_noise_lvl_nv*1e-9, ref_noise_lvl_nv*1e-9], color='orange', label=lbl4)
-    ax2.loglog([xf[0], xf[-1]], [noise_floor_hf, noise_floor_hf], '--', color='red', label=lbl5)
+    ax2.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
+    ax2.loglog(xlims, [noise_floor*1e9, noise_floor*1e9], ':', color='purple', label=lbl2)
+    #ax2.loglog([xf[0], xf[-1]], [noise_floor_hf*1e9, noise_floor_hf*1e9], '--', color='red', linewidth=0.8, label=lbl3)
+    if model:
+        ax2.loglog(f_theo, noise_theo*1e9, '--', color='r', label=lbl4)
+
     if acq_mode == 'error':
         x = np.arange(1e4)
         lbl6 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax2.loglog(x[1:], one_over_f(x[1:], a), '-.', color='k', label=lbl6)
+        ax2.loglog(x[1:], one_over_f(x[1:], a)*1e9, '-.', color='k', label=lbl6)
 
-    ax2.set_xlim(xlims2)
+    ax2.set_xlim(xlims)
     ax2.set_ylim(ylims)
     ax2.set_title(title)
     ax2.set_ylabel(ylabel)
-    ax2.set_xlabel(xlabel2)
-    ax2.grid()
+    ax2.set_xlabel(xlabel_log)
+
+    if acq_mode == 'dump':
+        # Désactiver la notation scientifique pour l'axe Y
+        ax2.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
+        ax2.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
+        ax2.ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
+
+        # Configurer les ticks pour afficher uniquement des entiers
+        ax2.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+
+    ax2.grid(True, which='both', linestyle='--')
     ax2.legend(loc='best', framealpha=1)
 
     fig.tight_layout()
 
-    plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
-    print("Results plotted in file ", plotFullFileName)
+    plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
+    print("Results plotted in file ", plot_full_file_name)
 
 
 def process_list_of_dir(dir_list, win_name, process_dump, process_error):
@@ -306,7 +442,7 @@ def process_list_of_dir(dir_list, win_name, process_dump, process_error):
                     with zipfile.ZipFile(os.path.join(dataPath, z), 'r') as zip_ref:
                         zip_ref.extractall(dataPath)
 
-        for col in range(nb_col):
+        for col in range(1):
             if process_dump:
                 plot_col_spectrum(p, col, win_name, "dump")
             if process_error:
@@ -330,14 +466,15 @@ list_of_dir = [
     "/Users/laurent/Data/TestPlan21-perfo/20250127_175122_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250127_175444_noise_erro-only",
     "/Users/laurent/Data/TestPlan21-perfo/20250127_175802_noise_erro-ofco",
-    "/Users/laurent/Data/TestPlan21-perfo/20250113_165326_errorEnob_dump-col3"
+    "/Users/laurent/Data/TestPlan21-perfo/20250113_165326_errorEnob_dump-col3",
+    "/Users/laurent/Data/TestPlan21-perfo/20250130_110005_noise_conf-FPAs"
 ]
 
-#win = "none"
-win = "blackman"
+win = "none"
+#win = "blackman"
 
 dump = True
-error = False
-process_list_of_dir(list_of_dir[-1:], win, dump, error)
+error = True
+process_list_of_dir(list_of_dir[-4:-3], win, dump, error)
 
 #-------------------------------------------------------------------------------------

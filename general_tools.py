@@ -294,4 +294,3 @@ def do_power_spectrum(x, fs, npts, window="none"):
 
     return xf, power_spectrum/nslices
 
-# -----------------------------------------------------------------------

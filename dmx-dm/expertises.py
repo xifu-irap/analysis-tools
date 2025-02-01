@@ -5,7 +5,7 @@ import dmxTools as tools
 import general_tools as gt
 import os
 
-def process_scanSquids(dirPath, pixel, fb0):
+def process_scanSquids(dirPath, fb0, pixel_start, pixel_end):
     xmin, xmax = -2**10, 2**10
     ymin, ymax = -2**13, 2**13
     ymin3, ymax3 = -0.12, 0.12
@@ -30,7 +30,7 @@ def process_scanSquids(dirPath, pixel, fb0):
 
     print("Processing file ", files[0])
     xName, ctrl, feedback, error = rddt.readScan(os.path.join(dirPath, files[0]))
-    error = error[pixel,:] # keeping the data of a single pixel
+    error = np.mean(error[pixel_start:pixel_end, :], axis=0); # keeping the data of a single pixel
 
     if xName != 'Feedback':
         raise ValueError("Wrong fits file type.")
@@ -147,15 +147,22 @@ def plot_scan(dirPath, pixel):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
 
 
-#dirPath = '/Users/laurent/Data/TestPlan20-TDM/scanSquids20241206_120125'
-#pixel = 0
-#fb0 = -528
-#process_scanSquids(dirPath, pixel, fb0)
-
-dirPath = '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162135_Offset'
+dirPath = ['/Users/laurent/Data/TestPlan20-TDM/scanSquids20241206_120125',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250130-105328_Feedback'
+]
 pixel = 0
-plot_scan(dirPath, pixel)
+fb0 = -528
+for path in dirPath:
+    process_scanSquids(path, fb0, 1,33)
 
-dirPath = '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162403_Feedback'
+dirPath = [
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162135_Offset',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250129-162403_Feedback',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250130-104725_Feedback',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250130-104901_Feedback',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250130-104949_Feedback',
+    '/Users/laurent/Data/TestPlan20-TDM/scan_20250130-105328_Feedback'
+]
 pixel = 0
-plot_scan(dirPath, pixel)
+for path in dirPath:
+    plot_scan(path, pixel)
