@@ -1,6 +1,5 @@
 # imports
 import numpy as np
-from scipy import signal
 import matplotlib.pyplot as plt
 import os
 import readData as rddt

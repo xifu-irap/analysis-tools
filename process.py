@@ -40,7 +40,7 @@ fake_error = True
 
 if fake_dump:
     shift = 4
-    fileName = 'dump_' + gentools.maDate() + '_fake.hdf5'
+    fileName = 'dump_' + gentools.ma_date() + '_fake.hdf5'
     dump = fakes.fake_dump(path, fileName, shift=shift, sigmaNoise=2, shape='single')
     print(dmx.edge_detect(dmx.read_dump(fileName)))
     dmx.plot_dump(fileName)
@@ -65,13 +65,13 @@ if fake_error:
     sineFsrEffLevel = (FsrADU / (2 * np.sqrt(2)))
     sineFsrEffLevelTxt = '{0:d}'.format(round(sineFsrEffLevel))
 
-    fileName = 'error_' + gentools.maDate() + '_fake.hdf5'
+    fileName = 'error_' + gentools.ma_date() + '_fake.hdf5'
     error_data = fakes.fake_error(fileName, shape='sine', sigmaNoise=sigmaNoise, nPatterns=nPatterns)
     xf, spectrum = gentools.compute_spectrum(error_data, 1 / cst.fRow, fileName, window=window)
     nPts = len(spectrum)
 
     for i in range(nAcc - 1):
-        fileName = 'error_' + gentools.maDate() + '_fake.hdf5'
+        fileName = 'error_' + gentools.ma_date() + '_fake.hdf5'
         error_data = fakes.fake_error(fileName, shape='sine', sigmaNoise=sigmaNoise, nPatterns=nPatterns)
         xf, spectrum_i = gentools.compute_spectrum(error_data, 1 / cst.fRow, fileName, window=window)
         spectrum += spectrum_i

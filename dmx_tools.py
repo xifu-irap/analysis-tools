@@ -235,7 +235,7 @@ pulsePattern = np.array([
     [0x3FFF, 0x000F, 0x0010, 0x0400],       # Slow slope upward
     [0x7FFF, 0x7FFF, 0x0000, 0x0001]])      # Plateau
 
-plotFileName = os.path.join('.', cst.plotDirName, 'pattern_'+gentools.maDate()+'.png')
+plotFileName = os.path.join('.', cst.plotDirName, 'pattern_' + gentools.ma_date() + '.png')
 plotDemuxPattern(pulsePattern, plotFileName)
 print("Pattern plotted in ", plotFileName)
 
@@ -247,6 +247,6 @@ sawPattern = np.array([
     [0x0000, 0x0020, 0x0002, 0x07FF],    # Slope upward
     [0x0FFF, 0x0020, -1*0x0002, 0x07FF]])      # Slope downward
 
-plotFileName = os.path.join('.', cst.plotDirName, 'pattern_'+gentools.maDate()+'2.png')
+plotFileName = os.path.join('.', cst.plotDirName, 'pattern_' + gentools.ma_date() + '2.png')
 plotRasPattern(sawPattern, plotFileName)
 print("Pattern plotted in ", plotFileName)

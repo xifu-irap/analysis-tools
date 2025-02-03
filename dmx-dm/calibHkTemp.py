@@ -27,7 +27,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import glob, os
+import glob
 
 import general_tools as gentools
 

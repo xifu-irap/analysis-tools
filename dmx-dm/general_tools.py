@@ -133,12 +133,10 @@ def get_csv(filename):
 
 
 # -----------------------------------------------------------------------
-def compute_spectrum(signal, period, fileName, window='blackman', plot=False):
-    from scipy.signal import blackman
-    from scipy.signal import blackmanharris
-    from scipy.signal import hann
+def compute_spectrum(signal, period, file_name, window='blackman', plot=False):
+    from scipy.signal.windows import blackman, blackmanharris, hann
 
-    plotFileName = os.path.join(cst.plotDirName, fileName[:-5] + '_sp.png')
+    plotFileName = os.path.join(cst.plotDirName, file_name[:-5] + '_sp.png')
     nPts = len(signal)
 
     w = np.ones(nPts)
@@ -223,7 +221,7 @@ def first_order_low_pass_filter(data_vector, tau):
 
 
 # -----------------------------------------------------------------------
-def maDate():
+def ma_date():
     """This function returns a string containing the date and time"""
     from datetime import datetime
     n = datetime.now()
@@ -239,8 +237,9 @@ def readHkFromCsv(filename):
     hk = df[:, 1]
     return time, hk
 
+
 # -----------------------------------------------------------------------
-def do_power_spectrum(x, fs, npts, window="none"):
+def do_power_spectrum(x, fs, npts, window="none", verbose=False):
     r"""
         This function computes the spectrum of the input vector.
         If the input vector is long enough, several computations are averaged.
@@ -279,18 +278,41 @@ def do_power_spectrum(x, fs, npts, window="none"):
 
     if len(x)<npts:
         raise ValueError("Not enough values in input vector to compute spectra.")
-    else:
-        if is_even(npts):
-            power_spectrum=np.zeros(int(npts/2)+1)
-        else:
-            power_spectrum=np.zeros(int((npts+1)/2))
-        nslices=int(len(x)/npts)
-        for slice in range(nslices):
-            power_spectrum+=abs(rfft(x[slice*npts:(slice+1)*npts]*w))**2
 
-    # computing frequency scale
-    df = (fs / 2) / len(power_spectrum)
-    xf = np.arange(0, len(power_spectrum))*df
+    # Analyse spectrale avec rfft
+    xf = np.fft.rfftfreq(npts, 1 / fs)  # Fréquences associées
 
-    return xf, power_spectrum/nslices
+    power_spectrum = np.zeros_like(xf)  # Initialisation du spectre
+    nslices=int(len(x)/npts)
+    for slice in range(nslices):
+        power_spectrum += abs(rfft(x[slice*npts:(slice+1)*npts]*w))**2
+
+    power_spectrum /= nslices  # Amplitude par slice
+    power_spectrum /= npts**2  # Amplitude par échantillon
+    power_spectrum[1:-1] *= 2  # Compensations pour les composantes positives
+
+    if verbose:
+        # Vérification de la conservation de la puissance
+        power_time_domain = np.mean(x ** 2)  # Puissance du signal temporel
+        power_freq_domain = np.sum(power_spectrum)  # Puissance spectrale
+        print(f"Puissance temporelle : {power_time_domain:.5f}")
+        print(f"Puissance fréquentielle : {power_freq_domain:.5f}")
+
+    return xf, power_spectrum
+
+
+def derivative(x, y):
+    """Computes the derivative of a function from x and y values.
+
+    Parameters:
+        x (array): xvalues.
+        y (array): yvalues.
+
+    Returns:
+        derivative (array): the derivative of the function from x to y
+    """
+    if len(x) != len(y):
+        raise ValueError("x and y shall have the same length")
+
+    return (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 

@@ -1,7 +1,6 @@
 # imports
 import numpy as np
 from scipy.optimize import curve_fit
-from scipy.signal import resample
 import matplotlib.pyplot as plt
 import os
 import zipfile
@@ -11,7 +10,7 @@ import general_tools as gt
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 
 
-def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
+def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
     """
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
@@ -27,7 +26,6 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
         npts (int): Number of points for computing the power spectrum. Should be consistent
             with the sampling rate and signal properties.
         win_name (str): Name of the window function to be applied during the computation.
-        verbose (boolean): if True, some info is printed
 
     Raises:
         ValueError: If no valid dump files are found in the specified directory.
@@ -35,7 +33,7 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
     Returns:
         tuple: A tuple containing the following:
             - xf (numpy.ndarray): Frequency bins corresponding to the computed power spectrum.
-            - power_spectrum_total (numpy.ndarray): Averaged and normalized power spectrum.
+            - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum.
     """
 
     files = [f for f in os.listdir(data_path) \
@@ -48,8 +46,7 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
 
     print("Processing {0:} DUMP files from ".format(len(files)) + data_path)
 
-    rmsInTime_ADU_square = 0
-    power_spectrum_total = np.zeros(int(npts/2)+1)
+    power_spectrum = np.zeros(int(npts/2)+1)
 
     for i in range(len(files)):
         dumpData, _ =rddt.readDumpFile(os.path.join(data_path, files[i]))
@@ -58,27 +55,17 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name, verbose=False):
         dumpData = dumpData[col_id, :] - dumpData[col_id, :].mean()
 
         # Computing spectrum
-        xf, power_spectrum = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
+        xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
 
         # Averaging
-        rmsInTime_ADU_square += (dumpData.std())**2   # a verifier
-        power_spectrum_total += power_spectrum
+        power_spectrum += power_spectrum_i
 
-    # normalisation wrt signal rms
-    rms_in_time_adu = np.sqrt(rmsInTime_ADU_square / len(files))
-    rms_in_time_v = rms_in_time_adu * cst.fsrADCErrorV / cst.fsrADCErrorADU
-    rms_in_freq_v = np.sqrt(power_spectrum_total.sum())
-    power_spectrum_total *= (rms_in_time_v / rms_in_freq_v)**2
+    power_spectrum = power_spectrum / len(files)
 
-    if verbose:
-        print("rms in time: {0:6.3f} ADU".format(rms_in_time_adu))
-        print("rms in time: {0:6.3f} μV".format(rms_in_time_v * 1e6))
-        txt1 = "rms in frequency: {0:6.3f} μV".format(rms_in_freq_v*1e6)
-        txt2 = " Equivalent to {0:6.3f} nV/sqrt(Hz)".format(rms_in_freq_v*1e9/np.sqrt(cst.fSamp/2))
-        txt3 = " over {0:3.1f} MHz".format(cst.fSamp/1e6/2)
-        print(txt1+txt2+txt3)
+    # passage V => ADU
+    power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
 
-    return xf, power_spectrum_total
+    return xf, power_spectrum
 
 
 def power_spectrum_from_error(data_path, col_id, npts, win_name):
@@ -113,30 +100,28 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
              and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
 
     if len(files) == 0:
-        raise ValueError('Wrong number of files')
+        raise ValueError('No fits file for column {0:}'.format((col_id)))
 
-    fileName = files[0]
+    file_name = files[0]
 
     print("Processing ERROR data file from ", data_path)
 
-    colData, _ = rddt.readScienceFile(os.path.join(data_path, fileName))
+    col_data, _ = rddt.readScienceFile(os.path.join(data_path, file_name))
     # Flattening the array to have data at Frow
     # Dividing by 4 because Error data are in S(16,2) format
-    colData = colData.flatten('F') / 4
+    col_data = col_data.flatten('F') / 4
 
     # removing DC
-    colData -= colData.mean()
+    col_data -= col_data.mean()
 
     # Computing spectrum
-    xf, power_spectrum = gt.do_power_spectrum(colData, cst.fRow, npts, window=win_name)
+    xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
 
-    # normalisation wrt signal rms
-    rmsInTime_ADU = colData.std()
-    rmsInTime_V = rmsInTime_ADU * cst.fsrADCErrorV / cst.fsrADCErrorADU
-    rmsInFreq = np.sqrt(power_spectrum.sum())
-    power_spectrum *= (rmsInTime_V / rmsInFreq)**2
+    # passage V => ADU
+    power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
 
     return xf, power_spectrum
+
 
 def one_over_f(f, num):
     """
@@ -442,31 +427,28 @@ def process_list_of_dir(dir_list, win_name, process_dump, process_error):
                     with zipfile.ZipFile(os.path.join(dataPath, z), 'r') as zip_ref:
                         zip_ref.extractall(dataPath)
 
-        for col in range(1):
+        for col in range(cst.nColPerDemux):
+        #for col in range(1):
             if process_dump:
                 plot_col_spectrum(p, col, win_name, "dump")
             if process_error:
-                plot_col_spectrum(p, col, win_name, "error")
-
-        # Removing fits files if extracted from a zip file
-        if data_from_zip_file:
-            os.remove(os.path.join(dataPath, "error_noise_C0.fits"))
-            os.remove(os.path.join(dataPath, "error_noise_C1.fits"))
-            os.remove(os.path.join(dataPath, "error_noise_C2.fits"))
-            os.remove(os.path.join(dataPath, "error_noise_C3.fits"))
+                file_name = os.path.join(dataPath, "error_noise_C{0:}.fits".format(col))
+                if os.path.isfile(file_name):
+                    plot_col_spectrum(p, col, win_name, "error")
+                    # Removing fits files if extracted from a zip file
+                    if data_from_zip_file:
+                        os.remove(file_name)
 
 #-------------------------------------------------------------------------------------
 
 list_of_dir = [
-    "/Users/laurent/Data/TestPlan21-perfo/20250113_170000_noise_erro-only_col3",
-    "/Users/laurent/Data/TestPlan21-perfo/20250121_110000_noise_erro-fdbk_col3",
+    "/Users/laurent/Data/TestPlan21-perfo/20250113_170000_noise_erro-only",
+    "/Users/laurent/Data/TestPlan21-perfo/20250121_110000_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250124_170723_noise_erro-only",
     "/Users/laurent/Data/TestPlan21-perfo/20250124_171221_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250127_153842_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250127_175122_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250127_175444_noise_erro-only",
     "/Users/laurent/Data/TestPlan21-perfo/20250127_175802_noise_erro-ofco",
-    "/Users/laurent/Data/TestPlan21-perfo/20250113_165326_errorEnob_dump-col3",
     "/Users/laurent/Data/TestPlan21-perfo/20250130_110005_noise_conf-FPAs"
 ]
 
@@ -475,6 +457,6 @@ win = "none"
 
 dump = True
 error = True
-process_list_of_dir(list_of_dir[-4:-3], win, dump, error)
+process_list_of_dir(list_of_dir, win, dump, error)
 
 #-------------------------------------------------------------------------------------

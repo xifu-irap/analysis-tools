@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import readData as rddt
-import dmxTools as tools
 import general_tools as gt
 import os
 
@@ -38,7 +37,7 @@ def process_scanSquids(dirPath, fb0, pixel_start, pixel_end):
     print("Found {0:} steps in the scan".format(len(error)))
 
     # computing the local gain (derivative of the function)
-    derivative = tools.derivative(feedback, error)
+    derivative = gt.derivative(feedback, error)
 
     # Looking for operating point data
     diff = np.abs(feedback - fb0)
