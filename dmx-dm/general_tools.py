@@ -316,3 +316,76 @@ def derivative(x, y):
 
     return (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 
+
+def unzip_files_from_dir(dir):
+
+    import zipfile
+
+    data_from_zip_file = False
+    # Looking for zip files if any
+    dataPath = os.path.join(dir, cst.dataDirName)
+    zipfiles = [f for f in os.listdir(dataPath) \
+                if os.path.isfile(os.path.join(dataPath, f)) \
+                and f[-4:] == '.zip']
+
+    # Unzipping zip files
+    if len(zipfiles) == 0:
+        print('There is no zip file...')
+    else:
+        data_from_zip_file = True
+        for z in zipfiles:
+            print('Unzipping Error data from ', z)
+            with zipfile.ZipFile(os.path.join(dataPath, z), 'r') as zip_ref:
+                zip_ref.extractall(dataPath)
+
+    return data_from_zip_file
+
+
+def read_two_vectors_from_file(nom_fichier):
+    """
+    Reads two vectors from a specified file, ignoring header rows.
+
+    This function loads numerical data from a given file, skipping the first row that is
+    presumed to contain headers. The data is expected to be structured into two columns.
+    The first column is interpreted as a vector of frequencies, while the second column
+    is interpreted as a corresponding vector of noise values. The two vectors are then
+    returned separately.
+
+    Args:
+        nom_fichier: The path to the file containing the data to be read. The file should
+            have a specific structure with two columns of numerical data. The first row
+            of the file is ignored as it is assumed to be a header.
+
+    Returns:
+        A tuple containing:
+            - frequency: A NumPy array representing the first vector (frequency values)
+              extracted from the specified file.
+            - onoise: A NumPy array representing the second vector (noise values)
+              extracted from the specified file.
+    """
+    # Charger les données en ignorant les lignes d'en-tête
+    data = np.loadtxt(nom_fichier, skiprows=1)
+
+    # Séparer les colonnes en deux vecteurs
+    frequency = data[:, 0]
+    onoise = data[:, 1]
+
+    return frequency, onoise
+
+
+def save_two_vectors_to_file(vecteur1, vecteur2, fichier):
+    """
+    Sauvegarde deux vecteurs dans un fichier texte.
+
+    :param fichier: Chemin du fichier texte à créer ou à écraser.
+    :param vecteur1: Premier vecteur (list ou numpy array).
+    :param vecteur2: Deuxième vecteur (list ou numpy array).
+    :param separateur: Caractère utilisé pour séparer les données (par défaut : espace).
+    """
+    if len(vecteur1) != len(vecteur2):
+        raise ValueError("Les deux vecteurs doivent avoir la même longueur.")
+
+    with open(fichier, "w") as f:
+        f.write("  frequency  V(onoise)")
+        for val1, val2 in zip(vecteur1, vecteur2):
+            f.write(f"{val1}{"  "}{val2}\n")

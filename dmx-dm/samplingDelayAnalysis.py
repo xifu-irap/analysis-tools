@@ -7,41 +7,24 @@ import readData as rddt
 import constants as cst
 import general_tools as gt
 
-path = ["/Users/laurent/Data/TestPlan21-perfo/20241024_140448_samplingDelay-col2-Bxl00",
-        "/Users/laurent/Data/TestPlan21-perfo/20241024_140537_samplingDelay-col2-Bxl01",
-        "/Users/laurent/Data/TestPlan21-perfo/20241024_140613_samplingDelay-col2-Bxl03",
-        "/Users/laurent/Data/TestPlan21-perfo/20241024_140642_samplingDelay-col2-Bxl07",
-        "/Users/laurent/Data/TestPlan21-perfo/20241029_102042_samplingDelay-col2-Bxl07",
-        "/Users/laurent/Data/TestPlan21-perfo/20241029_102328_samplingDelay-col0-Bxl07",
-        "/Users/laurent/Data/TestPlan21-perfo/20241114_105823_samplingDelay-col2-Bxl07",
-        "/Users/laurent/Data/TestPlan21-perfo/20241114_155055_samplingDelay-col3-Bxl01",
-        "/Users/laurent/Data/TestPlan21-perfo/20241118_174434_samplingDelay-col2-Bxl01",
-        "/Users/laurent/Data/TestPlan21-perfo/20241220_115812_samplingDelay-col3-Bxl03",
-        "/Users/laurent/Data/TestPlan21-perfo/20241220_115846_samplingDelay-col3-Bxl01",
-        "/Users/laurent/Data/TestPlan21-perfo/20250121_101447_samplingDelay-col2-Bxl00",
-        "/Users/laurent/Data/TestPlan21-perfo/20250121_101346_samplingDelay-col2-Bxl01",
-        "/Users/laurent/Data/TestPlan21-perfo/20250121_101520_samplingDelay-col2-Bxl07"
-        ]
-
 
 colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B0000',
  '#696969', '#A52A2A', '#000000', '#4682B4', '#556B2F', '#4B0082', '#B8860B',
  '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
 
-def samplingDelay(path):
+def samplingDelay(path, col):
 
-    col = int(path[-7])  # column index
-    bxl = int(path[-2:]) # boxcar length
-    pathData = os.path.join(path, "dmx_data")
-    plotDirname = "PLOTS"
-    pathPlot = os.path.join(path, plotDirname)
+    bxl = int(path[-19:-17]) # boxcar length
+    pls = int(path[-1]) # pulse shaping set
+    pathData = os.path.join(path, cst.dataDirName)
+    pathPlot = os.path.join(path, cst.plotDirName)
     gt.createdir(pathPlot)
-    plotFileName = os.path.join(pathPlot, 'samplingDelay_col{0:}.png'.format(col))
+    plotFileName = os.path.join(pathPlot, 'samplingDelay_col{0:}_bxl{1:}_pls{2:}.png'.format(col, bxl, pls))
 
     xlabel = 'Time (ns)'
-    ylabel1 = 'Error signal Dump (ADU)'.format(col)
-    title1 = 'Column {0:}, Boxcar length = {1:}'.format(col, bxl)
+    ylabel1 = 'Error signal Dump (ADU)'
+    title1 = 'Column {0:}, nb of averaged samples = {1:}, pulse shaping set = {2:}'.format(col, bxl+1, pls)
     x_max = 320
 
     t = np.arange(2*cst.nSamplesPerRow*cst.muxFactor) * 1e9 / cst.fSamp
@@ -78,7 +61,9 @@ def samplingDelay(path):
 
     # Doing the plot
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.plot(t, dump_avg, color='k', label='Dump data')
+    ax1.plot(t, dump, color='k', label='Dump data')
+    if bxl > 0:
+        ax1.plot(t, dump_avg, ':', color='k', label='Dump with moving average')
 
     # #######
     # Processing the error data files
@@ -90,7 +75,7 @@ def samplingDelay(path):
     suffix = "_C{0:}.fits".format(col)
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
-             and f[-8:] == suffix]
+             and f[:13] == 'SamplingDelay' and f[-8:] == suffix]
 
     if len(files) != cst.nSamplesPerRow:
         raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), cst.nSamplesPerRow))
@@ -105,12 +90,12 @@ def samplingDelay(path):
         pix0 = colData[0, :nVal].mean() / ratio
 
         # Adding error data on the plot
-        ax1.plot(t[index], pix0, 'o', color=colors[index], label='Samp Delay = {0:} ns'.format(int(index*1e9/cst.fSamp)))
+        ax1.plot(t[index], pix0, 'o', color=colors[index], label='Samp Delay = {0:} ns'.format(int(t[index])))
 
     ax1.set_ylabel(ylabel1)
     ax1.set_title(title1)
     ax1.set_xlabel(xlabel)
-    ax1.legend(loc='best')
+    ax1.legend(loc='upper right')
     ax1.set_xlim([0, x_max])
 
     # Définition des intervalles majeurs et mineurs pour la grille
@@ -136,6 +121,13 @@ def samplingDelay(path):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
     print("results plotted in file " + plotFileName)
 
-for p in path[-3:]:
+path = ["/Users/laurent/Data/TestPlan21-perfo/20250213_144452_samplingDelay-Bxl07-pulseShapingSet0",
+        "/Users/laurent/Data/TestPlan21-perfo/20250213_144532_samplingDelay-Bxl03-pulseShapingSet0",
+        "/Users/laurent/Data/TestPlan21-perfo/20250213_144611_samplingDelay-Bxl01-pulseShapingSet0",
+        "/Users/laurent/Data/TestPlan21-perfo/20250213_144648_samplingDelay-Bxl00-pulseShapingSet0"
+        ]
+
+for p in path[-4:]:
 #for p in path:
-    samplingDelay(p)
+    for col in range(cst.nColPerDemux):
+        samplingDelay(p, col)

@@ -76,8 +76,8 @@ def plot_non_linearity(dir_path):
     gt.createdir(pathPlot)
 
     ytit1 = "Error values (ADU)"
-    ytit2 = "Non Linearity (% FSR)"
-    ytit3 = "LSB"
+    ytit2 = "Non linearity (ADC LSB)"
+    ytit3 = "Non Linearity (% of ADC FSR)"
     ymargin = 1024 # margin for ylimits in the plot
     dotsize = 1
 
@@ -170,25 +170,21 @@ def plot_non_linearity(dir_path):
             # Linear fit of the data (full range)
             coeffs = np.polyfit(scan[i_ok], error[i_ok], 1)
             fit = coeffs[1] + coeffs[0] * scan[i_ok]
-            deviationPercentFSR = 100 * (error[i_ok] - fit) / cst.fsrADCErrorADU
+            deviation_lsb = error[i_ok] - fit
 
             # Linear fit of the data (reduced range)
             red_factor1 = 0.85
             i_red1 = np.where(np.abs(error) < 2**(cst.dmxNbBitsADCError-1)*red_factor1)[0]
             coeffs_red1 = np.polyfit(scan[i_red1], error[i_red1], 1)
             fit_red1 = coeffs_red1[1] + coeffs_red1[0] * scan[i_red1]
-            deviationPercentFSR_red1 = 100 * (error[i_red1] - fit_red1) / cst.fsrADCErrorADU
+            deviation_lsb_red1 = error[i_red1] - fit_red1
 
             # Linear fit of the data (reduced range)
             red_factor2 = 0.7
             i_red2 = np.where(np.abs(error) < 2**(cst.dmxNbBitsADCError-1)*red_factor2)[0]
             coeffs_red2 = np.polyfit(scan[i_red2], error[i_red2], 1)
             fit_red2 = coeffs_red2[1] + coeffs_red2[0] * scan[i_red2]
-            deviationPercentFSR_red2 = 100 * (error[i_red2] - fit_red2) / cst.fsrADCErrorADU
-
-
-
-
+            deviation_lsb_red2 = error[i_red2] - fit_red2
 
             # Computing DNL and INL
             lsb_ideal = (error[i_ok].max() - error[i_ok].min()) / len(error[i_ok])
@@ -209,13 +205,13 @@ def plot_non_linearity(dir_path):
                 sign_str = ' + '
             else:
                 sign_str = ' - '
-            lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(abs(coeffs[1]))
+            lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(abs(coeffs[1])) + ' (fit is done on FS)'
             ax1.plot(scan[i_ok], fit, ':', color='red', linewidth=1, label=lbl)
             nl_threshold_for_reduce_ranges = 0.3
-            if np.abs(deviationPercentFSR).max() > nl_threshold_for_reduce_ranges:
-                lbl = 'Linear fit2 (Y = {0:.4} X'.format(coeffs_red1[0]) + sign_str + '{0:.4})'.format(abs(coeffs_red1[1])) + ' (fit2 is limited to {0:}% of the full scale)'.format(int(red_factor1*100))
+            if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
+                lbl = 'Linear fit2 (Y = {0:.4} X'.format(coeffs_red1[0]) + sign_str + '{0:.4})'.format(abs(coeffs_red1[1])) + ' (fit2 is done on {0:}% of FS)'.format(int(red_factor1*100))
                 ax1.plot(scan[i_red1], fit_red1, ':', color='orange', linewidth=1, label=lbl)
-                lbl = 'Linear fit3 (Y = {0:.4} X'.format(coeffs_red2[0]) + sign_str + '{0:.4})'.format(abs(coeffs_red2[1])) + ' (fit3 is limited to {0:}% of the full scale)'.format(int(red_factor2*100))
+                lbl = 'Linear fit3 (Y = {0:.4} X'.format(coeffs_red2[0]) + sign_str + '{0:.4})'.format(abs(coeffs_red2[1])) + ' (fit3 is done on {0:}% of FS)'.format(int(red_factor2*100))
                 ax1.plot(scan[i_red2], fit_red2, ':', color='purple', linewidth=1, label=lbl)
             ax1.set_xlim(xlim)
             ax1.set_ylim(ylim1)
@@ -226,12 +222,19 @@ def plot_non_linearity(dir_path):
 
             ax2 = fig.add_subplot(2, 1, 2) # non linearity
 
-            ax2.scatter(scan[i_ok], deviationPercentFSR, s = dotsize, color='red', label='100 * (Scan - Fit) / FSR')
-            if np.abs(deviationPercentFSR).max() > nl_threshold_for_reduce_ranges:
-                lbl = '100 * (Scan - Fit2) / FSR  (limited to {0:}% of the full scale)'.format(int(red_factor1*100))
-                ax2.scatter(scan[i_red1], deviationPercentFSR_red1, s=dotsize, color='orange', label=lbl)
-                lbl = '100 * (Scan - Fit3) / FSR  (limited to {0:}% of the full scale)'.format(int(red_factor2 * 100))
-                ax2.scatter(scan[i_red2], deviationPercentFSR_red2, s=dotsize, color='purple', label=lbl)
+            val1 = max(np.abs(deviation_lsb))
+            val2 = val1 * 100 / cst.fsrADCErrorADU
+            lbl = 'Scan - Fit  (on FS the non linearity is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
+            ax2.scatter(scan[i_ok], deviation_lsb, s = dotsize, color='red', label=lbl)
+            if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
+                val0, val1 = int(red_factor1 * 100),  max(np.abs(deviation_lsb_red1))
+                val2 = val1*100/cst.fsrADCErrorADU
+                lbl = 'Scan - Fit2  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(val0, val1, val2)
+                ax2.scatter(scan[i_red1], deviation_lsb_red1, s=dotsize, color='orange', label=lbl)
+                val0, val1 = int(red_factor2 * 100),  max(np.abs(deviation_lsb_red2))
+                val2 = val1*100/cst.fsrADCErrorADU
+                lbl = 'Scan - Fit3  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(val0, val1, val2)
+                ax2.scatter(scan[i_red2], deviation_lsb_red2, s=dotsize, color='purple', label=lbl)
             ax2.set_xlim(xlim)
             ax2.set_xlabel(xtit)
             ax2.set_ylabel(ytit2)
@@ -240,6 +243,13 @@ def plot_non_linearity(dir_path):
             ylim_extension = 0.75
             ax2.set_ylim([ylimits[0]-ylim_extension*deltay, ylimits[1]+ylim_extension*deltay])
             ax2.legend(loc='upper left')
+
+            # second y axis for LSB units
+            ax22 = ax2.twinx()
+            ylims = ax2.get_ylim()
+            ylims22 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+            ax22.set_ylim(ylims22)
+            ax22.set_ylabel(ytit3)
 
             #ymajor = 10 ** np.floor(np.log10(ylim_extension*deltay))*4
             grid_ratio = 10
@@ -266,7 +276,13 @@ def plot_non_linearity(dir_path):
 
             ax.set_ylim([-yl, yl])
             ax.set_xlabel(xtit)
-            ax.set_ylabel(ytit3)
+            ax.set_ylabel(ytit2)
+
+            ax3 = ax.twinx()
+            ylims = ax.get_ylim()
+            ylims3 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+            ax3.set_ylim(ylims3)
+            ax3.set_ylabel(ytit3)
 
             set_grid(ax, True, True, 2 ** 12, 2 ** 8, 5, 1)
 
@@ -289,7 +305,13 @@ def plot_non_linearity(dir_path):
 
             ax.set_ylim([-yl, yl])
             ax.set_xlabel(xtit)
-            ax.set_ylabel(ytit3)
+            ax.set_ylabel(ytit2)
+
+            ax3 = ax.twinx()
+            ylims = ax.get_ylim()
+            ylims3 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+            ax3.set_ylim(ylims3)
+            ax3.set_ylabel(ytit3)
 
             set_grid(ax, True, True, 2 ** 12, 2 ** 8, 10, 2)
 
@@ -314,5 +336,5 @@ pathes = [
         "/Users/laurent/Data/TestPlan21-perfo/20250113_110936_ofcoAndErrorLinearity"
         ]
 
-for path in pathes[-2:]:
+for path in pathes:
     plot_non_linearity(path)
