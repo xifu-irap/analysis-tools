@@ -389,3 +389,12 @@ def save_two_vectors_to_file(vecteur1, vecteur2, fichier):
         f.write("  frequency  V(onoise)")
         for val1, val2 in zip(vecteur1, vecteur2):
             f.write(f"{val1}{"  "}{val2}\n")
+
+def pulseshapingtext(pls_set):
+    switch={
+      0:'no pulse shaping',
+      1:'pulse shaping at 20 MHz',
+      2:'pulse shaping at 25 MHz',
+      3:'pulse shaping at 30 MHz'
+      }
+    return switch.get(pls_set, "Invalid input")

@@ -8,13 +8,13 @@ import constants as cst
 import general_tools as gt
 
 
-def get_dump(path, c_perp, config):
+def get_dump(path, c_perp, pls_set, config):
 
     # Searching directories
-    dir_extension = "{0:}_".format(c_perp) + config
+    dir_extension = "{0:}_".format(c_perp) + "pulseShape-{0:}_".format(pls_set) + config
     dirlist = [d for d in os.listdir(path) \
              if os.path.isdir(os.path.join(path, d)) \
-             and d[-12:] == dir_extension]
+             and d[-25:] == dir_extension]
 
     if len(dirlist) != 1:
         print("Error, wrong number of directories. Found {0:}".format(len(dirlist)))
@@ -48,19 +48,20 @@ def get_dump(path, c_perp, config):
     return dump
 
 
-def xtalk_analysis(path, c_perp, config):
+def xtalk_analysis(path, c_perp, pls_set, config):
 
-    dump = get_dump(path, c_perp, config)
-    dump_ref = get_dump(path, c_perp, "bob-looped")
+    dump = get_dump(path, c_perp, pls_set, config)
+    dump_ref = get_dump(path, c_perp, pls_set, "bob-looped")
 
     col_dump_db = 20*np.log10(dump / (dump_ref[c_perp, :].max() - dump_ref[c_perp, :].min()))
 
     pathPlot = os.path.join(path, cst.plotDirName)
     gt.createdir(pathPlot)
-    plotFileName = os.path.join(pathPlot, 'XTalk_'+config+'_cPerp{0:}.png'.format(c_perp))
+
+    plotFileName = os.path.join(pathPlot, 'XTalk_'+config+'_pls{0:}'.format(pls_set)+'_cPerp{0:}.png'.format(c_perp))
 
     # Doing the plot
-    title = 'Crosstalk from column {0:} in '.format(c_perp) + config + ' mode'
+    title = 'Crosstalk from column {0:} in '.format(c_perp) + config + ' mode with ' + gt.pulseshapingtext(pls_set)
     xlabel = 'Time (ns)'
     ylabel = 'Error signal Dump (ADU)'
     ylabel1 = 'Ratio with max of column {0:} (dB)'.format(c_perp)
@@ -111,11 +112,14 @@ def xtalk_analysis(path, c_perp, config):
 
 #------------------------------------------------------------------
 
-path = ["/Users/laurent/Data/TestPlan21-perfo/20250214_164632_XTalk"
+path = ["/Users/laurent/Data/TestPlan21-perfo/20250217_183000_XTalk"
         ]
 conf = ["bob-looped", "not-loaded", "harness-08"]
 
+pls_sets = [0, 1]
+
 for p in path:
     for config in conf:
-        for cPerp in range(cst.nColPerDemux):
-            xtalk_analysis(p, cPerp, config)
+        for pls_set in pls_sets:
+            for cPerp in range(cst.nColPerDemux):
+                xtalk_analysis(p, cPerp, pls_set, config)

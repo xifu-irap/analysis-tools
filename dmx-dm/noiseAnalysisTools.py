@@ -4,6 +4,7 @@ import os
 import readData as rddt
 import constants as cst
 import general_tools as gt
+from scipy.optimize import curve_fit
 
 
 def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
@@ -133,6 +134,13 @@ def one_over_f(f, num):
         float: The resulting value after dividing 'a' by the square root of 'f'.
     """
     return num / np.sqrt(f)
+
+
+def fit_one_over_f(x, y):
+
+    indexes = np.where(np.isfinite(y))[0]
+    params, params_covariance = curve_fit(one_over_f, x[indexes], y[indexes])
+    return params[0]
 
 
 def combine_noises_data(nom_fichier1, fs1, nom_fichier2, fs2, nom_fichier3, npts=2048):

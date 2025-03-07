@@ -40,9 +40,9 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
     ylims_erro = [10, 1e4]
     ylims_dump = [10, 100]
 
-    # Selection of noise model
+    # Selection of a noise model
     path_models = 'noise_models'
-    model = True # a model exists
+    model = True # the initial hypothesis is "a model exists"
     if signal == 'erro-only' or signal == 'erro-100o':
         model_filename = os.path.join(path_models, "erro-only.txt")
     elif signal == 'erro-fdbk':
@@ -81,6 +81,7 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
         fs = cst.fRow
         xlims = xlims_erro
         ylims = ylims_erro
+
     xlims1 = [0, fs / 2 / 1e6]
     plot_full_file_name = os.path.join(path_plot, plot_file_name)
 
@@ -109,8 +110,7 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e3 # max frequency of 1/f area
         xf_stop = np.where(xf < f_stop)[0][-1]
-        params, params_covariance = curve_fit(nat.one_over_f, xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
-        a = params[0]
+        a = nat.fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
         # Computing theoretical noise data after aliasing at fRow
         if model:
@@ -223,7 +223,6 @@ def process_list_of_dir(dir_list, win_name, process_dump, process_error):
                         zip_ref.extractall(dataPath)
 
         for col in range(cst.nColPerDemux):
-        #for col in range(1):
             if process_dump:
                 plot_col_spectrum(p, col, win_name, "dump")
             if process_error:
@@ -258,9 +257,9 @@ list_of_dir = [
 win = "none"
 #win = "blackman"
 dump = True
-error = False
+error = True
 
 #-------------------------------------------------------------------------------------
-process_list_of_dir(list_of_dir[-4:], win, dump, error)
+process_list_of_dir(list_of_dir[-1:], win, dump, error)
 
 #-------------------------------------------------------------------------------------
