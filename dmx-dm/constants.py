@@ -50,6 +50,10 @@ dmxNbBitsDACOfcoCoarse = 12
 fsrDACOfcoCoarseADU = 2**dmxNbBitsDACOfcoCoarse
 fsrDACOfcoCoarseV = 1
 
+# Test patterns
+tstPattern_nb_regions = 5
+tstPattern_nb_params_per_region = 4
+
 fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
 
 # Directories

@@ -51,8 +51,10 @@ def readScienceFile(fits_file):
         data = data_ext.data
         dataArray = np.array(data.tolist()).T
 
-        # -1 parce que les dernières données sont à 0
-        return dataArray[1:,:-1], dataArray[0,:-1]
+
+        # -1 parce que les dernières données sont à 0 (this is corrected in XIFU STUDIO)
+        #return dataArray[1:,:-1], dataArray[0,:-1]
+        return dataArray[1:,:], dataArray[0,:]
 
 
 def readDumpFile(fits_file):

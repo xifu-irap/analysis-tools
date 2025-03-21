@@ -7,7 +7,6 @@ import zipfile
 import constants as cst
 import general_tools as gt
 import noiseAnalysisTools as nat
-from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 
 plt.rcParams['agg.path.chunksize']=200
 
