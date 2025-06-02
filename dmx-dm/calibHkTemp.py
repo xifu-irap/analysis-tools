@@ -27,22 +27,30 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
+import glob, os
 
 import general_tools as gentools
+import constants as cst
 
 #path = "/Users/laurent/Data/20.001/test_hk_temp_1/"
-path = "/Users/laurent/Data/20.001/test_hk_temp_2/"
+#path = "/Users/laurent/Data/20.001/test_hk_temp_2/"
+#path = "/Users/laurent/Data/TestPlan24_DM-DMX2/24.010/HK_TEMP/4Col/"
+path = "/Users/laurent/Data/TestPlan24_DM-DMX2/24.010/HK_TEMP/Paliers/"
 
 
 def calibHkTemp(path):
 
-    fileName1 = glob.glob(path + "*-HK_TEMP_AVE.csv")[0]
+    fileName1 = glob.glob(path + "*-HK_TEMP_MAX.csv")[0]
     fileName2 = glob.glob(path + "*-PT104_channel1Value.csv")[0]
-    fileName3 = glob.glob(path + "*-HK_TEMP_MAX.csv")[0]
+    fileName3 = glob.glob(path + "*-HK_TEMP_AVE.csv")[0]
     fileName4 = glob.glob(path + "*-PT104_channel2Value.csv")[0]
     date = fileName1.split("/")[-1][:8]
-    plotfilename = path+date+'-calibHkTemp.png'
+
+    # Creation of a directory for the plot files
+    path_plot = os.path.join(path, cst.plotDirName)
+    gentools.createdir(path_plot)
+
+    plotfilename = os.path.join(path_plot, date + '-calibHkTemp.png')
 
     print("Reading temperature data from file " + fileName1)
     time1, hk1 = gentools.readHkFromCsv(fileName1)
@@ -56,13 +64,17 @@ def calibHkTemp(path):
     print("Reading temperature data from file " + fileName4)
     time4, hk4 = gentools.readHkFromCsv(fileName4)
 
-    t0 = min(time1[0], time2[0], time3[0], time4[0])
+    # Starting at t=0
+    t0 = max(time1[0], time2[0], time3[0], time4[0])
     time1 -= t0
     time2 -= t0
     time3 -= t0
     time4 -= t0
     time_max_12 = min(time1[-1], time2[-1])
     time_max_34 = min(time3[-1], time4[-1])
+
+    hk1 = hk1.astype(float)
+    hk3 = hk3.astype(float)
 
     # resampling data on same times
     hk2_target = np.interp(time1, time2, hk2)
@@ -79,12 +91,12 @@ def calibHkTemp(path):
 
     fig = plt.figure(figsize=(14, 16))
 
-    title = 'Average temperature'
+    title1 = 'Max temperature'
     col1, col2 = 'b', 'r'
     ax1 = fig.add_subplot(3, 2, 1)
     ax1.plot(time1, hk1, color=col1, label='Uncalibrated HK')
     ax1.set_xlim([0, time_max_12])
-    ax1.set_title(title)
+    ax1.set_title(title1)
     ax1.set_xlabel("Time (s)")
     ax1.set_ylabel("Temperature (ADU)", color=col1)
     ax1.plot([], [], color=col2, label='Reference PT104')
@@ -95,12 +107,12 @@ def calibHkTemp(path):
     ax2.set_ylabel("Temperature (°C)", color=col2)
     ax2.tick_params(axis='y', labelcolor=col2)
 
-    title = 'Max temperature'
+    title3 = 'Average temperature'
     col3, col4 = 'g', 'orange'
     ax3 = fig.add_subplot(3, 2, 2)
     ax3.plot(time3, hk3, color=col3, label='Uncalibrated HK')
     ax3.set_xlim([0, time_max_34])
-    ax3.set_title(title)
+    ax3.set_title(title3)
     ax3.set_xlabel("Time (s)")
     ax3.set_ylabel("Temperature (ADU)", color=col3)
     ax3.plot([], [], color=col4, label='Reference PT104')
@@ -153,5 +165,8 @@ def calibHkTemp(path):
 
     fig.tight_layout()
     plt.savefig(plotfilename, dpi=300, bbox_inches='tight')
+    print("plot saved in file ", plotfilename)
 
-calibHkTemp(path)
+
+if __name__ == '__main__':
+    calibHkTemp(path)

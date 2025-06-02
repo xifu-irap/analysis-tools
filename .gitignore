@@ -1,9 +1,3 @@
-# Data
-/DATA
-*.fits
-*.hdf5
-
-# Plots
-/PLOTS
-*.png
-
+*.pyc
+.idea/*
+__pycache__/*

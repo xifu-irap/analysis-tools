@@ -32,6 +32,7 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 import constants as cst
 
@@ -223,7 +224,6 @@ def first_order_low_pass_filter(data_vector, tau):
 # -----------------------------------------------------------------------
 def ma_date():
     """This function returns a string containing the date and time"""
-    from datetime import datetime
     n = datetime.now()
     return ("{0:04d}-{1:02d}-{2:02d}_{3:02d}h{4:02d}mn{5:02d}s"
             .format(n.year, n.month, n.day, n.hour, n.minute, n.second))
@@ -234,16 +234,20 @@ def readHkFromCsv(filename):
     """This function reads a set of HK and a set of time from a csv file"""
     df = np.array(pd.read_csv(filename, sep=";"))
     time = df[:, 0]
+    # conversion du format de date en timestamp
+    time_converted = np.zeros(len(time))
+    for i in range(len(time)):
+        dt = parse_date_auto(time[i])
+        time_converted[i] = dt.timestamp()
     hk = df[:, 1]
-    return time, hk
-
+    return time_converted, hk
 
 # -----------------------------------------------------------------------
 def do_power_spectrum(x, fs, npts, window="none", verbose=False):
     r"""
         This function computes the spectrum of the input vector.
         If the input vector is long enough, several computations are averaged.
-        A Blackman window is applied before the rfft.
+        A Blackman window can be applied before the rfft.
 
         Parameters:
         -----------
@@ -301,6 +305,86 @@ def do_power_spectrum(x, fs, npts, window="none", verbose=False):
     return xf, power_spectrum
 
 
+# -----------------------------------------------------------------------
+def do_cross_power_spectrum(x, y, fs, npts, window="none", verbose = False):
+    r"""
+        This function computes the cross-power spectrum of two input vectors.
+        If the input vector is long enough, several computations are averaged.
+        A Blackman window can be applied before the rfft.
+
+        Parameters:
+        -----------
+        x: numpy array
+        input vector
+
+        y: numpy array
+        input vector
+
+        fs: float
+        sampling frequency
+
+        npts: number
+        Number of values to be used in the rfft.
+
+        window: string
+        indicates if a window shall be applied ("blackman" or "none")
+        (default is "none")
+
+        Returns
+        -------
+        xf: numpy array
+        frequencies
+
+        spectrum: numpy array
+        computed spectrum.
+        """
+    from numpy.fft import rfft, rfftfreq
+    from scipy.signal.windows import blackman
+    from scipy.signal import correlate
+
+    if window=="blackman":
+        w=blackman(npts, False)
+    else:
+        w=np.ones(npts)
+
+    # Ensuring that x and y have the same size
+    l = min(len(x), len(y))
+    x = x[:l]
+    y = y[:l]
+
+    if l<npts:
+        raise ValueError("Not enough values in input vector to compute spectra.")
+
+    # Calcul de la correlation des deux vecteurs de données
+    print("    Computing cross-correlation......... ", end = '')
+    correl = correlate(x, y, mode='full')
+    #norm_factor = np.linalg.norm(x) * np.linalg.norm(y)
+    #correl /= norm_factor
+    print("Done")
+
+    # Analyse spectrale avec rfft
+    print("    Doing spectral analysis......... ", end = '')
+    xf = rfftfreq(npts, 1 / fs)  # Fréquences associées
+    power_spectrum = np.zeros_like(xf)  # Initialisation du spectre
+    nslices=int(len(correl)/npts)
+    for slice in range(nslices):
+        power_spectrum += abs(rfft(correl[slice*npts:(slice+1)*npts]*w))
+
+    power_spectrum /= nslices  # Amplitude par slice
+    power_spectrum /= npts**2  # Amplitude par échantillon
+    power_spectrum[1:-1] *= 2  # Compensations pour les composantes positives
+    print("Done")
+
+    if verbose:
+        # Vérification de la conservation de la puissance
+        power_time_domain = np.mean(x ** 2)  # Puissance du signal temporel
+        power_freq_domain = np.sum(power_spectrum)  # Puissance spectrale
+        print(f"Puissance temporelle : {power_time_domain:.5f}")
+        print(f"Puissance fréquentielle : {power_freq_domain:.5f}")
+
+    return xf, power_spectrum
+
+# -----------------------------------------------------------------------
 def derivative(x, y):
     """Computes the derivative of a function from x and y values.
 
@@ -317,6 +401,7 @@ def derivative(x, y):
     return (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 
 
+# -----------------------------------------------------------------------
 def unzip_files_from_dir(dir):
 
     import zipfile
@@ -341,6 +426,7 @@ def unzip_files_from_dir(dir):
     return data_from_zip_file
 
 
+# -----------------------------------------------------------------------
 def read_two_vectors_from_file(nom_fichier):
     """
     Reads two vectors from a specified file, ignoring header rows.
@@ -398,3 +484,28 @@ def pulseshapingtext(pls_set):
       3:'pulse shaping at 30 MHz'
       }
     return switch.get(pls_set, "Invalid input")
+
+def parse_date_auto(value):
+    """
+    Convertit automatiquement une valeur de date en datetime.
+    Accepte soit :
+    - une chaîne de type '28/05/2025 09:42:21'
+    - un timestamp (float ou chaîne de float comme '1748347100.938')
+    """
+
+    if isinstance(value, (int, float)):
+        # Format timestamp direct
+        return datetime.fromtimestamp(value)
+
+    try:
+        # Essai conversion float → timestamp
+        ts = float(value)
+        return datetime.fromtimestamp(ts)
+    except ValueError:
+        pass  # Ce n'était pas un float, peut-être une chaîne de date
+
+    try:
+        # Essai conversion chaîne de date classique
+        return datetime.strptime(value.strip(), "%d/%m/%Y %H:%M:%S")
+    except ValueError as e:
+        raise ValueError(f"Format de date non reconnu : {value}") from e

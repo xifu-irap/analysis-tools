@@ -93,24 +93,8 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
             in the provided directory.
     """
 
-    files = [f for f in os.listdir(data_path) \
-             if os.path.isfile(os.path.join(data_path, f)) \
-             and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
-
-    if len(files) == 0:
-        raise ValueError('No fits file for column {0:}'.format((col_id)))
-
-    file_name = files[0]
-
-    print("Processing ERROR data file from ", data_path)
-
-    col_data, _ = rddt.readScienceFile(os.path.join(data_path, file_name))
-    # Flattening the array to have data at Frow
-    # Dividing by 4 because Error data are in S(16,2) format
-    col_data = col_data.flatten('F') / 4
-
-    # removing DC
-    col_data -= col_data.mean()
+    remove_dc = True
+    col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc)
 
     # Computing spectrum
     xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
@@ -119,6 +103,53 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
     power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
 
     return xf, power_spectrum
+
+
+def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
+    """
+    Compute the cross-power spectrum from error data.
+
+    This function processes error data files from the specified directory, performs
+    data preprocessing steps such as flattening, DC component removal, and spectral
+    analysis, and then computes the normalized power spectrum. The computation
+    includes steps for windowing and normalization with respect to the signal's
+    root mean square (RMS). The processed frequency and power spectrum data are
+    returned as output.
+
+    Args:
+        data_path: Path to the directory containing error data files.
+        col_ref: Column identifier to differentiate error files.
+        npts: Number of points used for power spectrum computation.
+        win_name: Name of the window function to use for spectral analysis.
+
+    Returns:
+        Tuple containing:
+        - xf: 1D array of frequencies corresponding to the computed power spectrum.
+        - cross_power_spectrum: 1D array of the normalized power spectrum values.
+
+    Raises:
+        ValueError: If no valid error file matching the specified parameters is found
+            in the provided directory.
+    """
+
+    cross_power_spectrum = np.zeros((cst.nColPerDemux, int(npts/2+1)))
+
+    remove_dc = True
+    ref_data = rddt.readScienceDataOneCol(data_path, col_ref, remove_dc)
+
+    for col_id in range(cst.nColPerDemux):
+        if col_id == col_ref:
+            col_data = ref_data
+        else:
+            col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc)
+
+        # Computing cross-spectrum
+        xf, cross_power_spectrum[col_id,:] = gt.do_cross_power_spectrum(ref_data, col_data, cst.fRow, npts, window=win_name)
+
+    # passage V => ADU
+    cross_power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
+
+    return xf, cross_power_spectrum
 
 
 def one_over_f(f, num):
@@ -269,7 +300,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     """
     Plot the spectrum and noise floor in both linear and logarithmic scales.
 
-    This function generates two plots: one in linear scale and one in logarithmic scale,
+    This function generates a spectrum plot in logarithmic scale,
     displaying the spectrum of a signal and the expected noise floor based on the
     specified Effective Number of Bits (ENOB). The function also supports
     theoretical noise data from a model file and fits a 1/f behavior to the spectrum
@@ -317,7 +348,6 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
       the spectrum and noise floor.
     """
 
-    xlabel_lin: str = r'Frequencies (MHz)'
     xlabel_log: str = r'Frequencies (Hz)'
     ylabel: str = r'Error signal (nV / $\sqrt{Hz}$)'
     xlims_erro: list[int | float] = [1, cst.fRow/2]
@@ -363,56 +393,117 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
             f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, cst.fRow, cst.fSamp)
 
     lbl1 = "Spectrum"
-    ax[0].semilogy(xf/1e6, spectrum*1e9, label=lbl1)
     lbl2 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs/2/1e6)
-    ax[0].semilogy(xlims1, [noise_floor*1e9, noise_floor*1e9], ':', color='purple', label=lbl2)
     if model_filename != '':
         lbl4 = 'Model (from datasheets)'
-        ax[0].semilogy(f_theo/1e6, noise_theo*1e9, '--', color='r', label=lbl4)
 
-    ax[0].set_xlim([xlims[0]/1e6, xlims[1]/1e6])
-    ax[0].set_ylim(ylims)
-    ax[0].set_ylabel(ylabel)
-    ax[0].set_xlabel(xlabel_lin)
-
-    if acq_mode == 'dump':
-        # Désactiver la notation scientifique pour l'axe Y
-        ax[0].yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
-        ax[0].yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
-        ax[0].ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
-
-        # Configurer les ticks pour afficher uniquement des entiers
-        ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-
-    ax[0].grid(True, which='both', linestyle='--')
-    ax[0].legend(loc='best', framealpha=1)
-
-
-    ax[1].loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
-    ax[1].loglog(xlims, [noise_floor*1e9, noise_floor*1e9], ':', color='purple', label=lbl2)
+    ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
+    ax.loglog(xlims, [noise_floor*1e9, noise_floor*1e9], ':', color='purple', label=lbl2)
     if model_filename != '':
-        ax[1].loglog(f_theo, noise_theo*1e9, '--', color='r', label=lbl4)
+        ax.loglog(f_theo, noise_theo*1e9, '--', color='r', label=lbl4)
 
     if acq_mode == 'error':
         x = np.arange(1e4)
         lbl6 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax[1].loglog(x[1:], one_over_f(x[1:], a)*1e9, '-.', color='k', label=lbl6)
+        ax.loglog(x[1:], one_over_f(x[1:], a)*1e9, '-.', color='k', label=lbl6)
 
-    ax[1].set_xlim(xlims)
-    ax[1].set_ylim(ylims)
-    ax[1].set_ylabel(ylabel)
-    ax[1].set_xlabel(xlabel_log)
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel_log)
 
     if acq_mode == 'dump':
         # Désactiver la notation scientifique pour l'axe Y
-        ax[1].yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
-        ax[1].yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
-        ax[1].ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
+        ax.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
+        ax.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
+        ax.ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
 
         # Configurer les ticks pour afficher uniquement des entiers
-        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
 
-    ax[1].grid(True, which='both', linestyle='--')
-    ax[1].legend(loc='best', framealpha=1)
+    ax.grid(True, which='both', linestyle='--')
+    ax.legend(loc='best', framealpha=1)
+
+
+def plot_cross_spectrum(ax, xf, spectrum, col_ref):
+    """
+    Plot the spectrum and noise floor in both linear and logarithmic scales.
+
+    This function generates two plots: one in linear scale and one in logarithmic scale,
+    displaying the spectrum of a signal and the expected noise floor based on the
+    specified Effective Number of Bits (ENOB). The function also supports
+    theoretical noise data from a model file and fits a 1/f behavior to the spectrum
+    if the acquisition mode is set to 'error'.
+
+    Parameters:
+    ----------
+    ax : list
+        A list of two matplotlib Axes objects for plotting the spectrum and noise floor.
+
+    xf : array_like
+        The frequency data (in Hz) corresponding to the spectrum.
+
+    spectrum : array_like
+        The spectrum data to be plotted (in nV/√Hz).
+
+    col_ref : int
+        Column id
+
+    Returns:
+    -------
+    None
+        This function does not return any value. It modifies the provided Axes
+        objects directly to display the plots.
+
+    Raises:
+    ------
+    FileNotFoundError
+        If the specified model_filename does not exist.
+
+    Notes:
+    -----
+    - The function assumes that the constant values and functions such as `cst.fRow`,
+      `cst.fSamp`, and `one_over_f` are defined elsewhere in the code.
+    - The noise floor is calculated based on the SNR derived from the provided ENOB.
+    - The function handles both linear and logarithmic axes for better visualization of
+      the spectrum and noise floor.
+    """
+
+    # normalisation en A.U.
+    #spectrum /= spectrum.max()
+
+    xlabel: str = r'Frequencies (Hz)'
+    ylabel: str = r'AU'
+    xlims_erro: list[int | float] = [1, cst.fRow/2]
+    ylims_erro: list[float] = [1e1, 1e4]
+
+    fs = cst.fRow
+    xlims = xlims_erro
+    ylims = ylims_erro
+    xlims1 = [0, fs / 2 / 1e6]
+
+    colors = ['k', 'b', 'g', 'r']
+    # Fit of 1/f behavior
+    xf_start = 1 # to avoid DC perturbations
+    f_stop = 1e3 # max frequency of 1/f area
+    xf_stop = np.where(xf < f_stop)[0][-1]
+    x = np.arange(1e4)
+    # plotting columns data (col_ref below other columns)
+    ax.loglog(xf[1:], spectrum[col_ref, 1:], color=colors[col_ref], label='correlation with column {0:}'.format(col_ref))
+    a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[col_ref, xf_start:xf_stop])
+    ax.loglog(x[1:], one_over_f(x[1:], a), '-.', color='k')
+    for col in range(cst.nColPerDemux):
+        if col != col_ref:
+            ax.loglog(xf[1:], spectrum[col, 1:], color=colors[col], label='correlation with column {0:}'.format(col))
+            a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[col, xf_start:xf_stop])
+            ax.loglog(x[1:], one_over_f(x[1:], a), '-.', color='k')
+
+    ax.set_xlim(xlims)
+    #ax.set_ylim(ylims)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+
+    ax.grid(True, which='both', linestyle='--')
+    ax.legend(loc='best', framealpha=1)
 
 #-------------------------------------------------------------------------------------

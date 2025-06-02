@@ -71,12 +71,12 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
         model_filename = '' # file type is unknown, no model exists
 
     # Doing the plot
-    fig, ax = plt.subplots(2, 1, figsize=(8, 10))
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
     suptitle = signal + ' (' + acq_mode + ' acquisition mode in column {0:})'.format(col_id)
     title = os.path.basename(dir_path)
 
     fig.suptitle(suptitle, fontsize=12)
-    ax[0].set_title(title, fontsize=10)
+    ax.set_title(title, fontsize=10)
 
     nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob)
 
@@ -149,7 +149,8 @@ list_of_dir = [
     "/Users/laurent/Data/TestPlan21-perfo/20250210_173047_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250210_173229_noise_erro-fdbk",
     "/Users/laurent/Data/TestPlan21-perfo/20250210_175013_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250210_175158_noise_erro-fdbk"
+    "/Users/laurent/Data/TestPlan21-perfo/20250210_175158_noise_erro-fdbk",
+    "/Users/laurent/Data/TestPlan26-DMX2/20250514_173402_noise_erro-only"
 ]
 
 win = "none"
@@ -158,6 +159,6 @@ dump = True
 error = True
 
 #-------------------------------------------------------------------------------------
-process_list_of_dir(list_of_dir[3:4], win, dump, error)
+process_list_of_dir(list_of_dir[-1:], win, dump, error)
 
 #-------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 from astropy.io import fits
 import numpy as np
+import os
 
 
 def readEventRecords(fits_file):
@@ -55,6 +56,42 @@ def readScienceFile(fits_file):
         # -1 parce que les dernières données sont à 0 (this is corrected in XIFU STUDIO)
         #return dataArray[1:,:-1], dataArray[0,:-1]
         return dataArray[1:,:], dataArray[0,:]
+
+
+def readScienceDataOneCol(data_path, col_id, remove_dc=True):
+    """Reads DEMUX science data for one column from a fits file.
+
+    Parameters:
+        data_path (string): Path to the data files.
+        col_id (int): Column ID (0 to 1359)
+        remove_dc (boolean): If True the dc of the data is removed (default is True)
+
+    Returns:
+        col_data (numpy array): The data
+    """
+    files = [f for f in os.listdir(data_path) \
+             if os.path.isfile(os.path.join(data_path, f)) \
+             and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
+
+    if len(files) == 0:
+        raise ValueError('No fits file for column {0:}'.format((col_id)))
+
+    file_name = files[0]
+    file_name_with_path = os.path.join(data_path, file_name)
+
+    print("    Reading ERROR data from ", file_name_with_path, ".... ", end = '')
+
+    col_data, _ = readScienceFile(file_name_with_path)
+    # Flattening the array to have data at Frow
+    # Dividing by 4 because Error data are in S(16,2) format
+    col_data = col_data.flatten('F') / 4
+
+    # removing DC
+    if remove_dc:
+        col_data -= col_data.mean()
+    print("Done")
+
+    return col_data
 
 
 def readDumpFile(fits_file):
@@ -117,3 +154,16 @@ def readScan(fits_file):
         # Return xName, CTRL, xValues and error per pixels
         return xName, scan[:,0], scan[:,1], errors
 
+def save_dump_txt(fits_file, col):
+    """Saves the data of a column from a dump to a text file.
+
+    Parameters
+        fits_file (string): the name of the dump fits_file
+
+        col (integer): the col id
+    """
+    data, _ = readDumpFile(fits_file)
+    np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
+
+file = "/users/laurent/Data/TestPlan26-DMX2/debug_com_ADC/dump_20250523-153003.fits"
+save_dump_txt(file, 1)
