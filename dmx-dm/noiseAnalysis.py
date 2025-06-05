@@ -1,15 +1,19 @@
 # imports
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 import zipfile
+from dataclasses import dataclass
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import curve_fit
+
 import constants as cst
 import general_tools as gt
 import noiseAnalysisTools as nat
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
+def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5, lpf=0):
     """
     Plots a column spectrum based on the provided input parameters.
 
@@ -27,6 +31,7 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
         acq_mode (str): The acquisition mode of the data, either 'dump' or 'error'.
         enob (float, optional): The Effective Number Of Bits (ENOB) for the
             computation of SNR and noise floor. Defaults to 11.5.
+        lpf: low pass filter cutoff frequency. If 0 the lpf model is not computed
     """
 
     # Data directory
@@ -40,20 +45,20 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
 
     # Processing science files
     if acq_mode == 'dump':
-        plot_file_name = 'noise_'+signal+'_dumps_c{0:}'.format(col_id)
+        plot_file_name = 'noise_' + signal + '_dumps_c{0:}'.format(col_id)
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
         xf, power_spectrum = nat.power_spectrum_from_dumps(path_data, col_id, npts, win_name)
 
     elif acq_mode == 'error':
-        plot_file_name = 'noise_'+signal+'_error_c{0:}'.format(col_id)
-        npts = 2**23
+        plot_file_name = 'noise_' + signal + '_error_c{0:}'.format(col_id)
+        npts = 2 ** 23
         xf, power_spectrum = nat.power_spectrum_from_error(path_data, col_id, npts, win_name)
 
     plot_full_file_name = os.path.join(path_plot, plot_file_name)
 
     # converting the spectrum to V/sqrt(Hz)
     rbw = xf[1]
-    spectrum = np.sqrt(power_spectrum/rbw)
+    spectrum = np.sqrt(power_spectrum / rbw)
 
     # Selection of a noise model
     signal = dir_path[-9:]
@@ -68,7 +73,7 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
     elif signal == 'erro-ofco':
         model_filename = os.path.join(path_models, "erro-ofco.txt")
     else:
-        model_filename = '' # file type is unknown, no model exists
+        model_filename = ''  # file type is unknown, no model exists
 
     # Doing the plot
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
@@ -80,12 +85,26 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5):
 
     nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob)
 
+    if lpf != 0:  # comparison with a low pass filter model
+        a_dc_estimated = spectrum[2:10].mean()
+        popt, pcov = curve_fit(nat.low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
+        a_dc = popt[0]
+        fc = popt[1]
+        print("Estimated cutoff frequency: {0:4.0f} MHz".format(fc / 1e6))
+        print("Estimated DC level: {0:4.1f} nV/rtHz".format(a_dc * 1e9))
+
+        # Plotting the 1st order LPF fit
+        lbl = '1rst order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
+        ax.loglog(xf, nat.low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
+
+    ax.legend(loc='upper right')
+    ax.grid(True)
     fig.tight_layout()
     plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
     print("Results plotted in file ", plot_full_file_name)
 
 
-def process_list_of_dir(dir_list, win_name, process_dump, process_error):
+def process_list_of_dir(TestConfigList):
     """
     Processes a list of directories, extracts data from zip files if required, applies specific
     data processing functions, and optionally cleans up extracted files. The function handles
@@ -93,19 +112,16 @@ def process_list_of_dir(dir_list, win_name, process_dump, process_error):
     on the supplied parameters.
 
     Args:
-        dir_list (list[str]): List of directory paths to process.
-        win_name (str): Window name or identifier used in the data processing.
-        process_dump (bool): Flag indicating whether to process dump data.
-        process_error (bool): Flag indicating whether to process error data.
-    """
+        TestConfigList : List of test configurations to process.
 
-    for p in dir_list:
-        print("Processing data from ", p)
+    """
+    for tc in TestConfigList:
+        print("Processing data from ", tc.file_path)
 
         data_from_zip_file = False
-        if process_error:
+        if tc.error:
             # Looking for zip files if any
-            dataPath = os.path.join(p, cst.dataDirName)
+            dataPath = os.path.join(tc.file_path, cst.dataDirName)
             zipfiles = [f for f in os.listdir(dataPath) \
                         if os.path.isfile(os.path.join(dataPath, f)) \
                         and f[-4:] == '.zip']
@@ -121,44 +137,62 @@ def process_list_of_dir(dir_list, win_name, process_dump, process_error):
                         zip_ref.extractall(dataPath)
 
         for col in range(cst.nColPerDemux):
-            if process_dump:
-                plot_col_spectrum(p, col, win_name, "dump")
-            if process_error:
+            if tc.dump:
+                plot_col_spectrum(tc.file_path, col, tc.win, "dump", 11.5, tc.lpf)
+            if tc.error:
                 file_name = os.path.join(dataPath, "error_noise_C{0:}.fits".format(col))
                 if os.path.isfile(file_name):
-                    plot_col_spectrum(p, col, win_name, "error")
+                    plot_col_spectrum(tc.file_path, col, tc.win, "error")
                     # Removing fits files if extracted from a zip file
                     if data_from_zip_file:
                         os.remove(file_name)
 
+
 #-------------------------------------------------------------------------------------
+
+BASE_DATA_PATH = "/Users/laurent/Data"
+DEFAULT_ENOB = 11.5
+DEFAULT_LPF = 0.0
+TP21_PATH = "TestPlan21-perfo"
+TP27_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs"
+
+
+@dataclass
+class TestConfig:
+    testPlanPath: str
+    session_name: str
+    enob: float = DEFAULT_ENOB
+    lpf: float = DEFAULT_LPF
+    dump: bool = True
+    error: bool = True
+    win: str = "none"
+
+    @property
+    def file_path(self) -> str:
+        return f"{BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
 
 list_of_dir = [
-    "/Users/laurent/Data/TestPlan21-perfo/20250113_170000_noise_erro-only",
-    "/Users/laurent/Data/TestPlan21-perfo/20250121_110000_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250124_170723_noise_erro-only",
-    "/Users/laurent/Data/TestPlan21-perfo/20250124_171221_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250127_153842_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250127_175444_noise_erro-only",
-    "/Users/laurent/Data/TestPlan21-perfo/20250127_175802_noise_erro-ofco",
-    "/Users/laurent/Data/TestPlan21-perfo/20250130_110005_noise_conf-FPAs",
-    "/Users/laurent/Data/TestPlan21-perfo/20250207_151952_tst_squid-sim",
-    "/Users/laurent/Data/TestPlan21-perfo/20250207_153737_tst_squid-sim",
-    "/Users/laurent/Data/TestPlan21-perfo/20250207_160403_noise_erro-100o",
-    "/Users/laurent/Data/TestPlan21-perfo/20250207_160741_noise_erro-100o",
-    "/Users/laurent/Data/TestPlan21-perfo/20250210_173047_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250210_173229_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250210_175013_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan21-perfo/20250210_175158_noise_erro-fdbk",
-    "/Users/laurent/Data/TestPlan26-DMX2/20250514_173402_noise_erro-only"
+    TestConfig(TP21_PATH, "20250113_170000_noise_erro-only"),
+    TestConfig(TP21_PATH, "20250121_110000_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250124_170723_noise_erro-only"),
+    TestConfig(TP21_PATH, "20250124_171221_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250127_153842_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250127_175444_noise_erro-only"),
+    TestConfig(TP21_PATH, "20250127_175802_noise_erro-ofco"),
+    TestConfig(TP21_PATH, "20250130_110005_noise_conf-FPAs"),
+    TestConfig(TP21_PATH, "20250207_151952_tst_squid-sim"),
+    TestConfig(TP21_PATH, "20250207_153737_tst_squid-sim"),
+    TestConfig(TP21_PATH, "20250207_160403_noise_erro-100o"),
+    TestConfig(TP21_PATH, "20250207_160741_noise_erro-100o"),
+    TestConfig(TP21_PATH, "20250210_173047_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250210_173229_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250210_175013_noise_erro-fdbk"),
+    TestConfig(TP21_PATH, "20250210_175158_noise_erro-fdbk"),
+    TestConfig(TP27_PATH, "20250514_173402_noise_erro-only"),
+    TestConfig(TP27_PATH, "20250605_113009_noise_erro-only", DEFAULT_ENOB, 20e6, True, False, "none")
 ]
 
-win = "none"
-#win = "blackman"
-dump = True
-error = True
-
 #-------------------------------------------------------------------------------------
-process_list_of_dir(list_of_dir[-1:], win, dump, error)
+process_list_of_dir(list_of_dir[-1:])
 
 #-------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
-from astropy.io import fits
-import numpy as np
 import os
+
+import numpy as np
+from astropy.io import fits
 
 
 def readEventRecords(fits_file):
@@ -165,5 +166,3 @@ def save_dump_txt(fits_file, col):
     data, _ = readDumpFile(fits_file)
     np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
 
-file = "/users/laurent/Data/TestPlan26-DMX2/debug_com_ADC/dump_20250523-153003.fits"
-save_dump_txt(file, 1)

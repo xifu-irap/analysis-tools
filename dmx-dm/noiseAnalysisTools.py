@@ -1,11 +1,13 @@
 # imports
-import numpy as np
 import os
-import readData as rddt
+
+import numpy as np
+from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+from scipy.optimize import curve_fit
+
 import constants as cst
 import general_tools as gt
-from scipy.optimize import curve_fit
-from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+import readData as rddt
 
 
 def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
@@ -103,6 +105,21 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
     power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
 
     return xf, power_spectrum
+
+
+#
+def low_pass_filter_1(f, a_dc, fc):
+    """
+    Modèle d'une fonction de transfert pour un filtre passe-bas de premier ordre
+    Args:
+        f: frequency array
+        a_dc: amplitude at DC
+        fc: 3dB cutoff frequency
+
+    Returns:
+
+    """
+    return a_dc / (1 + f / fc)
 
 
 def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
