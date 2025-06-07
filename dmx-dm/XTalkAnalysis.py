@@ -1,12 +1,16 @@
 # imports
-import numpy as np
 import math
-import matplotlib.pyplot as plt
 import os
-import readData as rddt
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
 import general_tools as gt
+import readData as rddt
 
+
+# TODO: Add the model / module name on the plots
 
 def get_dump(path, c_perp, pls_set, config):
 

@@ -13,7 +13,9 @@ import noiseAnalysisTools as nat
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5, lpf=0):
+# def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5, lpf=0):
+def plot_col_spectrum(tconf, col_id, acq_mode):
+
     """
     Plots a column spectrum based on the provided input parameters.
 
@@ -25,14 +27,16 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5, lpf=0):
     in the specified directory.
 
     Args:
-        dir_path (str): The directory path containing data files for processing.
+        tconf : test configurations.
         col_id (int): The column identifier for the science data to process.
-        win_name (str): The window function to apply (e.g., "blackman").
         acq_mode (str): The acquisition mode of the data, either 'dump' or 'error'.
-        enob (float, optional): The Effective Number Of Bits (ENOB) for the
-            computation of SNR and noise floor. Defaults to 11.5.
-        lpf: low pass filter cutoff frequency. If 0 the lpf model is not computed
     """
+
+    # Test configuration data
+    dir_path = tconf.file_path
+    win_name = tconf.win
+    enob = tconf.enob
+    lpf = tconf.lpf
 
     # Data directory
     path_data = os.path.join(dir_path, cst.dataDirName)
@@ -78,7 +82,7 @@ def plot_col_spectrum(dir_path, col_id, win_name, acq_mode, enob=11.5, lpf=0):
     # Doing the plot
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
     suptitle = signal + ' (' + acq_mode + ' acquisition mode in column {0:})'.format(col_id)
-    title = os.path.basename(dir_path)
+    title = tconf.testPlanPath + '        ' + os.path.basename(dir_path)
 
     fig.suptitle(suptitle, fontsize=12)
     ax.set_title(title, fontsize=10)
@@ -138,11 +142,11 @@ def process_list_of_dir(TestConfigList):
 
         for col in range(cst.nColPerDemux):
             if tc.dump:
-                plot_col_spectrum(tc.file_path, col, tc.win, "dump", 11.5, tc.lpf)
+                plot_col_spectrum(tc, col, "dump")
             if tc.error:
                 file_name = os.path.join(dataPath, "error_noise_C{0:}.fits".format(col))
                 if os.path.isfile(file_name):
-                    plot_col_spectrum(tc.file_path, col, tc.win, "error")
+                    plot_col_spectrum(tc, col, "error")
                     # Removing fits files if extracted from a zip file
                     if data_from_zip_file:
                         os.remove(file_name)
@@ -157,6 +161,7 @@ TP21_PATH = "TestPlan21-perfo"
 TP27_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs"
 
 
+# TODO: Move TestConfig class in a common file of the project (general_tools.py)
 @dataclass
 class TestConfig:
     testPlanPath: str

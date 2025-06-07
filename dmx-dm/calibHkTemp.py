@@ -25,12 +25,14 @@
 #
 # ---------------------------------------------------------------------------------
 
-import numpy as np
-import matplotlib.pyplot as plt
-import glob, os
+import glob
+import os
 
-import general_tools as gentools
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
+import general_tools as gentools
 
 #path = "/Users/laurent/Data/20.001/test_hk_temp_1/"
 #path = "/Users/laurent/Data/20.001/test_hk_temp_2/"
@@ -38,6 +40,8 @@ import constants as cst
 path = "/Users/laurent/Data/TestPlan24_DM-DMX2/24.010/HK_TEMP/Paliers/"
 
 
+# TODO: Update calibHkTemp to take into account the new format temperature HK (since XifuStudio 2.1.2)
+# TODO: Add the model / module name on the plots
 def calibHkTemp(path):
 
     fileName1 = glob.glob(path + "*-HK_TEMP_MAX.csv")[0]

@@ -1,6 +1,8 @@
 import numpy as np
+
 import tstPatternTools as tpt
 
+# TODO: Add the model / module name on the plots
 
 path = ["/Users/laurent/Data/TestPlan21-perfo/20250321_115547_check_tptAcqMode",
     "/Users/laurent/Data/TestPlan21-perfo/20250321_154151_check_tptAcqMode",

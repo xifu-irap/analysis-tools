@@ -1,17 +1,20 @@
 # imports
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 import os
-import readData as rddt
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import MultipleLocator
+
 import constants as cst
 import general_tools as gt
-
+import readData as rddt
 
 colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B0000',
  '#696969', '#A52A2A', '#000000', '#4682B4', '#556B2F', '#4B0082', '#B8860B',
  '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
+
+# TODO: Add the model / module name on the plots
 
 def samplingDelay(path, col):
 

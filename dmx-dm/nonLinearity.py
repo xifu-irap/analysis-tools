@@ -1,11 +1,13 @@
 # imports
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import MultipleLocator
+
+import constants as cst
 import general_tools as gt
 import readData as rddt
-import constants as cst
-from matplotlib.ticker import MultipleLocator
 
 
 def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
@@ -324,7 +326,8 @@ def plot_non_linearity(dir_path):
         print("/---------------")
 
 
-
+# TODO: Update non linearity analysis to use TestConfig Class
+# TODO: Add the model / module name on the plots
 pathes = [
         "/Users/laurent/Data/TestPlan21-perfo/20250108_150256_fdbkAndErrorLinearity",
         "/Users/laurent/Data/TestPlan21-perfo/20250108_152522_fdbkAndErrorLinearity",

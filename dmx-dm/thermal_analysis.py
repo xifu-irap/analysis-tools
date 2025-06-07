@@ -25,8 +25,9 @@
 #
 # ---------------------------------------------------------------------------------
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
 import general_tools as gentools
 
@@ -184,6 +185,7 @@ def analyseThermalAccuracy(file, dmxModel, start=0):
 
 # ---------------------------------------------------------------------------------
 
+# TODO: Add the model / module name on the plots
 
 # Was used previously
 # path = (["/Users/laurent/Data/20.001/test_hk_temp_2/",
