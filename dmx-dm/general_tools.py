@@ -28,11 +28,11 @@
 import csv
 import os
 import shutil
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from datetime import datetime
 
 import constants as cst
 
@@ -282,6 +282,9 @@ def do_power_spectrum(x, fs, npts, window="none", verbose=False):
 
     if len(x)<npts:
         raise ValueError("Not enough values in input vector to compute spectra.")
+
+    # Removing DC
+    x = x.astype(float) - x.mean()
 
     # Analyse spectrale avec rfft
     xf = np.fft.rfftfreq(npts, 1 / fs)  # Fréquences associées

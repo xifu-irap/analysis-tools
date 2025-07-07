@@ -1,28 +1,41 @@
 # imports
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-import readData as rddt
+from dataclasses import dataclass
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
+import general_tools as gt
+import readData as rddt
 
 #path = "/Users/laurent/Data/TestPlan21-perfo/fdbkDelay-20241014-1/"
 #path = "/Users/laurent/Data/TestPlan21-perfo/fdbkDelay-20241014-2/"
-path = "/Users/laurent/Data/TestPlan21-perfo/fdbkDelay-20241017-1/"
+# path = "/Users/laurent/Data/TestPlan21-perfo/fdbkDelay-20241017-1/"
 col = 3
 xZoom = 49
 
 colors = ['#0000FF', '#006400', '#FFA500', '#FF0000', '#800080', '#000080', '#8B4513']
 
-def fdbkDelay(path, col):
 
-    print("Processing dump files from directory " + path)
+def fdbkDelay(tconf, col):
+    # Test configuration data
+    dir_path = tconf.file_path
 
-    plotFileName = path + 'fdbkDelay_col{0:}.png'.format(col)
+    # Data directory
+    path_data = os.path.join(dir_path, cst.dataDirName)
+
+    print("Processing dump files from directory " + path_data)
+
+    # Creation of a directory for the plot files
+    path_plot = os.path.join(dir_path, cst.plotDirName)
+    gt.createdir(path_plot)
+    plotFileName = os.path.join(path_plot, 'fdbkDelay_col{0:}.png'.format(col))
     xlabel = 'Time (ns)'
     ylabel = 'Dump of error signal (ADU)'.format(col)
 
-    files = [f for f in os.listdir(path) \
-             if os.path.isfile(os.path.join(path, f)) \
+    files = [f for f in os.listdir(path_data) \
+             if os.path.isfile(os.path.join(path_data, f)) \
              and f[-5:] == ".fits" and f[:5] == "dump_"]
 
     if len(files) != 7:
@@ -37,7 +50,7 @@ def fdbkDelay(path, col):
     for index, file in enumerate (np.sort(files)):
         print(file)
         iDelay = index-3
-        colDumps, errors = rddt.readDumpFile(os.path.join(path, file))
+        colDumps, errors = rddt.readDumpFile(os.path.join(path_data, file))
 
         # Doing plot
         if iDelay < 0:
@@ -85,4 +98,23 @@ def fdbkDelay(path, col):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
     print("results plotted in file " + plotFileName)
 
-fdbkDelay(path, col)
+
+# -------------------------------------------------------------------------------------
+
+@dataclass
+class TestConfig:
+    testPlanPath: str
+    session_name: str
+
+    @property
+    def file_path(self) -> str:
+        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
+
+
+TP_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
+list_of_configs = [
+    TestConfig(TP_PATH, "20250618_174926_fdbkDelay_m3_p3")
+]
+
+for col in range(cst.nColPerDemux):
+    fdbkDelay(list_of_configs[-1], col)

@@ -10,7 +10,7 @@ import general_tools as gt
 import readData as rddt
 
 
-def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
+def power_spectrum_from_dumps(data_path, npts, win_name):
     """
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
@@ -36,6 +36,8 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
             - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum.
     """
 
+    from joblib import Parallel, delayed
+
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
              and f[:5] == "dump_" and f[-5:] == ".fits"]
@@ -46,19 +48,21 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
 
     print("Processing {0:} DUMP files from ".format(len(files)) + data_path)
 
-    power_spectrum = np.zeros(int(npts/2)+1)
+    power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     for i in range(len(files)):
         dumpData, _ =rddt.readDumpFile(os.path.join(data_path, files[i]))
 
-        # keeping a single column and removing DC
-        dumpData = dumpData[col_id, :] - dumpData[col_id, :].mean()
-
-        # Computing spectrum
-        xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
+        # Computing spectrum (the 4 columns in paralell)
+        # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
+        results = Parallel(n_jobs=cst.nColPerDemux)(
+            delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
+            range(cst.nColPerDemux))
 
         # Averaging
-        power_spectrum += power_spectrum_i
+        for col_id in range(cst.nColPerDemux):
+            power_spectrum[col_id, :] += results[col_id][1]
+        xf = results[0][0]
 
     power_spectrum = power_spectrum / len(files)
 
@@ -68,7 +72,7 @@ def power_spectrum_from_dumps(data_path, col_id, npts, win_name):
     return xf, power_spectrum
 
 
-def power_spectrum_from_error(data_path, col_id, npts, win_name):
+def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     """
     Compute the power spectrum from error data.
 
@@ -96,7 +100,7 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
     """
 
     remove_dc = True
-    col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc)
+    col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc, False)
 
     # Computing spectrum
     xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
@@ -107,7 +111,22 @@ def power_spectrum_from_error(data_path, col_id, npts, win_name):
     return xf, power_spectrum
 
 
-#
+def power_spectrum_from_error(data_path, npts, win_name):
+    from joblib import Parallel, delayed
+
+    results = Parallel(n_jobs=cst.nColPerDemux)(
+        delayed(power_spectrum_from_1error_column)(data_path, col_id, npts, win_name) for col_id in
+        range(cst.nColPerDemux))
+
+    power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
+
+    for col_id in range(cst.nColPerDemux):
+        power_spectrum[col_id, :] = results[col_id][1]
+    xf = results[0][0]
+
+    return xf, power_spectrum
+
+
 def low_pass_filter_1(f, a_dc, fc):
     """
     Modèle d'une fonction de transfert pour un filtre passe-bas de premier ordre

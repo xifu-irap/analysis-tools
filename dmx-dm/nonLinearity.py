@@ -1,5 +1,6 @@
 # imports
 import os
+from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +47,7 @@ def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
         ax.grid(True, which='minor', linestyle=':', linewidth='0.5', color='gray')
 
 
-def plot_non_linearity(dir_path):
+def plot_non_linearity(tconf):
     """
     This functions characterises the non-linearity of DMX signals from scan data.
     This is applicable to feedback + error signals or offset + error signals.
@@ -55,7 +56,7 @@ def plot_non_linearity(dir_path):
     The function searches for scans of the different columns.
 
     Args:
-        dir_path: string, the path of the data directory
+        tconf : test configuration
 
     Returns:
         nothing
@@ -68,10 +69,11 @@ def plot_non_linearity(dir_path):
     nb_pix_avg = 16
 
     # Data directory
+    dir_path = tconf.file_path
     pathData = os.path.join(dir_path, cst.scanDirName)
 
     # Session name
-    session_name = os.path.basename(dir_path)
+    session_name = tconf.session_name
 
     # Creation of a directory for the plot files
     pathPlot = os.path.join(dir_path, cst.plotDirName)
@@ -125,12 +127,12 @@ def plot_non_linearity(dir_path):
                 plotFileName = 'fdbkAndErrorLinearity_col{0:}.png'.format(col)
                 plotFileName2 = 'fdbkAndErrorDNL_col{0:}.png'.format(col)
                 plotFileName3 = 'fdbkAndErrorINL_col{0:}.png'.format(col)
-                figsuptitle = ('Feedback + Error linearity measurement for column {0:}   ('.format(col)
-                               + session_name + ')')
-                figsuptitle2 = ('Feedback + Error DNL measurement for column {0:}   ('.format(col)
-                               + session_name + ')')
-                figsuptitle3 = ('Feedback + Error INL measurement for column {0:}   ('.format(col)
-                                + session_name + ')')
+                figsuptitle = 'Feedback + Error linearity measurement for column {0:}\n'.format(col) \
+                              + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                figsuptitle2 = 'Feedback + Error DNL measurement for column {0:}\n'.format(col) \
+                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                figsuptitle3 = 'Feedback + Error INL measurement for column {0:} \n'.format(col) \
+                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
             elif np.all(scan_type == "Offset"):
                 # For the offset scans we use 4 frames per steps because of the settling time
                 # We keep only the data of the last frame
@@ -143,12 +145,12 @@ def plot_non_linearity(dir_path):
                 plotFileName = 'ofcoAndErrorLinearity_col{0:}.png'.format(col)
                 plotFileName2 = 'ofcoAndErrorDNL_col{0:}.png'.format(col)
                 plotFileName3 = 'ofcoAndErrorINL_col{0:}.png'.format(col)
-                figsuptitle = ('Offset + Error linearity measurement for column {0:}   ('.format(col)
-                               + session_name + ')')
-                figsuptitle2 = ('Offset + Error DNL measurement for column {0:}   ('.format(col)
-                               + session_name + ')')
-                figsuptitle3 = ('Offset + Error INL measurement for column {0:}   ('.format(col)
-                                + session_name + ')')
+                figsuptitle = 'Offset + Error linearity measurement for column {0:}\n'.format(col) \
+                              + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                figsuptitle2 = 'Offset + Error DNL measurement for column {0:}\n'.format(col) \
+                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                figsuptitle3 = 'Offset + Error INL measurement for column {0:}\n'.format(col) \
+                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
             else:
                 raise ValueError("Error, found different scan types!")
 
@@ -322,22 +324,35 @@ def plot_non_linearity(dir_path):
             plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
             print("INL results plotted in file " + plotFileName)
 
-
         print("/---------------")
 
 
-# TODO: Update non linearity analysis to use TestConfig Class
-# TODO: Add the model / module name on the plots
-pathes = [
-        "/Users/laurent/Data/TestPlan21-perfo/20250108_150256_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250108_152522_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250108_163003_ofcoAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250109_181148_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250109_181826_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250110_112602_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250110_113807_fdbkAndErrorLinearity",
-        "/Users/laurent/Data/TestPlan21-perfo/20250113_110936_ofcoAndErrorLinearity"
+# -------------------------------------------------------------------------------------
+
+@dataclass
+class TestConfig:
+    testPlanPath: str
+    session_name: str
+
+    @property
+    def file_path(self) -> str:
+        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
+
+
+TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
+
+list_of_configs = [
+    TestConfig(cst.TP21_PATH, "20250108_150256_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250108_152522_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250108_163003_ofcoAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250109_181148_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250109_181826_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250110_112602_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250110_113807_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP21_PATH, "20250113_110936_ofcoAndErrorLinearity"),
+    TestConfig(TP27_TURBO45_PATH, "20250618_175057_fdbkAndErrorLinearity"),
+    TestConfig(TP27_TURBO45_PATH, "20250618_175605_ofcoAndErrorLinearity")
         ]
 
-for path in pathes:
-    plot_non_linearity(path)
+for test_conf in list_of_configs[-1:]:
+    plot_non_linearity(test_conf)

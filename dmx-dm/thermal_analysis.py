@@ -47,7 +47,7 @@ def calculate_allan_variance(data, fs, num_blocks=5):
     allan_vars = []
     allan_errors = []
 
-    for m in range(1, max_m):
+    for m in range(2, max_m):
         tau = m / fs
         tau_values.append(tau)
 
@@ -192,8 +192,8 @@ def analyseThermalAccuracy(file, dmxModel, start=0):
 #        "/Users/laurent/Data/20.001/test_hk_temp_3/",
 #        "/Users/laurent/Data/TestPlan25_DM-DRE_Delivery/HKs/"]
 
-files = [ "/Users/laurent/Data/TestPlan24_DM-DMX2/24.010/HK_TEMP/4Col/20250527-190345-DM-DMX2-HK_TEMP_MAX.csv",
-        "/Users/laurent/Data/TestPlan24_DM-DMX2/24.010/HK_TEMP/4Col/20250528-171231-DM-DMX2-HK_TEMP_AVE.csv"]
+files = ["/Users/laurent/Data/TestPlan24_DM-DMX2_elec/24.010/HK_TEMP/4Col/20250527-190345-DM-DMX2-HK_TEMP_MAX.csv",
+         "/Users/laurent/Data/TestPlan24_DM-DMX2_elec/24.010/HK_TEMP/4Col/20250528-171231-DM-DMX2-HK_TEMP_AVE.csv"]
 
 for ifile in range(len(files)):
     analyseThermalAccuracy(files[ifile], "dm_dmx2", 2500)

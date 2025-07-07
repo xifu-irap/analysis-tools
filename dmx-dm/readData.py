@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 from astropy.io import fits
 
 
@@ -59,7 +60,7 @@ def readScienceFile(fits_file):
         return dataArray[1:,:], dataArray[0,:]
 
 
-def readScienceDataOneCol(data_path, col_id, remove_dc=True):
+def readScienceDataOneCol(data_path, col_id, remove_dc=True, verbose=True):
     """Reads DEMUX science data for one column from a fits file.
 
     Parameters:
@@ -80,7 +81,8 @@ def readScienceDataOneCol(data_path, col_id, remove_dc=True):
     file_name = files[0]
     file_name_with_path = os.path.join(data_path, file_name)
 
-    print("    Reading ERROR data from ", file_name_with_path, ".... ", end = '')
+    if verbose:
+        print("    Reading ERROR data from ", file_name_with_path, ".... ", end='')
 
     col_data, _ = readScienceFile(file_name_with_path)
     # Flattening the array to have data at Frow
@@ -90,7 +92,9 @@ def readScienceDataOneCol(data_path, col_id, remove_dc=True):
     # removing DC
     if remove_dc:
         col_data -= col_data.mean()
-    print("Done")
+
+    if verbose:
+        print("Done")
 
     return col_data
 
@@ -166,3 +170,13 @@ def save_dump_txt(fits_file, col):
     data, _ = readDumpFile(fits_file)
     np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
 
+
+def read_hkName_from_csv(hk_file, hk_name, encoding="latin1"):
+    # Charger le fichier CSV
+    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
+
+    if hk_name[:4] == 'Date':
+        df[hk_name] = pd.to_datetime(df[hk_name], dayfirst=True, errors="coerce")
+        df[hk_name] = pd.to_datetime(df[hk_name], format="%Y:%M:%D %H:%M:%S")
+
+    return df[hk_name]

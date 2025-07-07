@@ -1,5 +1,6 @@
 # imports
 import os
+from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,7 +17,9 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
 
 # TODO: Add the model / module name on the plots
 
-def samplingDelay(path, col):
+def samplingDelay(tconf, col):
+    path = tconf.file_path
+    session_name = tconf.session_name
 
     bxl = int(path[-19:-17]) # boxcar length
     pls = int(path[-1]) # pulse shaping set
@@ -27,7 +30,10 @@ def samplingDelay(path, col):
 
     xlabel = 'Time (ns)'
     ylabel1 = 'Error signal Dump (ADU)'
-    title1 = 'Column {0:}, nb of averaged samples = {1:}, pulse shaping set = {2:}'.format(col, bxl+1, pls)
+    title1 = 'Column {0:}, nb of averaged samples = {1:}, pulse shaping set = {2:}\n'.format(col, bxl + 1, pls) \
+             + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+
+    x_min = 0
     x_max = 320
 
     t = np.arange(2*cst.nSamplesPerRow*cst.muxFactor) * 1e9 / cst.fSamp
@@ -124,13 +130,26 @@ def samplingDelay(path, col):
     plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
     print("results plotted in file " + plotFileName)
 
-path = ["/Users/laurent/Data/TestPlan21-perfo/20250213_144452_samplingDelay-Bxl07-pulseShapingSet0",
-        "/Users/laurent/Data/TestPlan21-perfo/20250213_144532_samplingDelay-Bxl03-pulseShapingSet0",
-        "/Users/laurent/Data/TestPlan21-perfo/20250213_144611_samplingDelay-Bxl01-pulseShapingSet0",
-        "/Users/laurent/Data/TestPlan21-perfo/20250213_144648_samplingDelay-Bxl00-pulseShapingSet0"
-        ]
 
-for p in path[-4:]:
-#for p in path:
+# -------------------------------------------------------------------------------------
+
+@dataclass
+class TestConfig:
+    testPlanPath: str
+    session_name: str
+
+    @property
+    def file_path(self) -> str:
+        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
+
+
+list_of_configs = [
+    TestConfig(cst.TP21_PATH, "20250213_144452_samplingDelay-Bxl07-pulseShapingSet0"),
+    TestConfig(cst.TP21_PATH, "20250213_144532_samplingDelay-Bxl03-pulseShapingSet0"),
+    TestConfig(cst.TP21_PATH, "20250213_144611_samplingDelay-Bxl01-pulseShapingSet0"),
+    TestConfig(cst.TP21_PATH, "20250213_144648_samplingDelay-Bxl00-pulseShapingSet0")
+]
+
+for test_conf in list_of_configs:
     for col in range(cst.nColPerDemux):
-        samplingDelay(p, col)
+        samplingDelay(test_conf, col)
