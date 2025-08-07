@@ -13,7 +13,7 @@ import noiseAnalysisTools as nat
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(tconf, acq_mode, verbose=True):
+def plot_col_spectrum(tconf, acq_mode, verbose=False):
 
     """
     Plots a column spectrum based on the provided input parameters.
@@ -78,7 +78,7 @@ def plot_col_spectrum(tconf, acq_mode, verbose=True):
             else:
                 model_filename = os.path.join(path_models, "erro-fdbk-rhf200.txt")
         elif signal == 'erro-ofco':
-            model_filename = os.path.join(path_models, "erro-fco.txt")
+            model_filename = os.path.join(path_models, "erro-")
         else:
             model_filename = ''  # file type is unknown, no model exists
 
@@ -105,10 +105,11 @@ def plot_col_spectrum(tconf, acq_mode, verbose=True):
             lbl = '1rst order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
             ax.loglog(xf, nat.low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
 
-        ax.legend(loc='upper right')
+        ax.legend(loc='lower left')
         ax.grid(True)
         fig.tight_layout()
         plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
+        plt.close()
         if verbose:
             print("Results plotted in file ", plot_full_file_name)
 
@@ -133,10 +134,12 @@ def process_list_of_configs(TestConfigList):
 
         # Processing data from dump files
         if tc.dump:
+            print("  Processing DUMP files")
             plot_col_spectrum(tc, "dump")
 
         # Processing data from Error files
         if tc.error:
+            print("  Processing ERROR files")
 
             # Looking for zip files if any
             data_from_zip_file = False
@@ -149,17 +152,18 @@ def process_list_of_configs(TestConfigList):
             if len(zipfiles) > 0:
                 data_from_zip_file = True
                 for z in zipfiles:
-                    print('Unzipping Error data from ', z)
+                    print('    Unzipping ERROR files from ', os.path.join(dataPath, z))
                     with zipfile.ZipFile(os.path.join(dataPath, z), 'r') as zip_ref:
                         error_file_names = zip_ref.namelist()  # liste des noms dans l’archive
                         zip_ref.extractall(dataPath)
 
             # Processing the 4 error files
+            print('    Processing ERROR data... ')
             plot_col_spectrum(tc, "error")
 
             # Removing fits files if extracted from a zip file
             if data_from_zip_file:
-                print("Removing error files")
+                print('    Removing ERROR files... ')
                 for file in error_file_names:
                     os.remove(os.path.join(dataPath, file))
 
@@ -242,10 +246,13 @@ list_of_configs = [
     TestConfig(TP27_STRFAST30_PATH, "20250701_163206_noise_erro-fdbk_Fb0V", "erro-only"),
     TestConfig(TP27_STRFAST30_PATH, "20250701_163611_noise_erro-only_Fb0V", "erro-only"),
     TestConfig(TP27_STRFAST36_PATH, "20250701_170300_noise_erro-only_Fb0V", "erro-only"),
-    TestConfig(TP27_FAST36_PATH, "20250701_171143_noise_erro-only_Fb0V", "erro-only")
+    TestConfig(TP27_FAST36_PATH, "20250701_171143_noise_erro-only_Fb0V", "erro-only"),
+    TestConfig(cst.TP27_PATH, "20250804_114846_noise_erro-fdbk_Fb-0_5V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20250804_115009_noise_erro-fdbk_Fb0V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20250804_115133_noise_erro-fdbk_Fb0_5V", "erro-fdbk")
 ]
 
 #-------------------------------------------------------------------------------------
-process_list_of_configs(list_of_configs[-1:])
+process_list_of_configs(list_of_configs[-3:])
 
 #-------------------------------------------------------------------------------------

@@ -68,7 +68,7 @@ def cutoffFreq(tconf):
     accuDumps = np.zeros((cst.nColPerDemux, lenDumps))
     for index, file in enumerate(np.sort(files)):
         print(file)
-        colDumps, errors = rddt.readDumpFile(os.path.join(path_data, file))
+        colDumps, errors = rddt.read_dump_file(os.path.join(path_data, file))
         accuDumps += colDumps
     accuDumps = (accuDumps / len(files)) * (cst.fsrADCErrorV / cst.fsrADCErrorADU)
 

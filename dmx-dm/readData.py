@@ -5,8 +5,9 @@ import pandas as pd
 from astropy.io import fits
 
 
-def readEventRecords(fits_file):
-    """Reads DEMUX science data (error or science) from a fits file.
+def read_event_records(fits_file):
+    """
+    Reads DEMUX science data (error or science) from a fits file.
 
     Parameters:
         fits_file (string): Name of the fits file (includes the path).
@@ -14,25 +15,20 @@ def readEventRecords(fits_file):
     Returns:
         firstDf (int): number of the Data Frame corresponding to the beginning of the fits file.
 
-        data (array): event records. Each element corresponds to a record, it contains:
-            - the data frame number of the beginning of the record
+        data (array): event records. Each element corresponds to a record. It contains:
+            - the data frame number at the beginning of the record
             - the data
     """
     with fits.open(fits_file) as hdul:
-        # Lecture des données et de l'en-têtes
+        # Reading the header
         firstDf = hdul[1].header['FIRST_DF']
         data = hdul[1].data
         return firstDf, data
 
-# Chemin vers le fichier FITS
-#file_path = '~laurent/Data/TestPlan21-perfo/20241121_eventRecords/pulses_20241121-164729.fits'
-#firstDf, data = readEventRecords(file_path)
-#print("First Data frame: ", firstDf)
-#print("Data: ")
-#print(data)
 
-def readScienceFile(fits_file):
-    """Reads DEMUX science data (error or science) from a fits file.
+def read_science_file(fits_file):
+    """
+    Reads DEMUX science data (error or science) from a fits file.
 
     Parameters:
         fits_file (string): Name of the fits file (includes the path).
@@ -54,29 +50,30 @@ def readScienceFile(fits_file):
         data = data_ext.data
         dataArray = np.array(data.tolist()).T
 
-
-        # -1 parce que les dernières données sont à 0 (this is corrected in XIFU STUDIO)
-        #return dataArray[1:,:-1], dataArray[0,:-1]
         return dataArray[1:,:], dataArray[0,:]
 
 
-def readScienceDataOneCol(data_path, col_id, remove_dc=True, verbose=True):
-    """Reads DEMUX science data for one column from a fits file.
+def read_science_data_one_col(data_path, col_id, remove_dc=True, verbose=True):
+    """
+    Reads DEMUX science data for one column from a fits file.
 
     Parameters:
         data_path (string): Path to the data files.
         col_id (int): Column ID (0 to 1359)
-        remove_dc (boolean): If True the dc of the data is removed (default is True)
+        remove_dc (boolean): If True, the dc of the data is removed (default is True)
+        verbose: (boolean): If True, some text is displayed
 
     Returns:
         col_data (numpy array): The data
     """
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
-             and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
+             # and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
+             and f[:4] != 'dump' \
+             and f[-6:] == '{0:}.fits'.format(col_id)]
 
     if len(files) == 0:
-        raise ValueError('No fits file for column {0:}'.format((col_id)))
+        raise ValueError('No fits file for column {0:}'.format(col_id))
 
     file_name = files[0]
     file_name_with_path = os.path.join(data_path, file_name)
@@ -84,7 +81,7 @@ def readScienceDataOneCol(data_path, col_id, remove_dc=True, verbose=True):
     if verbose:
         print("    Reading ERROR data from ", file_name_with_path, ".... ", end='')
 
-    col_data, _ = readScienceFile(file_name_with_path)
+    col_data, _ = read_science_file(file_name_with_path)
     # Flattening the array to have data at Frow
     # Dividing by 4 because Error data are in S(16,2) format
     col_data = col_data.flatten('F') / 4
@@ -99,11 +96,11 @@ def readScienceDataOneCol(data_path, col_id, remove_dc=True, verbose=True):
     return col_data
 
 
-def readDumpFile(fits_file):
+def read_dump_file(fits_file):
     """Reads DEMUX dump data from a fits file.
 
     Parameters
-        fits_file (sring): Name of the fits file (includes the path).
+        fits_file (string): Name of the fits file (includes the path).
 
     Returns:
         dump (array): the dump data (4 x 1360 values)
@@ -126,7 +123,7 @@ def readDumpFile(fits_file):
         return dump[0:-1,:], dump[-1,:]
 
 
-def readScan(fits_file):
+def read_scan(fits_file):
     """Reads DEMUX scan data from a fits file.
 
     Parameters
@@ -159,7 +156,8 @@ def readScan(fits_file):
         # Return xName, CTRL, xValues and error per pixels
         return xName, scan[:,0], scan[:,1], errors
 
-def save_dump_txt(fits_file, col):
+
+def export_dump_2_txt(fits_file, col):
     """Saves the data of a column from a dump to a text file.
 
     Parameters
@@ -167,12 +165,26 @@ def save_dump_txt(fits_file, col):
 
         col (integer): the col id
     """
-    data, _ = readDumpFile(fits_file)
+    data, _ = read_dump_file(fits_file)
     np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
 
 
-def read_hkName_from_csv(hk_file, hk_name, encoding="latin1"):
-    # Charger le fichier CSV
+def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=False):
+    """Saves the data of a column from a science fits file to a text file.
+
+    Parameters
+        data_path (string): path to the fits_file
+
+        col (integer): the col id
+    """
+    print(data_path)
+    data = read_science_data_one_col(data_path, col, remove_dc=False, verbose=True)
+    txt_file_name = os.path.join(data_path, "error_txt_file" + '_col_{0:}.txt'.format(col))
+    np.savetxt(txt_file_name, data)
+
+
+def read_hk_name_from_csv(hk_file, hk_name, encoding="latin1"):
+    # Loading the csv file
     df = pd.read_csv(hk_file, sep=';', encoding=encoding)
 
     if hk_name[:4] == 'Date':

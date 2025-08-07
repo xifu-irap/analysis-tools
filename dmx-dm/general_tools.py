@@ -511,4 +511,23 @@ def parse_date_auto(value):
         # Essai conversion chaîne de date classique
         return datetime.strptime(value.strip(), "%d/%m/%Y %H:%M:%S")
     except ValueError as e:
-        raise ValueError(f"Format de date non reconnu : {value}") from e
+        raise ValueError(f"Format de date non reconnu : {value}")
+
+
+def bit_value(x, bit_id):
+    """
+    This function retrieves the value of a specific bit from an integer.
+    The function raises a TypeError if 'bit_id' is not an integer.
+    This function can be applied to integers or numpy arrays.
+
+    Args:
+        x: the integer from which to extract the bit
+        bit_id: the position of the bit to retrieve (0-indexed)
+
+    Returns: The bit value
+
+    """
+    if not isinstance(bit_id, int):
+        raise TypeError("The bit number shall be an integer")
+    else:
+        return (x >> bit_id) % 2

@@ -97,14 +97,14 @@ def calib_hk_temp(tconf):
     plotfilename = os.path.join(path_plot, date + '-calibHkTemp.png')
 
     print("Reading time and temperatures data from DMX hk file " + fileNameDMX)
-    t_DMX = np.array(rddt.read_hkName_from_csv(fileNameDMX, header_Date))
-    hk1 = np.array(rddt.read_hkName_from_csv(fileNameDMX, header1)).astype(float)
-    hk3 = np.array(rddt.read_hkName_from_csv(fileNameDMX, header3)).astype(float)
+    t_DMX = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header_Date))
+    hk1 = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header1)).astype(float)
+    hk3 = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header3)).astype(float)
 
     print("Reading time and temperatures data from Pt104 hk file " + fileNamePt104)
-    t_Pt104 = np.array(rddt.read_hkName_from_csv(fileNamePt104, header_Date))
-    hk2 = np.array(rddt.read_hkName_from_csv(fileNamePt104, header2))
-    hk4 = np.array(rddt.read_hkName_from_csv(fileNamePt104, header4))
+    t_Pt104 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header_Date))
+    hk2 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header2))
+    hk4 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header4))
 
     # Convertir en secondes depuis t0
     time_DMX = (t_DMX - t_DMX[0]) / np.timedelta64(1, 's')

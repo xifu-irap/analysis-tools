@@ -113,7 +113,7 @@ def plot_non_linearity(tconf):
 
             for file in files:
                 print("Reading data from file ", file)
-                xName, ctrl, file_scan, fileError = rddt.readScan(os.path.join(pathData, file))
+                xName, ctrl, file_scan, fileError = rddt.read_scan(os.path.join(pathData, file))
                 fileError = np.mean(fileError[pixel_id:pixel_id+nb_pix_avg, :], axis=0)  # averaging the error value of few pixels
                 error = np.append(error, fileError)
                 scan = np.append(scan, file_scan)

@@ -1,8 +1,11 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import readData as rddt
-import general_tools as gt
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import general_tools as gt
+import readData as rddt
+
 
 def process_scanSquids(dirPath, fb0, pixel_start, pixel_end):
     xmin, xmax = -2**10, 2**10
@@ -28,7 +31,7 @@ def process_scanSquids(dirPath, fb0, pixel_start, pixel_end):
         raise ValueError("Too much FITS files.")
 
     print("Processing file ", files[0])
-    xName, ctrl, feedback, error = rddt.readScan(os.path.join(dirPath, files[0]))
+    xName, ctrl, feedback, error = rddt.read_scan(os.path.join(dirPath, files[0]))
     error = np.mean(error[pixel_start:pixel_end, :], axis=0); # keeping the data of a single pixel
 
     if xName != 'Feedback':
@@ -120,7 +123,7 @@ def plot_scan(dirPath, pixel):
         raise ValueError("Too much FITS files.")
 
     print("Processing file ", files[0])
-    xName, ctrl, xscan, error = rddt.readScan(os.path.join(dirPath, files[0]))
+    xName, ctrl, xscan, error = rddt.read_scan(os.path.join(dirPath, files[0]))
     error = error[pixel,:] # keeping the data of a single pixel
     plotFileName = os.path.join(pathPlot, 'scan_'+xName+'.png')
 

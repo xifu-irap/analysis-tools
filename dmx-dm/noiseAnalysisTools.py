@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+from numpy.typing import ArrayLike
 from scipy.optimize import curve_fit
 
 import constants as cst
@@ -15,15 +16,14 @@ def power_spectrum_from_dumps(data_path, npts, win_name):
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
     This function processes dump files (.fits) located in the specified directory, computes
-    the power spectrum for a specified column, and averages the spectrum across all the files.
-    The computed spectrum is normalized with respect to the root mean square (RMS) values of
+    the power spectrum for the 4 columns, and averages the spectrum across all the files.
+    The computed spectra are normalized with respect to the root-mean-square (RMS) values of
     the signal in both time and frequency domains.
 
     Args:
         data_path (str): Path to the directory containing the dump files. The files must have
             names starting with 'dump_' and ending with '.fits'.
-        col_id (int): Index of the data column to be selected for power spectrum computation.
-        npts (int): Number of points for computing the power spectrum. Should be consistent
+        npts (int): Number of points for computing the power spectrum. It should be consistent
             with the sampling rate and signal properties.
         win_name (str): Name of the window function to be applied during the computation.
 
@@ -45,15 +45,14 @@ def power_spectrum_from_dumps(data_path, npts, win_name):
     if len(files) < 1:
         raise ValueError('Wrong number of files')
 
-
-    print("Processing {0:} DUMP files from ".format(len(files)) + data_path)
+    print("    Accumulating {0:} DUMP files... ".format(len(files)))
 
     power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     for i in range(len(files)):
-        dumpData, _ =rddt.readDumpFile(os.path.join(data_path, files[i]))
+        dumpData, _ = rddt.read_dump_file(os.path.join(data_path, files[i]))
 
-        # Computing spectrum (the 4 columns in paralell)
+        # Computing spectrum (the 4 columns in parallel)
         # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
         results = Parallel(n_jobs=cst.nColPerDemux)(
             delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
@@ -80,7 +79,7 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     data preprocessing steps such as flattening, DC component removal, and spectral
     analysis, and then computes the normalized power spectrum. The computation
     includes steps for windowing and normalization with respect to the signal's
-    root mean square (RMS). The processed frequency and power spectrum data are
+    root-mean-square (RMS). The processed frequency and power spectrum data are
     returned as output.
 
     Args:
@@ -100,7 +99,7 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     """
 
     remove_dc = True
-    col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc, False)
+    col_data = rddt.read_science_data_one_col(data_path, col_id, remove_dc, False)
 
     # Computing spectrum
     xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
@@ -149,7 +148,7 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     data preprocessing steps such as flattening, DC component removal, and spectral
     analysis, and then computes the normalized power spectrum. The computation
     includes steps for windowing and normalization with respect to the signal's
-    root mean square (RMS). The processed frequency and power spectrum data are
+    root-mean-square (RMS). The processed frequency and power spectrum data are
     returned as output.
 
     Args:
@@ -171,13 +170,13 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     cross_power_spectrum = np.zeros((cst.nColPerDemux, int(npts/2+1)))
 
     remove_dc = True
-    ref_data = rddt.readScienceDataOneCol(data_path, col_ref, remove_dc)
+    ref_data = rddt.read_science_data_one_col(data_path, col_ref, remove_dc)
 
     for col_id in range(cst.nColPerDemux):
         if col_id == col_ref:
             col_data = ref_data
         else:
-            col_data = rddt.readScienceDataOneCol(data_path, col_id, remove_dc)
+            col_data = rddt.read_science_data_one_col(data_path, col_id, remove_dc)
 
         # Computing cross-spectrum
         xf, cross_power_spectrum[col_id,:] = gt.do_cross_power_spectrum(ref_data, col_data, cst.fRow, npts, window=win_name)
@@ -188,21 +187,12 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     return xf, cross_power_spectrum
 
 
-def one_over_f(f, num):
+def one_over_f(f: ArrayLike, num: ArrayLike) -> np.ndarray:
     """
-    This function calculates the result of dividing a given value 'a' by the square
-    root of 'f'. It is used for the fitting of the spectra at low frequencies.
-
-    Args:
-        f (float): The denominator parameter that will be square-rooted as part of the
-            division process. Should typically be a positive number.
-        num (float): The numerator parameter that will be divided by the square root of 'f'.
-
-    Returns:
-        float: The resulting value after dividing 'a' by the square root of 'f'.
+    Calculate num / sqrt(f), supports scalars, lists, and arrays.
+    Always returns a NumPy array.
     """
-    return num / np.sqrt(f)
-
+    return np.asarray(num) / np.sqrt(np.asarray(f))
 
 def fit_one_over_f(x, y):
     """
@@ -257,6 +247,7 @@ def combine_noises_data(nom_fichier1, fs1, nom_fichier2, fs2, nom_fichier3, npts
         fs1: Sampling frequency of the first data.
         nom_fichier2: Path to the second file containing frequency and data as two columns.
         fs2: Sampling frequency of the second data.
+        nom_fichier3: Output file.
         npts: Number of points for resampling. Default is 2048.
 
     Returns:
@@ -298,8 +289,8 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, old_fs, new_n = 204
         new_fs (float): The desired lower sampling frequency to undersample the
             signal.
         old_fs (float): The original higher sampling frequency of the signal.
-        new_n (int, optional): The number of equally-spaced frequency points for the
-            output signal. Defaults to 2048.
+        new_n (int, optional): The number of equally spaced frequency points for the
+            output signal. Default to 2048.
 
     Returns:
         tuple: A tuple containing:
@@ -397,12 +388,10 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         xlims = xlims_dump
         ylims = ylims_dump
 
-    elif acq_mode == 'error':
+    else:  # acq_mode == 'error'
         fs = cst.fRow
         xlims = xlims_erro
         ylims = ylims_erro
-
-    xlims1 = [0, fs / 2 / 1e6]
 
     # Computation of the SNR equivalent to the requested ENOB
     snr_db = 6.02*enob + 1.76
@@ -511,12 +500,9 @@ def plot_cross_spectrum(ax, xf, spectrum, col_ref):
     xlabel: str = r'Frequencies (Hz)'
     ylabel: str = r'AU'
     xlims_erro: list[int | float] = [1, cst.fRow/2]
-    ylims_erro: list[float] = [1e1, 1e4]
 
     fs = cst.fRow
     xlims = xlims_erro
-    ylims = ylims_erro
-    xlims1 = [0, fs / 2 / 1e6]
 
     colors = ['k', 'b', 'g', 'r']
     # Fit of 1/f behavior

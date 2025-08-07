@@ -1,9 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
-import readData as rddt
 import general_tools as gt
+import readData as rddt
+
 
 def mk_tst_pattern(params):
 
@@ -48,7 +51,7 @@ def check_tst_pattern(dir_path, col, params, l=0):
         raise ValueError('No files found')
 
     fits_file_path = os.path.join(pathData, files[0])
-    tst_data, ctrl = rddt.readScienceFile(fits_file_path)
+    tst_data, ctrl = rddt.read_science_file(fits_file_path)
 
     # Building reference data
     ref_data = mk_tst_pattern(params)
