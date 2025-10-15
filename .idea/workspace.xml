@@ -4,23 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Obsolete files removed&#10;Noise analysis tools optimised">
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/analysis-tools.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/analysis-tools.iml" afterDir="false" />
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="New script to check the data integrity">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/calibHkTemp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/calibHkTemp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDacLinearity.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/thermal_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/thermal_analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/tstPatternAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tstPatternAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
     <envs>
@@ -75,61 +76,67 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.XTalkAnalysis.executor": "Run",
-    "Python.XnoiseAnalysis.executor": "Run",
-    "Python.calibHkTemp.executor": "Run",
-    "Python.constants.executor": "Run",
-    "Python.debugErrorFiles.executor": "Run",
-    "Python.dmx_tools.executor": "Run",
-    "Python.errorDumpEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis2.executor": "Run",
-    "Python.errorEnobAnalysis.executor": "Run",
-    "Python.errorLinearity.executor": "Run",
-    "Python.errorNolineEnobAnalysis.executor": "Run",
-    "Python.errorNolineEnobAnalysis2.executor": "Run",
-    "Python.errorSignalNoiseAnalysis.executor": "Run",
-    "Python.errorSignalNoiseAnalysis2.executor": "Run",
-    "Python.expertises.executor": "Run",
-    "Python.fakes.executor": "Run",
-    "Python.fdbkAndErrorLinearity.executor": "Run",
-    "Python.fdbkDacLinearity.executor": "Run",
-    "Python.fdbkDelayAnalysis.executor": "Run",
-    "Python.general_tools.executor": "Run",
-    "Python.noiseAnalysis.executor": "Run",
-    "Python.noiseAnalysisSubtraction.executor": "Run",
-    "Python.noiseAnalysisTools.executor": "Run",
-    "Python.noise_analysis.executor": "Run",
-    "Python.nonLinearity.executor": "Run",
-    "Python.nonLinearity_copy.executor": "Run",
-    "Python.process.executor": "Run",
-    "Python.process_expertise_data.executor": "Run",
-    "Python.readData.executor": "Run",
-    "Python.samplingDelayAnalysis-2.executor": "Run",
-    "Python.samplingDelayAnalysis.executor": "Run",
-    "Python.thermal_analysis.executor": "Run",
-    "Python.timingAnalysis.executor": "Run",
-    "Python.toto.executor": "Run",
-    "Python.tstPatternAnalysis.executor": "Run",
-    "Python.tstPatternTools.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "develop",
-    "last_opened_file_path": "/Users/laurent/PycharmProjects/analysis-tools/dmx-dm",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "editor.preferences.smartKeys",
-    "ts.external.directory.path": "/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.XTalkAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.XnoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.bwAnalysisFromEdges.executor&quot;: &quot;Run&quot;,
+    &quot;Python.calibHkTemp.executor&quot;: &quot;Run&quot;,
+    &quot;Python.check_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.constants.executor&quot;: &quot;Run&quot;,
+    &quot;Python.cutoffFrequency.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debugErrorFiles.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dmx_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.expertises.executor&quot;: &quot;Run&quot;,
+    &quot;Python.export_fits2txt.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fakes.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkAndErrorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDacLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.general_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisSubtraction.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisTools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noise_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity_copy.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process_expertise_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.readData.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis-2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.timingAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.toto.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternTools.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/laurent/PycharmProjects/analysis-tools/dmx-dm&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/dmx-dm" />
@@ -202,7 +209,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="calibHkTemp" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="check_data" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="analysis-tools" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -216,7 +223,30 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/calibHkTemp.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/check_data.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="general_tools" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="analysis-tools" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/general_tools.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -248,6 +278,29 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="noiseAnalysisTools" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="analysis-tools" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="readData" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="analysis-tools" />
       <option name="ENV_FILES" value="" />
@@ -263,52 +316,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/readData.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="thermal_analysis" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="analysis-tools" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/thermal_analysis.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="tstPatternTools" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="analysis-tools" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -417,18 +424,18 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.noiseAnalysis" />
-        <item itemvalue="Python.calibHkTemp" />
-        <item itemvalue="Python.thermal_analysis" />
+        <item itemvalue="Python.noiseAnalysisTools" />
+        <item itemvalue="Python.check_data" />
+        <item itemvalue="Python.general_tools" />
         <item itemvalue="Python.readData" />
-        <item itemvalue="Python.tstPatternTools" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-PY-251.25410.159" />
-        <option value="bundled-python-sdk-e0ed3721d81e-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.25410.159" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.26830.99" />
+        <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
       </set>
     </attachedChunks>
   </component>
@@ -487,7 +494,30 @@
       <workItem from="1747237752955" duration="3843000" />
       <workItem from="1748005867557" duration="2793000" />
       <workItem from="1748259045356" duration="12535000" />
-      <workItem from="1748796950954" duration="25826000" />
+      <workItem from="1748796950954" duration="30140000" />
+      <workItem from="1749536777417" duration="2356000" />
+      <workItem from="1749670641936" duration="244000" />
+      <workItem from="1749748788029" duration="58000" />
+      <workItem from="1749748854807" duration="25646000" />
+      <workItem from="1750688566114" duration="875000" />
+      <workItem from="1751287518463" duration="1627000" />
+      <workItem from="1751295321665" duration="34693000" />
+      <workItem from="1752574089573" duration="484000" />
+      <workItem from="1752579360432" duration="499000" />
+      <workItem from="1752843219907" duration="385000" />
+      <workItem from="1753687272741" duration="451000" />
+      <workItem from="1754053233854" duration="8384000" />
+      <workItem from="1754382172795" duration="22568000" />
+      <workItem from="1754636208944" duration="567000" />
+      <workItem from="1758623644827" duration="13097000" />
+      <workItem from="1758889815396" duration="210000" />
+      <workItem from="1759149214473" duration="1159000" />
+      <workItem from="1759392638221" duration="334000" />
+      <workItem from="1759504128362" duration="385000" />
+      <workItem from="1759936256322" duration="413000" />
+      <workItem from="1760104838950" duration="107000" />
+      <workItem from="1760105022093" duration="693000" />
+      <workItem from="1760529996982" duration="2132000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -625,7 +655,31 @@
       <option name="project" value="LOCAL" />
       <updated>1749135932512</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Fdbk linearity analysis from oscilloscope removed&#10;Several TODOs added">
+      <option name="closed" value="true" />
+      <created>1749291183605</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1749291183605</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Noise analysis optimized (parallel processing)">
+      <option name="closed" value="true" />
+      <created>1751902550810</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1751902550810</updated>
+    </task>
+    <task id="LOCAL-00020" summary="New script to check the data integrity">
+      <option name="closed" value="true" />
+      <created>1754580147763</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1754580147763</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -657,7 +711,10 @@
     <MESSAGE value="Optimisation of noise analysis functions" />
     <MESSAGE value="New functions for coupled noise analyses&#10;Noise analysis updated&#10;Thermal analysis updated" />
     <MESSAGE value="Obsolete files removed&#10;Noise analysis tools optimised" />
-    <option name="LAST_COMMIT_MESSAGE" value="Obsolete files removed&#10;Noise analysis tools optimised" />
+    <MESSAGE value="Fdbk linearity analysis from oscilloscope removed&#10;Several TODOs added" />
+    <MESSAGE value="Noise analysis optimized (parallel processing)" />
+    <MESSAGE value="New script to check the data integrity" />
+    <option name="LAST_COMMIT_MESSAGE" value="New script to check the data integrity" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -758,44 +815,60 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dmx-dm/nonLinearity.py</url>
-          <line>1</line>
-          <option name="timeStamp" value="1" />
+          <url>file://$PROJECT_DIR$/dmx-dm/readData.py</url>
+          <line>74</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
+          <line>554</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/analysis_tools$general_tools.coverage" NAME="general_tools Coverage Results" MODIFIED="1736612036472" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDelayAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1733430607199" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$fdbkAndErrorLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1736763614988" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorDumpNolineEnobAnalysis2.coverage" NAME="errorDumpNolineEnobAnalysis2 Coverage Results" MODIFIED="1737061146387" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$thermal_analysis.coverage" NAME="thermal_analysis Coverage Results" MODIFIED="1748801579174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorEnobAnalysis.coverage" NAME="errorEnobAnalysis Coverage Results" MODIFIED="1736691737765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisTools.coverage" NAME="noiseAnalysisTools Coverage Results" MODIFIED="1744969929062" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$process_expertise_data.coverage" NAME="process_expertise_data Coverage Results" MODIFIED="1705591927586" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cosim" />
-    <SUITE FILE_PATH="coverage/analysis_tools$constants.coverage" NAME="constants Coverage Results" MODIFIED="1736412312158" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$nonLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1736932020912" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$noise_analysis.coverage" NAME="toto Coverage Results" MODIFIED="1728753154627" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorDumpEnobAnalysis.coverage" NAME="errorDumpEnobAnalysis Coverage Results" MODIFIED="1737043497960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$XnoiseAnalysis.coverage" NAME="XnoiseAnalysis Coverage Results" MODIFIED="1744987928879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$debugErrorFiles.coverage" NAME="debugErrorFiles Coverage Results" MODIFIED="1729587411784" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisSubtraction.coverage" NAME="noiseAnalysisSubtraction Coverage Results" MODIFIED="1742481084902" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$calibHkTemp.coverage" NAME="calibHkTemp Coverage Results" MODIFIED="1748855874521" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDacLinearity.coverage" NAME="fdbkDacLinearity Coverage Results" MODIFIED="1735232368184" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$process.coverage" NAME="process Coverage Results" MODIFIED="1716990550654" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/analysis_tools$timingAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1729170096656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorNolineEnobAnalysis.coverage" NAME="errorNolineEnobAnalysis Coverage Results" MODIFIED="1737044641479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis.coverage" NAME="noiseAnalysis Coverage Results" MODIFIED="1749210975983" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$tstPatternTools.coverage" NAME="tstPatternTools Coverage Results" MODIFIED="1742570445152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$fakes.coverage" NAME="fakes Coverage Results" MODIFIED="1712842665892" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/analysis_tools$dmx_tools.coverage" NAME="dmx_tools Coverage Results" MODIFIED="1716995262613" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorNolineEnobAnalysis2.coverage" NAME="errorNolineEnobAnalysis2 Coverage Results" MODIFIED="1737052922550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$readData.coverage" NAME="readData Coverage Results" MODIFIED="1748007351015" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$samplingDelayAnalysis.coverage" NAME="samplingDelayAnalysis Coverage Results" MODIFIED="1742481683562" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$tstPatternAnalysis.coverage" NAME="tstPatternAnalysis Coverage Results" MODIFIED="1745422221963" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$thermal_analysis.coverage" NAME="thermal_analysis Coverage Results" MODIFIED="1750420370233" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis.coverage" NAME="noiseAnalysis Coverage Results" MODIFIED="1760531759274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noise_analysis.coverage" NAME="toto Coverage Results" MODIFIED="1728753154627" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisTools.coverage" NAME="noiseAnalysisTools Coverage Results" MODIFIED="1758878389691" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$nonLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1750267933002" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$process_expertise_data.coverage" NAME="process_expertise_data Coverage Results" MODIFIED="1705591927586" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cosim" />
     <SUITE FILE_PATH="coverage/analysis_tools$expertises.coverage" NAME="expertises Coverage Results" MODIFIED="1733501340041" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$errorLinearity.coverage" NAME="fdbkAndErrorLinearity Coverage Results" MODIFIED="1735300708253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisSubtraction.coverage" NAME="noiseAnalysisSubtraction Coverage Results" MODIFIED="1742481084902" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDelayAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1750265779920" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$process.coverage" NAME="process Coverage Results" MODIFIED="1716990550654" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/analysis_tools$errorDumpNolineEnobAnalysis.coverage" NAME="errorDumpNolineEnobAnalysis Coverage Results" MODIFIED="1737044550160" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$constants.coverage" NAME="constants Coverage Results" MODIFIED="1736412312158" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$thermal_analysis_INI.coverage" NAME="thermal_analysis_INI Coverage Results" MODIFIED="1750421612855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$tstPatternTools.coverage" NAME="tstPatternTools Coverage Results" MODIFIED="1742570445152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$bwAnalysisFromEdges.coverage" NAME="cutoffFrequency Coverage Results" MODIFIED="1750327021492" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorNolineEnobAnalysis.coverage" NAME="errorNolineEnobAnalysis Coverage Results" MODIFIED="1737044641479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$timingAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1729170096656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorNolineEnobAnalysis2.coverage" NAME="errorNolineEnobAnalysis2 Coverage Results" MODIFIED="1737052922550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$tstPatternAnalysis.coverage" NAME="tstPatternAnalysis Coverage Results" MODIFIED="1745422221963" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDacLinearity.coverage" NAME="fdbkDacLinearity Coverage Results" MODIFIED="1735232368184" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$debugErrorFiles.coverage" NAME="debugErrorFiles Coverage Results" MODIFIED="1729587411784" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$samplingDelayAnalysis.coverage" NAME="samplingDelayAnalysis Coverage Results" MODIFIED="1749310904664" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$fakes.coverage" NAME="fakes Coverage Results" MODIFIED="1712842665892" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/analysis_tools$fdbkAndErrorLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1736763614988" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$export_fits2txt.coverage" NAME="check_data Coverage Results" MODIFIED="1754571936607" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$XnoiseAnalysis.coverage" NAME="XnoiseAnalysis Coverage Results" MODIFIED="1744987928879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$readData.coverage" NAME="readData Coverage Results" MODIFIED="1754314139994" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorLinearity.coverage" NAME="fdbkAndErrorLinearity Coverage Results" MODIFIED="1735300708253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorEnobAnalysis.coverage" NAME="errorEnobAnalysis Coverage Results" MODIFIED="1736691737765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$calibHkTemp.coverage" NAME="calibHkTemp Coverage Results" MODIFIED="1751902395371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorDumpNolineEnobAnalysis2.coverage" NAME="errorDumpNolineEnobAnalysis2 Coverage Results" MODIFIED="1737061146387" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$errorDumpEnobAnalysis.coverage" NAME="errorDumpEnobAnalysis Coverage Results" MODIFIED="1737043497960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis_INI.coverage" NAME="noiseAnalysis_INI Coverage Results" MODIFIED="1751575786194" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$general_tools.coverage" NAME="general_tools Coverage Results" MODIFIED="1754470906046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
   </component>
 </project>

@@ -90,6 +90,7 @@ def plot_col_spectrum(tconf, acq_mode, verbose=False):
         fig.suptitle(suptitle, fontsize=12)
         ax.set_title(title, fontsize=10)
 
+        # nat.plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob) => for debug
         nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob)
 
         if lpf != 0:  # comparison with a low pass filter model
@@ -191,7 +192,8 @@ class TestConfig:
 
     @property
     def file_path(self) -> str:
-        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
+        return os.path.join(cst.BASE_DATA_PATH, self.testPlanPath, self.session_name)
+        #return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
 
 
 TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
@@ -248,11 +250,11 @@ list_of_configs = [
     TestConfig(TP27_STRFAST36_PATH, "20250701_170300_noise_erro-only_Fb0V", "erro-only"),
     TestConfig(TP27_FAST36_PATH, "20250701_171143_noise_erro-only_Fb0V", "erro-only"),
     TestConfig(cst.TP27_PATH, "20250804_114846_noise_erro-fdbk_Fb-0_5V", "erro-fdbk"),
-    TestConfig(cst.TP27_PATH, "20250804_115009_noise_erro-fdbk_Fb0V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20250804_115009_noise_erro-fdbk_Fb0V", "erro-fdbk", 0),
     TestConfig(cst.TP27_PATH, "20250804_115133_noise_erro-fdbk_Fb0_5V", "erro-fdbk")
 ]
 
 #-------------------------------------------------------------------------------------
-process_list_of_configs(list_of_configs[-3:])
+process_list_of_configs(list_of_configs[-2:-1])
 
 #-------------------------------------------------------------------------------------
