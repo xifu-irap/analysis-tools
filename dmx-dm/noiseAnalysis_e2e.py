@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
-import constants as cst
+import constants_e2e as cst
 import general_tools as gt
 import noiseAnalysisTools as nat
 

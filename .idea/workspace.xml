@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="New script to check the data integrity" />
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update to run end 2 end scripts">
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis-e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis-e2e.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -511,7 +513,7 @@
       <workItem from="1759936256322" duration="413000" />
       <workItem from="1760104838950" duration="107000" />
       <workItem from="1760105022093" duration="693000" />
-      <workItem from="1760529996982" duration="2711000" />
+      <workItem from="1760529996982" duration="3101000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -681,7 +683,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760543092617</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Update to run end 2 end scripts">
+      <option name="closed" value="true" />
+      <created>1760543709791</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1760543709791</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -716,7 +726,8 @@
     <MESSAGE value="Fdbk linearity analysis from oscilloscope removed&#10;Several TODOs added" />
     <MESSAGE value="Noise analysis optimized (parallel processing)" />
     <MESSAGE value="New script to check the data integrity" />
-    <option name="LAST_COMMIT_MESSAGE" value="New script to check the data integrity" />
+    <MESSAGE value="Update to run end 2 end scripts" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update to run end 2 end scripts" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
