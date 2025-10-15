@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="New script to check the data integrity">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" afterDir="false" />
-    </list>
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="New script to check the data integrity" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -517,7 +511,7 @@
       <workItem from="1759936256322" duration="413000" />
       <workItem from="1760104838950" duration="107000" />
       <workItem from="1760105022093" duration="693000" />
-      <workItem from="1760529996982" duration="2132000" />
+      <workItem from="1760529996982" duration="2711000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -679,7 +673,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754580147763</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="New script to check the data integrity">
+      <option name="closed" value="true" />
+      <created>1760543092617</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1760543092617</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -821,7 +823,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>554</line>
+          <line>555</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
@@ -837,7 +839,7 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/analysis_tools$dmx_tools.coverage" NAME="dmx_tools Coverage Results" MODIFIED="1716995262613" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/analysis_tools$thermal_analysis.coverage" NAME="thermal_analysis Coverage Results" MODIFIED="1750420370233" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis.coverage" NAME="noiseAnalysis Coverage Results" MODIFIED="1760531759274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis.coverage" NAME="noiseAnalysis Coverage Results" MODIFIED="1760543014253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$noise_analysis.coverage" NAME="toto Coverage Results" MODIFIED="1728753154627" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisTools.coverage" NAME="noiseAnalysisTools Coverage Results" MODIFIED="1758878389691" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$nonLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1750267933002" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
