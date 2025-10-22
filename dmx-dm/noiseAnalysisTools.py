@@ -402,7 +402,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         ylims = ylims_erro
 
     # Computation of the SNR equivalent to the requested ENOB
-    snr_db = 6.02*enob + 1.76
+    snr_db = 6.02 * enob + 10.792
     snr = 10**(snr_db/20)
 
     # Computation of the noise floor per sqrt(Hz) corresponding to the ENOB
@@ -415,6 +415,11 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         xf_stop = np.where(xf < f_stop)[0][-1]
         a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
+        # Fit of white noise
+        f_white_start = 30e3  # to avoid 1/f contribution
+        xf_white_start = np.where(xf > f_white_start)[0][0]
+        white_noise = spectrum[xf_white_start:].mean()
+
     if model_filename != '':
         # Getting theoretical noise data from 0 to 125 MHz
         f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
@@ -423,20 +428,23 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
 
     lbl1 = "Spectrum"
-    lbl2 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs/2/1e6)
-    if model_filename != '':
-        lbl4 = 'Model (from datasheets)'
-
     ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
-    if enob != 0:
-        ax.loglog(xlims, [noise_floor * 1e9, noise_floor * 1e9], ':', color='purple', label=lbl2)
+
     if model_filename != '':
-        ax.loglog(f_theo, noise_theo*1e9, '--', color='r', label=lbl4)
+        lbl2 = 'Model (from datasheets)'
+        ax.loglog(f_theo, noise_theo * 1e9, '--', color='r', label=lbl2)
 
     if acq_mode == 'error':
         x = np.arange(1e4)
-        lbl6 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax.loglog(x[1:], one_over_f(x[1:], a)*1e9, '-.', color='k', label=lbl6)
+        lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{Hz}$)'
+        ax.loglog([xf[xf_white_start], xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl3)
+        lbl4 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
+        ax.loglog(x[1:], one_over_f(x[1:], a) * 1e9, '-.', color='k', label=lbl4)
+
+    if enob != 0:
+        lbl5 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs / 2 / 1e6)
+        ax.loglog(xlims, [noise_floor * 1e9, noise_floor * 1e9], ':', color='purple', label=lbl5)
+
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)

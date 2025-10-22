@@ -79,7 +79,7 @@ def read_science_data_one_col(data_path, col_id, remove_dc=True, verbose=True):
     file_name_with_path = os.path.join(data_path, file_name)
 
     if verbose:
-        print("    Reading ERROR data from ", file_name_with_path, ".... ", end='')
+        print("    Reading ERROR data from ", file_name_with_path, ".... ")
 
     col_data, _ = read_science_file(file_name_with_path)
     # Flattening the array to have data at Frow
@@ -88,10 +88,12 @@ def read_science_data_one_col(data_path, col_id, remove_dc=True, verbose=True):
 
     # removing DC
     if remove_dc:
+        if verbose:
+            print("     Print removing DC")
         col_data -= col_data.mean()
 
     if verbose:
-        print("Done")
+        print("Done!")
 
     return col_data
 

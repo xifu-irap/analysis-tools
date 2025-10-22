@@ -172,12 +172,10 @@ def process_list_of_configs(TestConfigList):
 #    duration = time.time() - start
 #    print(f"Duration: {duration:.1f} s")
 
-
 #-------------------------------------------------------------------------------------
 
 DEFAULT_ENOB = 11.5
 DEFAULT_LPF = 0.0
-
 
 @dataclass
 class TestConfig:
@@ -193,8 +191,6 @@ class TestConfig:
     @property
     def file_path(self) -> str:
         return os.path.join(cst.BASE_DATA_PATH, self.testPlanPath, self.session_name)
-        #return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
-
 
 TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
 TP27_TURBO38_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-38"
@@ -251,10 +247,15 @@ list_of_configs = [
     TestConfig(TP27_FAST36_PATH, "20250701_171143_noise_erro-only_Fb0V", "erro-only"),
     TestConfig(cst.TP27_PATH, "20250804_114846_noise_erro-fdbk_Fb-0_5V", "erro-fdbk"),
     TestConfig(cst.TP27_PATH, "20250804_115009_noise_erro-fdbk_Fb0V", "erro-fdbk", 0),
-    TestConfig(cst.TP27_PATH, "20250804_115133_noise_erro-fdbk_Fb0_5V", "erro-fdbk")
+    TestConfig(cst.TP27_PATH, "20250804_115133_noise_erro-fdbk_Fb0_5V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20251020_174018_noise_erro-only_Fb0V", "erro-only"),
+    TestConfig(cst.TP27_PATH, "20251020_175012_noise_erro-100o_Fb0V", "erro-only"),
+    TestConfig(cst.TP27_PATH, "20251021-104110_noise_erro-100o_cnes", "erro-only", DEFAULT_ENOB, DEFAULT_LPF, False,
+               True),
+    TestConfig(cst.TP27_PATH, "20251021_141957_test_dmx_feedback", "erro-fdbk", DEFAULT_ENOB, DEFAULT_LPF, False, True)
 ]
 
 #-------------------------------------------------------------------------------------
-process_list_of_configs(list_of_configs[-2:-1])
+process_list_of_configs(list_of_configs[-1:])
 
 #-------------------------------------------------------------------------------------

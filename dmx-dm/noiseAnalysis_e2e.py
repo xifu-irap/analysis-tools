@@ -198,7 +198,7 @@ class TestConfig:
 
 
 list_of_configs = [
-    TestConfig("erro-only"),
+    TestConfig("erro-only")
 ]
 
 # -------------------------------------------------------------------------------------
