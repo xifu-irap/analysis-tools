@@ -38,7 +38,7 @@ def samplingDelay(tconf, col):
 
     t = np.arange(2*cst.nSamplesPerRow*cst.muxFactor) * 1e9 / cst.fSamp
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(9, 7))
     plt.suptitle("Test of Sampling delay and boxcar length settings".format(col))
 
     print("Processing data from directory " + path)
@@ -90,13 +90,12 @@ def samplingDelay(tconf, col):
         raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), cst.nSamplesPerRow))
 
     nVal = 256 # Number of values to average over
-    ratio = 4 # Ratio between dump and error data (due to unused LSB in error data)
 
     for index, file in enumerate (np.sort(files)):
         print("  {0:} > ".format(index) + file)
 
-        colData, ctrl = rddt.read_science_file(os.path.join(pathData, file))
-        pix0 = colData[0, :nVal].mean() / ratio
+        colData, _ = rddt.read_tm_file(os.path.join(pathData, file))
+        pix0 = colData[0, :nVal].mean()
 
         # Adding error data on the plot
         ax1.plot(t[index], pix0, 'o', color=colors[index], label='Samp Delay = {0:} ns'.format(int(t[index])))
@@ -147,9 +146,16 @@ list_of_configs = [
     TestConfig(cst.TP21_PATH, "20250213_144452_samplingDelay-Bxl07-pulseShapingSet0"),
     TestConfig(cst.TP21_PATH, "20250213_144532_samplingDelay-Bxl03-pulseShapingSet0"),
     TestConfig(cst.TP21_PATH, "20250213_144611_samplingDelay-Bxl01-pulseShapingSet0"),
-    TestConfig(cst.TP21_PATH, "20250213_144648_samplingDelay-Bxl00-pulseShapingSet0")
+    TestConfig(cst.TP21_PATH, "20250213_144648_samplingDelay-Bxl00-pulseShapingSet0"),
+    TestConfig(cst.TP27_PATH, "20251024_160757_samplingDelay-Bxl00-pulseShapingSet0"),
+    TestConfig(cst.TP27_PATH, "20251024_161301_samplingDelay-Bxl03-pulseShapingSet0"),
+    TestConfig(cst.TP27_PATH, "20251024_161419_samplingDelay-Bxl00-pulseShapingSet3"),
+    TestConfig(cst.TP27_PATH, "20251024_161530_samplingDelay-Bxl03-pulseShapingSet3"),
+    TestConfig(cst.TP27_PATH, "20251024_163817_samplingDelay-Bxl03-pulseShapingSet1"),
+    TestConfig(cst.TP27_PATH, "20251024_163927_samplingDelay-Bxl00-pulseShapingSet1")
 ]
 
-for test_conf in list_of_configs:
-    for col in range(cst.nColPerDemux):
-        samplingDelay(test_conf, col)
+for test_conf in list_of_configs[-2:]:
+    # for col in range(cst.nColPerDemux):
+    col = 2
+    samplingDelay(test_conf, col)

@@ -242,6 +242,7 @@ def readHkFromCsv(filename):
     hk = df[:, 1]
     return time_converted, hk
 
+
 # -----------------------------------------------------------------------
 def do_power_spectrum(x, fs, npts, window="none", verbose=False):
     r"""
@@ -479,6 +480,7 @@ def save_two_vectors_to_file(vecteur1, vecteur2, fichier):
         for val1, val2 in zip(vecteur1, vecteur2):
             f.write(f"{val1}{"  "}{val2}\n")
 
+
 def pulseshapingtext(pls_set):
     switch={
       0:'no pulse shaping',
@@ -487,6 +489,7 @@ def pulseshapingtext(pls_set):
       3:'pulse shaping at 30 MHz'
       }
     return switch.get(pls_set, "Invalid input")
+
 
 def parse_date_auto(value):
     """

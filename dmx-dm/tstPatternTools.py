@@ -51,7 +51,7 @@ def check_tst_pattern(dir_path, col, params, l=0):
         raise ValueError('No files found')
 
     fits_file_path = os.path.join(pathData, files[0])
-    tst_data, ctrl = rddt.read_science_file(fits_file_path)
+    tst_data, ctrl = rddt.read_tm_file(fits_file_path)
 
     # Building reference data
     ref_data = mk_tst_pattern(params)

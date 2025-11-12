@@ -70,15 +70,17 @@ def plot_col_spectrum(tconf, acq_mode, verbose=False):
         # Selection of a noise model
         signal = tconf.signal
         path_models = 'noise_models'
-        if signal == 'erro-only' or signal == 'erro-100o':
-            model_filename = os.path.join(path_models, "erro-only.txt")
+        if signal == 'erro-100o' and acq_mode == 'dump':
+            model_filename = os.path.join(path_models, "erro-only_125.txt")
+        elif signal == 'erro-100o' and acq_mode == 'error':
+            model_filename = os.path.join(path_models, "erro-only_6p25.txt")
         elif signal == 'erro-fdbk':
             if col_id == 0 or col_id == 3:
                 model_filename = os.path.join(path_models, "erro-fdbk-awaxe.txt")
             else:
                 model_filename = os.path.join(path_models, "erro-fdbk-rhf200.txt")
         elif signal == 'erro-ofco':
-            model_filename = os.path.join(path_models, "erro-")
+            model_filename = os.path.join(path_models, "erro-ofco.txt")
         else:
             model_filename = ''  # file type is unknown, no model exists
 
@@ -94,7 +96,7 @@ def plot_col_spectrum(tconf, acq_mode, verbose=False):
         nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob)
 
         if lpf != 0:  # comparison with a low pass filter model
-            a_dc_estimated = spectrum[2:10].mean()
+            a_dc_estimated = spectrum[4:50].mean()
             popt, pcov = curve_fit(nat.low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
             a_dc = popt[0]
             fc = popt[1]
@@ -103,7 +105,7 @@ def plot_col_spectrum(tconf, acq_mode, verbose=False):
                 print("Estimated DC level: {0:4.1f} nV/rtHz".format(a_dc * 1e9))
 
             # Plotting the 1st order LPF fit
-            lbl = '1rst order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
+            lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
             ax.loglog(xf, nat.low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
 
         ax.legend(loc='lower left')
@@ -248,14 +250,17 @@ list_of_configs = [
     TestConfig(cst.TP27_PATH, "20250804_114846_noise_erro-fdbk_Fb-0_5V", "erro-fdbk"),
     TestConfig(cst.TP27_PATH, "20250804_115009_noise_erro-fdbk_Fb0V", "erro-fdbk", 0),
     TestConfig(cst.TP27_PATH, "20250804_115133_noise_erro-fdbk_Fb0_5V", "erro-fdbk"),
-    TestConfig(cst.TP27_PATH, "20251020_174018_noise_erro-only_Fb0V", "erro-only"),
-    TestConfig(cst.TP27_PATH, "20251020_175012_noise_erro-100o_Fb0V", "erro-only"),
-    TestConfig(cst.TP27_PATH, "20251021-104110_noise_erro-100o_cnes", "erro-only", DEFAULT_ENOB, DEFAULT_LPF, False,
-               True),
-    TestConfig(cst.TP27_PATH, "20251021_141957_test_dmx_feedback", "erro-fdbk", DEFAULT_ENOB, DEFAULT_LPF, False, True)
+    TestConfig(cst.TP27_PATH, "20251024_150701_noise_erro-open_Fb0V", "erro-open"),
+    TestConfig(cst.TP27_PATH, "20251024_151300_noise_erro-100o_Fb0V", "erro-100o", DEFAULT_ENOB, DEFAULT_LPF, True,
+               True, "none"),
+    TestConfig(cst.TP27_PATH, "20251024_151909_noise_erro-fdbk_Fb-0_5V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20251024_152032_noise_erro-fdbk_Fb0V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20251024_152156_noise_erro-fdbk_Fb0_5V", "erro-fdbk"),
+    TestConfig(cst.TP27_PATH, "20251024_152815_noise_erro-ofco_Fb0V", "erro-ofco"),
+    TestConfig(cst.TP27_PATH, "20251028_144936_noise_erro-open_Fb0V", "erro-dab", 0, 20e6, True, False, "none")
 ]
 
 #-------------------------------------------------------------------------------------
-process_list_of_configs(list_of_configs[-1:])
+process_list_of_configs(list_of_configs[-6:-5])
 
 #-------------------------------------------------------------------------------------

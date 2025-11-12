@@ -12,18 +12,53 @@ import readData as rddt
 
 
 # Détection d'un front de montée
-def riseDetect(data, thresholdPercent=5):
-    threshold = (data.max() - data.min()) * thresholdPercent / 100 + data.min()
+def riseDetect_old(data):
+    threshold = (data.max() + data.min()) / 2
 
-    decal = 30
     i_sup = np.where(data > threshold)[0][0]
-    if i_sup == 0:  # Shiftting a bit if the rising edgae was before the beginning
+    i_inf = np.where(data < threshold)[0][0]
+
+    # Shifting the data if the dump is at the high value at the beginning
+    if i_sup == 0:
+        data = np.roll(data, -1 * (i_inf + 1))
+
         i_sup = np.where(data[decal:] > threshold)[0]
 
     i = i_sup - 1
 
     return (i)
 
+    # Détection d'un front de montée
+
+
+def riseDetect(signal, threshold_pc=5):
+    """
+    Détecte le premier front montant d'un signal bruité à deux niveaux.
+
+    Paramètres
+    ----------
+    signal : array-like
+        Signal à deux niveaux (avec bruit).
+    hysteresis : float
+        Fraction d’hystérésis pour éviter les faux fronts.
+        Par exemple 0.1 = 10% entre le niveau bas et le niveau haut.
+
+    Retour
+    ------
+    int ou None
+        Indice du premier front montant détecté.
+    """
+    signal = np.array(signal)
+
+    # Estimation des deux niveaux
+    threshold = signal.min() + threshold_pc * (signal.max() - signal.min()) / 100
+
+    # On commence par rechercher une phase où le signal est à l'état bas
+    bas = np.where(signal < threshold)[0][0] + 5  # +5 is a margin
+    # On recherche la phase qui suit où le signal est à l'état haut
+    haut = np.where(signal[bas:] > threshold)[0][0] + bas
+
+    return haut
 
 # Définition de la fonction exponentielle
 def exponential_response(t, U0, tau):
@@ -76,53 +111,55 @@ def cutoffFreq(tconf):
 
     # Doing plots
     for col in range(cst.nColPerDemux):
-        plotFileName = os.path.join(path_plot, 'cutoffFreq_col{0:}.png'.format(col))
+        if tconf.process_col[col]:
+            plotFileName = os.path.join(path_plot, 'cutoffFreq_col{0:}.png'.format(col))
 
-        v = accuDumps[col, :]
+            v = accuDumps[col, :]
 
-        tsize = 20
-        it1 = riseDetect(v)
-        it2 = it1 + tsize
+            tsize = 20
+            it1 = riseDetect(v, 3)
+            it2 = it1 + tsize
 
-        fig = plt.figure(figsize=(8, 6))
-        suptitle = "Error cutoff frequency (column {0:})".format(col)
-        title = tconf.testPlanPath
-        fig.suptitle(suptitle, fontsize=12)
+            fig = plt.figure(figsize=(8, 6))
+            suptitle = "Error cutoff frequency (column {0:})".format(col)
+            title = tconf.testPlanPath + '        ' + os.path.basename(dir_path)
+            fig.suptitle(suptitle, fontsize=12)
 
-        ax1 = fig.add_subplot(2, 1, 1)  # global plot
-        ax1.set_title(title, fontsize=10)
-        ax2 = fig.add_subplot(2, 1, 2)  # global plot
+            ax1 = fig.add_subplot(2, 1, 1)  # global plot
+            ax1.set_title(title, fontsize=10)
+            ax2 = fig.add_subplot(2, 1, 2)  # global plot
 
-        ax1.plot(t * 1e9, v)
-        ax1.plot(t[it1: it2] * 1e9, v[it1: it2], color='r')
-        ax1.set_xlabel(xlabel)
-        ax1.set_ylabel(ylabel)
-        ax1.grid()
+            ax1.plot(t * 1e9, v)
+            ax1.plot(t[it1: it2] * 1e9, v[it1: it2], color='r')
+            ax1.set_xlabel(xlabel)
+            ax1.set_ylabel(ylabel)
+            ax1.grid()
 
-        # Calcul du fit
-        v = v[it1:it2] - v[it1]
-        tfit = t[it1:it2] - t[it1]
-        U0, tau = fit_time_constant(tfit, v)
-        fc = 1 / (2 * np.pi * tau * 1e6)
-        print("Time constant: {0:6.3f} ns".format(tau * 1e9))
-        print("Cutoff frequency: {0:6.3f} MHz".format(fc))
+            # Calcul du fit
+            vfit = v[it1:it2] - v[it1]
+            tfit = t[it1:it2] - t[it1]
+            U0, tau = fit_time_constant(tfit, vfit)
+            fc = 1 / (2 * np.pi * tau * 1e6)
+            print("Time constant: {0:6.3f} ns".format(tau * 1e9))
+            print("Cutoff frequency: {0:6.3f} MHz".format(fc))
 
-        lbl1 = 'ADC Data'
-        ax2.plot(tfit * 1e9, v, color='r', label=lbl1)
-        lbl2 = "First order fit (fc = {0:6.2f} MHz)".format(fc)
-        # Building a higher resolution time array to plot the fit
-        hr_ratio = 10
-        thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
-        ax2.plot(thr * 1e9, exponential_response(thr, U0, tau), '--', color='k', label=lbl2)
-        ax2.set_xlabel(xlabel)
-        ax2.set_ylabel(ylabel)
-        ax2.legend(loc='best')
-        ax2.grid()
+            lbl1 = 'ADC Data'
+            ax2.plot(t[it1 - 10:it2] * 1e9, v[it1 - 10:it2])
+            ax2.plot(t[it1:it2] * 1e9, v[it1:it2], color='r', label=lbl1)
+            lbl2 = "First order fit (fc = {0:6.2f} MHz)".format(fc)
+            # Building a higher resolution time array to plot the fit
+            hr_ratio = 10
+            thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
+            ax2.plot((thr + t[it1]) * 1e9, exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
+            ax2.set_xlabel(xlabel)
+            ax2.set_ylabel(ylabel)
+            ax2.legend(loc='best')
+            ax2.grid()
 
-        fig.tight_layout()
+            fig.tight_layout()
 
-        plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
-        print("results plotted in file " + plotFileName)
+            plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
+            print("results plotted in file " + plotFileName)
 
 
 # -------------------------------------------------------------------------------------
@@ -131,6 +168,11 @@ def cutoffFreq(tconf):
 class TestConfig:
     testPlanPath: str
     session_name: str
+    process_col: np.ndarray = None
+
+    def __post_init__(self):
+        if self.process_col is None:
+            self.process_col = np.array([True, True, True, True])
 
     @property
     def file_path(self) -> str:
@@ -140,7 +182,8 @@ class TestConfig:
 TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
 
 list_of_configs = [
-    TestConfig(TP27_TURBO45_PATH, "20250618_182150_caracErrorBandShape")
+    TestConfig(TP27_TURBO45_PATH, "20250618_182150_caracErrorBandShape"),
+    TestConfig(cst.TP27_PATH, "20251028_092758_caracErrorBandShape", np.array([False, False, True, False]))
 ]
 
 # -------------------------------------------------------------------------------------

@@ -351,8 +351,10 @@ list_of_configs = [
     TestConfig(cst.TP21_PATH, "20250110_113807_fdbkAndErrorLinearity"),
     TestConfig(cst.TP21_PATH, "20250113_110936_ofcoAndErrorLinearity"),
     TestConfig(TP27_TURBO45_PATH, "20250618_175057_fdbkAndErrorLinearity"),
-    TestConfig(TP27_TURBO45_PATH, "20250618_175605_ofcoAndErrorLinearity")
-        ]
+    TestConfig(TP27_TURBO45_PATH, "20250618_175605_ofcoAndErrorLinearity"),
+    TestConfig(cst.TP27_PATH, "20251024_155653_fdbkAndErrorLinearity"),
+    TestConfig(cst.TP27_PATH, "20251024_155252_ofcoAndErrorLinearity")
+]
 
-for test_conf in list_of_configs[-1:]:
+for test_conf in list_of_configs[-2:]:
     plot_non_linearity(test_conf)

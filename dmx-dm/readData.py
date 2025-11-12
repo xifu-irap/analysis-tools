@@ -26,7 +26,7 @@ def read_event_records(fits_file):
         return firstDf, data
 
 
-def read_science_file(fits_file):
+def read_tm_file(fits_file):
     """
     Reads DEMUX science data (error or science) from a fits file.
 
@@ -50,10 +50,16 @@ def read_science_file(fits_file):
         data = data_ext.data
         dataArray = np.array(data.tolist()).T
 
-        return dataArray[1:,:], dataArray[0,:]
+        ctrl = dataArray[0, :]
+        data = dataArray[1:, :].astype(float)
+
+        if ctrl[0] == 0xCA:
+            data /= 4
+
+        return data, ctrl
 
 
-def read_science_data_one_col(data_path, col_id, remove_dc=True, verbose=True):
+def read_tm_one_col(data_path, col_id, remove_dc=True, verbose=True):
     """
     Reads DEMUX science data for one column from a fits file.
 
@@ -81,10 +87,9 @@ def read_science_data_one_col(data_path, col_id, remove_dc=True, verbose=True):
     if verbose:
         print("    Reading ERROR data from ", file_name_with_path, ".... ")
 
-    col_data, _ = read_science_file(file_name_with_path)
+    col_data, _ = read_tm_file(file_name_with_path)
     # Flattening the array to have data at Frow
-    # Dividing by 4 because Error data are in S(16,2) format
-    col_data = col_data.flatten('F') / 4
+    col_data = col_data.flatten('F')
 
     # removing DC
     if remove_dc:
@@ -180,7 +185,7 @@ def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=F
         col (integer): the col id
     """
     print(data_path)
-    data = read_science_data_one_col(data_path, col, remove_dc=False, verbose=True)
+    data = read_tm_one_col(data_path, col, remove_dc=False, verbose=True)
     txt_file_name = os.path.join(data_path, "error_txt_file" + '_col_{0:}.txt'.format(col))
     np.savetxt(txt_file_name, data)
 

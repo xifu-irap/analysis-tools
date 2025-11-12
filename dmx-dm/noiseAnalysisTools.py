@@ -58,7 +58,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name):
             delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
             range(cst.nColPerDemux))
 
-        # Averaging
+        # Accumulating power spectra
         for col_id in range(cst.nColPerDemux):
             power_spectrum[col_id, :] += results[col_id][1]
         xf = results[0][0]
@@ -99,7 +99,7 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     """
 
     remove_dc = True
-    col_data = rddt.read_science_data_one_col(data_path, col_id, remove_dc, False)
+    col_data = rddt.read_tm_one_col(data_path, col_id, remove_dc, False)
 
     # Computing spectrum
     xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
@@ -140,6 +140,35 @@ def low_pass_filter_1(f, a_dc, fc):
     return a_dc / (1 + f / fc)
 
 
+def low_pass_filter_2(f, a_dc, fc, Q=1 / np.sqrt(2)):
+    """
+    Calcule le module (gain) d'un filtre passe-bas d'ordre 2.
+
+    Paramètres
+    ----------
+    f : float ou array-like
+        Fréquence ou tableau de fréquences (Hz)
+    a_dc : amplitude at DC
+    fc : float
+        Fréquence propre (ou de coupure) en Hz
+    Q : float
+        Facteur de qualité
+
+    Retour
+    ------
+    |H| : float ou ndarray
+        Module du gain en valeur absolue (non en dB)
+    """
+    f = np.asarray(f)
+    w = 2 * np.pi * f
+    w0 = 2 * np.pi * fc
+
+    num = a_dc * w0 ** 2
+    den = np.sqrt((w0 ** 2 - w ** 2) ** 2 + (w * w0 / Q) ** 2)
+    H = num / den
+    return H
+
+
 def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     """
     Compute the cross-power spectrum from error data.
@@ -170,13 +199,13 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     cross_power_spectrum = np.zeros((cst.nColPerDemux, int(npts/2+1)))
 
     remove_dc = True
-    ref_data = rddt.read_science_data_one_col(data_path, col_ref, remove_dc)
+    ref_data = rddt.read_tm_one_col(data_path, col_ref, remove_dc)
 
     for col_id in range(cst.nColPerDemux):
         if col_id == col_ref:
             col_data = ref_data
         else:
-            col_data = rddt.read_science_data_one_col(data_path, col_id, remove_dc)
+            col_data = rddt.read_tm_one_col(data_path, col_id, remove_dc)
 
         # Computing cross-spectrum
         xf, cross_power_spectrum[col_id,:] = gt.do_cross_power_spectrum(ref_data, col_data, cst.fRow, npts, window=win_name)
@@ -193,6 +222,7 @@ def one_over_f(f: ArrayLike, num: ArrayLike) -> np.ndarray:
     Always returns a NumPy array.
     """
     return np.asarray(num) / np.sqrt(np.asarray(f))
+
 
 def fit_one_over_f(x, y):
     """
@@ -274,7 +304,7 @@ def combine_noises_data(nom_fichier1, fs1, nom_fichier2, fs2, nom_fichier3, npts
     gt.save_two_vectors_to_file(freq, dt, nom_fichier3)
 
 
-def undersampling_with_aliasing(frequencies, signal, new_fs, old_fs, new_n = 2048):
+def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
     """
     Computes the downsampled and aliased frequencies and amplitudes of a signal when
     undersampling is employed. This function takes a signal sampled at a higher sampling
@@ -300,8 +330,9 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, old_fs, new_n = 204
               spectrum based on the new sampling frequency.
     """
     # Calculer le facteur entier de sous-échantillonnage
+    old_fs = frequencies[-1] * 2
     if old_fs % new_fs != 0:
-        raise ValueError("old_fs must be a multiple of new_fs")
+        raise ValueError("old_fs must be a multiple of new_fs. The ratio is {0:}".format(old_fs / new_fs))
     downsampling_factor = int(old_fs // new_fs)
 
     # re-sampling frequencies and signal at regularly spaced frequencies
@@ -384,7 +415,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     """
 
     xlabel_log: str = r'Frequencies (Hz)'
-    ylabel: str = r'Error signal (nV / $\sqrt{Hz}$)'
+    ylabel: str = r'Error signal noise (nV / $\sqrt{Hz}$)'
     xlims_erro: list[int | float] = [1, cst.fRow/2]
     xlims_dump: list[float] = [1e5, cst.fSamp/2]
     ylims_erro: list[float] = [1e1, 1e4]
@@ -424,10 +455,10 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         # Getting theoretical noise data from 0 to 125 MHz
         f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
         # Aliasing the noise
-        f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs, 2 * cst.fSamp)
+        # f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs)
         print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
 
-    lbl1 = "Spectrum"
+    lbl1 = "Measurement"
     ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
 
     if model_filename != '':
@@ -554,13 +585,13 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     # Getting theoretical noise data from 0 to 125 MHz
     f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
     # Aliasing the noise
-    f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs, 2 * cst.fSamp)
+    f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs)
     print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
 
     # Getting theoretical noise data from 0 to 125 MHz
     f_theo2, noise_erro = gt.read_two_vectors_from_file(erro_model_filename)
     # Aliasing the noise
-    f_theo2, noise_erro = undersampling_with_aliasing(f_theo2, noise_erro, fs, 2 * cst.fSamp)
+    f_theo2, noise_erro = undersampling_with_aliasing(f_theo2, noise_erro, fs)
     print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
 
     lbl1 = "Spectrum"
