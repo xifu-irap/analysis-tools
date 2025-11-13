@@ -4,21 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of the noise analysis plots:&#10;- Fix of the ENOB level computation&#10;- Addition of the white noise level">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="New notebook to compute error signal noise models">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/general_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/general_tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe_old.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe_old2.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200_old.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -533,7 +521,8 @@
       <workItem from="1762017234682" duration="433000" />
       <workItem from="1762261381176" duration="9038000" />
       <workItem from="1762883594751" duration="275000" />
-      <workItem from="1762953083334" duration="353000" />
+      <workItem from="1762953083334" duration="1234000" />
+      <workItem from="1763021248894" duration="488000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -735,7 +724,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761118492807</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="New notebook to compute error signal noise models">
+      <option name="closed" value="true" />
+      <created>1762953776018</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1762953776018</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -773,7 +770,8 @@
     <MESSAGE value="Update to run end 2 end scripts" />
     <MESSAGE value="Addition of a bat file to launch the processing" />
     <MESSAGE value="Update of the noise analysis plots:&#10;- Fix of the ENOB level computation&#10;- Addition of the white noise level" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of the noise analysis plots:&#10;- Fix of the ENOB level computation&#10;- Addition of the white noise level" />
+    <MESSAGE value="New notebook to compute error signal noise models" />
+    <option name="LAST_COMMIT_MESSAGE" value="New notebook to compute error signal noise models" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -935,5 +933,13 @@
     <SUITE FILE_PATH="coverage/analysis_tools$errorDumpEnobAnalysis.coverage" NAME="errorDumpEnobAnalysis Coverage Results" MODIFIED="1737043497960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysis_INI.coverage" NAME="noiseAnalysis_INI Coverage Results" MODIFIED="1751575786194" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$general_tools.coverage" NAME="general_tools Coverage Results" MODIFIED="1754470906046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>
