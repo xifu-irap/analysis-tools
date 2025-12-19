@@ -78,29 +78,30 @@ def read_tm_one_col(data_path, col_id, remove_dc=True, verbose=True):
              and f[:4] != 'dump' \
              and f[-6:] == '{0:}.fits'.format(col_id)]
 
-    if len(files) == 0:
-        raise ValueError('No fits file for column {0:}'.format(col_id))
+    file_exists = (len(files) != 0)
+    col_data = 0
 
-    file_name = files[0]
-    file_name_with_path = os.path.join(data_path, file_name)
+    if file_exists:
+        file_name = files[0]
+        file_name_with_path = os.path.join(data_path, file_name)
 
-    if verbose:
-        print("    Reading ERROR data from ", file_name_with_path, ".... ")
-
-    col_data, _ = read_tm_file(file_name_with_path)
-    # Flattening the array to have data at Frow
-    col_data = col_data.flatten('F')
-
-    # removing DC
-    if remove_dc:
         if verbose:
-            print("     Print removing DC")
-        col_data -= col_data.mean()
+            print("    Reading ERROR data from ", file_name_with_path, ".... ")
+
+        col_data, _ = read_tm_file(file_name_with_path)
+        # Flattening the array to have data at Frow
+        col_data = col_data.flatten('F')
+
+        # removing DC
+        if remove_dc:
+            if verbose:
+                print("     Print removing DC")
+            col_data -= col_data.mean()
 
     if verbose:
         print("Done!")
 
-    return col_data
+    return col_data, file_exists
 
 
 def read_dump_file(fits_file):

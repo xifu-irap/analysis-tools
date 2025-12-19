@@ -114,7 +114,9 @@ class TestConfig:
 TP_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
 list_of_configs = [
     TestConfig(TP_PATH, "20250618_174926_fdbkDelay_m3_p3"),
-    TestConfig(cst.TP27_PATH, "20251024_163013_fdbkDelay_m3_p3")
+    TestConfig(cst.TP27_PATH, "20251024_163013_fdbkDelay_m3_p3"),
+    TestConfig(cst.TP27_PATH, "20251117_115054_fdbkDelay_m3_p3"),
+    TestConfig(cst.TP27_PATH, "20251117_120732_fdbkDelay_m3_p3")
 ]
 
 # for col in range(cst.nColPerDemux):

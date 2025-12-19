@@ -99,15 +99,18 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     """
 
     remove_dc = True
-    col_data = rddt.read_tm_one_col(data_path, col_id, remove_dc, False)
+    col_data, data_exists = rddt.read_tm_one_col(data_path, col_id, remove_dc, False)
 
-    # Computing spectrum
-    xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
+    if not data_exists:
+        xf, power_spectrum = 0, 0
+    else:
+        # Computing spectrum
+        xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
 
-    # passage V => ADU
-    power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
+        # passage V => ADU
+        power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
 
-    return xf, power_spectrum
+    return xf, power_spectrum, data_exists
 
 
 def power_spectrum_from_error(data_path, npts, win_name):
@@ -117,13 +120,21 @@ def power_spectrum_from_error(data_path, npts, win_name):
         delayed(power_spectrum_from_1error_column)(data_path, col_id, npts, win_name) for col_id in
         range(cst.nColPerDemux))
 
+    # Construction du vecteur booléen indiquant la présence de données par colonne
+    data_exists = [res[2] for res in results]
+
     power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
+    xf = None
     for col_id in range(cst.nColPerDemux):
-        power_spectrum[col_id, :] = results[col_id][1]
-    xf = results[0][0]
+        if data_exists[col_id]:
+            xf_col, ps_col, _ = results[col_id]
+            # Initialisation de xf à partir de la première colonne valide
+            if xf is None:
+                xf = xf_col
+            power_spectrum[col_id, :] = ps_col
 
-    return xf, power_spectrum
+    return xf, power_spectrum, data_exists
 
 
 def low_pass_filter_1(f, a_dc, fc):
@@ -362,13 +373,36 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
     return new_frequencies, np.sqrt(folded_pow)
 
 
-def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
+def enob_to_nsd(enob, fsr, fs, reference="picpic"):
+    """
+    Computes the noise spectral density in V/sqrt(Hz) from the ENOB, the FSR the BW
+
+    Args:
+        enob (float): The effective number of bits.
+        fsr (float): The full scale range (in volts).
+        fs (float): The sampling frequency (in Hz).
+        reference (string):
+            if "picpic" the fsr parameter corresponds to the picpic value of the FSR sine wave
+            if "rms" the sfr parameter corresponds to the rms value of the FSR sine wave
+            default is "picpic"
+    """
+    if reference == "picpic":
+        snr_db = 6.02 * enob + 10.792
+    elif reference == "rms":
+        snr_db = 6.02 * enob + 1.76
+    else:
+        raise ValueError('Wrong reference type. Should be picpic or rms.')
+    snr = 10 ** (snr_db / 20)
+    nsd = fsr / (snr * np.sqrt(fs / 2))
+    return nsd
+
+
+def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
     """
     Plot the spectrum and noise floor in both linear and logarithmic scales.
 
     This function generates a spectrum plot in logarithmic scale,
-    displaying the spectrum of a signal and the expected noise floor based on the
-    specified Effective Number of Bits (ENOB). The function also supports
+    displaying the spectrum of a signal and the expected noise floor. The function also supports
     theoretical noise data from a model file and fits a 1/f behavior to the spectrum
     if the acquisition mode is set to 'error'.
 
@@ -391,8 +425,8 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         The filename of the model data to be used for theoretical noise calculations.
         If an empty string is provided, the model will not be used.
 
-    enob : float, optional
-        The Effective Number of Bits for the measurement. Default is 11.5.
+    req_nsd : float
+        The requested noise spectral density over a BW of 125 MHz / 2.
 
     Returns:
     -------
@@ -415,7 +449,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     """
 
     xlabel_log: str = r'Frequencies (Hz)'
-    ylabel: str = r'Error signal noise (nV / $\sqrt{Hz}$)'
+    ylabel: str = r'Error signal noise (nV / $\sqrt{\mathrm{Hz}}$)'
     xlims_erro: list[int | float] = [1, cst.fRow/2]
     xlims_dump: list[float] = [1e5, cst.fSamp/2]
     ylims_erro: list[float] = [1e1, 1e4]
@@ -432,12 +466,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         xlims = xlims_erro
         ylims = ylims_erro
 
-    # Computation of the SNR equivalent to the requested ENOB
-    snr_db = 6.02 * enob + 10.792
-    snr = 10**(snr_db/20)
-
-    # Computation of the noise floor per sqrt(Hz) corresponding to the ENOB
-    noise_floor = cst.fsrADCErrorV / (snr * np.sqrt(fs/2))
+    req_nsd *= np.sqrt(cst.fSamp / fs)
 
     if acq_mode == 'error':
         # Fit of 1/f behavior
@@ -456,26 +485,39 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
         # Aliasing the noise
         # f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs)
-        print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
+        print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
 
+    # Plot of the measured spectrum
     lbl1 = "Measurement"
     ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
 
+    # Plot of the model
     if model_filename != '':
         lbl2 = 'Model (from datasheets)'
         ax.loglog(f_theo, noise_theo * 1e9, '--', color='r', label=lbl2)
 
+    # Plot of the averaged noise in the band for dump data
+    if acq_mode == "dump":
+        f_range_limits = [500e3, 10e6]
+        i_range_limit0 = int(len(xf) * f_range_limits[0] / (cst.fSamp / 2))
+        i_range_limit1 = int(len(xf) * f_range_limits[1] / (cst.fSamp / 2))
+        noise_avg_nV = spectrum[i_range_limit0:i_range_limit1].mean() * 1e9
+        lbl_noise_avg = r'Averaged noise between {0:3.0f} kHz and {1:3.0f} MHz: {2:3.1f} nV/$\sqrt{{\mathrm{{Hz}}}}$' \
+            .format(f_range_limits[0] / 1e3, f_range_limits[1] / 1e6, noise_avg_nV)
+        ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nV, noise_avg_nV], '-', color='k',
+                  label=lbl_noise_avg)
+
     if acq_mode == 'error':
         x = np.arange(1e4)
-        lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{Hz}$)'
+        lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$)'
         ax.loglog([xf[xf_white_start], xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl3)
         lbl4 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
         ax.loglog(x[1:], one_over_f(x[1:], a) * 1e9, '-.', color='k', label=lbl4)
 
-    if enob != 0:
-        lbl5 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs / 2 / 1e6)
-        ax.loglog(xlims, [noise_floor * 1e9, noise_floor * 1e9], ':', color='purple', label=lbl5)
-
+    if req_nsd != 0:
+        lbl5 = (r"Required noise floor for a bandwidth of {0:3.3f} MHz: {1:3.0f} nV/$\sqrt{{\mathrm{{Hz}}}}$"
+                .format(fs / 2e6, req_nsd * 1e9))
+        ax.loglog(xlims, [req_nsd * 1e9, req_nsd * 1e9], ':', color='purple', label=lbl5)
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
