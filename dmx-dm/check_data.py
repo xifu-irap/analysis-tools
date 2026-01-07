@@ -63,7 +63,7 @@ def check_bits(path_data, data_types, column):
             _, _, _, errors = rddt.read_scan(full_file_name)
             data = errors.flatten('F').astype(int)
         elif data_types == "dump":
-            data, _ = rddt.read_dump_file(full_file_name)
+            data, _ = rddt.read_dump_from_fits(full_file_name)
             data = data[column, :]
 
         fig = plt.figure(figsize=(10, 12))

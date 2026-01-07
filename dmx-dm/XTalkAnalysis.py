@@ -38,7 +38,7 @@ def get_dump(path, c_perp, pls_set, config):
     print("Reading and accumulating the data from {0} dumps".format(len(files)))
     dump = np.zeros((cst.nColPerDemux, 2 * cst.nSamplesPerRow * cst.muxFactor))
     for file in files:
-        idump, _ = rddt.read_dump_file(os.path.join(pathData, file))
+        idump, _ = rddt.read_dump_from_fits(os.path.join(pathData, file))
         dump += idump
     dump /= len(files)
 

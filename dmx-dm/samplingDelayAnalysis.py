@@ -58,7 +58,7 @@ def samplingDelay(tconf, col):
     # Reading and accumulating the dumps
     dump = np.zeros(2 * cst.nSamplesPerRow * cst.muxFactor)
     for file in files:
-        colDumps, _ = rddt.read_dump_file(os.path.join(pathData, file))
+        colDumps, _ = rddt.read_dump_from_fits(os.path.join(pathData, file))
         dump+=colDumps[col, :]
     dump /= len(files)
 
@@ -94,7 +94,7 @@ def samplingDelay(tconf, col):
     for index, file in enumerate (np.sort(files)):
         print("  {0:} > ".format(index) + file)
 
-        colData, _ = rddt.read_tm_file(os.path.join(pathData, file))
+        colData, _ = rddt.get_science_from_fits(os.path.join(pathData, file))
         pix0 = colData[0, :nVal].mean()
 
         # Adding error data on the plot

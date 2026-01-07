@@ -50,7 +50,7 @@ def fdbkDelay(tconf, col):
     for index, file in enumerate (np.sort(files)):
         print(file)
         iDelay = index-3
-        colDumps, errors = rddt.read_dump_file(os.path.join(path_data, file))
+        colDumps, errors = rddt.read_dump_from_fits(os.path.join(path_data, file))
 
         # Doing plot
         if iDelay < 0:

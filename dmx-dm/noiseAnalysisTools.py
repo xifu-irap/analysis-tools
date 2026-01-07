@@ -50,7 +50,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name):
     power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     for i in range(len(files)):
-        dumpData, _ = rddt.read_dump_file(os.path.join(data_path, files[i]))
+        dumpData, _ = rddt.read_dump_from_fits(os.path.join(data_path, files[i]))
 
         # Computing spectrum (the 4 columns in parallel)
         # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
@@ -98,8 +98,8 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
             in the provided directory.
     """
 
-    remove_dc = True
-    col_data, data_exists = rddt.read_tm_one_col(data_path, col_id, remove_dc, False)
+    col_data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True,
+                                                           verbose=False)
 
     if not data_exists:
         xf, power_spectrum = 0, 0
@@ -209,14 +209,13 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
 
     cross_power_spectrum = np.zeros((cst.nColPerDemux, int(npts/2+1)))
 
-    remove_dc = True
-    ref_data = rddt.read_tm_one_col(data_path, col_ref, remove_dc)
+    ref_data, _ = rddt.read_col_science_from_dir(data_path, col_ref, flatten=True, remove_dc=True, verbose=False)
 
     for col_id in range(cst.nColPerDemux):
         if col_id == col_ref:
             col_data = ref_data
         else:
-            col_data = rddt.read_tm_one_col(data_path, col_id, remove_dc)
+            col_data = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True, verbose=False)
 
         # Computing cross-spectrum
         xf, cross_power_spectrum[col_id,:] = gt.do_cross_power_spectrum(ref_data, col_data, cst.fRow, npts, window=win_name)

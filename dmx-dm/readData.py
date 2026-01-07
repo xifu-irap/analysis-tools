@@ -26,19 +26,19 @@ def read_event_records(fits_file):
         return firstDf, data
 
 
-def read_tm_file(fits_file):
+def get_science_from_fits(fullFileName):
     """
     Reads DEMUX science data (error or science) from a fits file.
 
     Parameters:
-        fits_file (string): Name of the fits file (includes the path).
+        fullFileName (string): Name of the fits file (includes the path).
 
     Returns:
         error (array): The error values (one value per pixel and per step)
 
         ctrl (array): The control words (one value per step)
     """
-    with fits.open(fits_file) as hdul:
+    with fits.open(fullFileName) as hdul:
 
         # Checking the extension name 'pixels_data'
         if 'pixels_data' in hdul:
@@ -50,22 +50,55 @@ def read_tm_file(fits_file):
         data = data_ext.data
         dataArray = np.array(data.tolist()).T
 
-        ctrl = dataArray[0, :]
-        data = dataArray[1:, :].astype(float)
+    ctrl = dataArray[0, :]
+    data = dataArray[1:, :].astype(float) / 4
 
-        if ctrl[0] == 0xCA:
-            data /= 4
-
-        return data, ctrl
+    return data, ctrl
 
 
-def read_tm_one_col(data_path, col_id, remove_dc=True, verbose=True):
+def read_science_from_fits(fullFileName, flatten=False, remove_dc=True, verbose=True):
+    """
+    Reads DEMUX science data for one column from a fits file.
+
+    Parameters:
+
+        fullFileName (string): filename including the path.
+        flatten (boolean): If True the data are arranged at Frow, else the data are arranged at FFrame
+        remove_dc (boolean): If True, the dc of the data is removed (default is True)
+        verbose: (boolean): If True, some text is displayed
+
+    Returns:
+        col_data (numpy array): The data
+     """
+
+    if verbose:
+        print("    Reading TM data from ", fullFileName, ".... ")
+
+    col_data, _ = get_science_from_fits(fullFileName)
+    # If requested, flattening the array to have data at Frow
+    if flatten:
+        col_data = col_data.flatten('F')
+
+    # removing DC
+    if remove_dc:
+        if verbose:
+            print("     Print removing DC")
+        col_data -= col_data.mean()
+
+    if verbose:
+        print("Done!")
+
+    return col_data
+
+
+def read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True, verbose=True):
     """
     Reads DEMUX science data for one column from a fits file.
 
     Parameters:
         data_path (string): Path to the data files.
-        col_id (int): Column ID (0 to 1359)
+        col_id (int): Column ID (0 to 3)
+        flatten (boolean): If True the data are arranged at Frow, else the data are arranged at FFrame
         remove_dc (boolean): If True, the dc of the data is removed (default is True)
         verbose: (boolean): If True, some text is displayed
 
@@ -79,32 +112,22 @@ def read_tm_one_col(data_path, col_id, remove_dc=True, verbose=True):
              and f[-6:] == '{0:}.fits'.format(col_id)]
 
     file_exists = (len(files) != 0)
-    col_data = 0
 
     if file_exists:
+        if len(files) > 1:
+            print("   Warning, {0:3d} files in the directory, processing only one file...".format(len(files)))
         file_name = files[0]
         file_name_with_path = os.path.join(data_path, file_name)
 
-        if verbose:
-            print("    Reading ERROR data from ", file_name_with_path, ".... ")
+        col_data = read_science_from_fits(file_name_with_path, flatten, remove_dc, verbose)
 
-        col_data, _ = read_tm_file(file_name_with_path)
-        # Flattening the array to have data at Frow
-        col_data = col_data.flatten('F')
-
-        # removing DC
-        if remove_dc:
-            if verbose:
-                print("     Print removing DC")
-            col_data -= col_data.mean()
-
-    if verbose:
-        print("Done!")
+    else:
+        col_data = 0
 
     return col_data, file_exists
 
 
-def read_dump_file(fits_file):
+def read_dump_from_fits(fits_file):
     """Reads DEMUX dump data from a fits file.
 
     Parameters
@@ -173,7 +196,7 @@ def export_dump_2_txt(fits_file, col):
 
         col (integer): the col id
     """
-    data, _ = read_dump_file(fits_file)
+    data, _ = read_dump_from_fits(fits_file)
     np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
 
 
@@ -186,7 +209,7 @@ def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=F
         col (integer): the col id
     """
     print(data_path)
-    data = read_tm_one_col(data_path, col, remove_dc=False, verbose=True)
+    data = read_col_science_from_dir(data_path, col, flatten=True, remove_dc=False, verbose=True)
     txt_file_name = os.path.join(data_path, "error_txt_file" + '_col_{0:}.txt'.format(col))
     np.savetxt(txt_file_name, data)
 
