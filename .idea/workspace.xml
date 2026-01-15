@@ -4,9 +4,44 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of fits readout functions">
-      <change afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis_e2e.py" afterDir="false" />
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Testing coupling with sgse scripts">
+      <change afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/XnoiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XnoiseAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/calibHkTemp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/calibHkTemp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/check_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/check_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/computeSQUIDsimGain.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/computeSQUIDsimGain.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/expertises.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/expertises.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/general_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/general_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisSubtraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisSubtraction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis_e2e.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis_e2e.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-awaxe.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-fdbk-rhf200.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-ofco.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-ofco.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only_125.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only_125.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only_6p25.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/erro-only_6p25.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/fdbk-RHF200.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/fdbk-RHF200.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/fdbk-awaxe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/fdbk-awaxe.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/python-perfs.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/thermal_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/thermal_analysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/tstPatternAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tstPatternAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/tst_fft.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tst_fft.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -566,7 +601,7 @@
       <workItem from="1767628801439" duration="933000" />
       <workItem from="1767716054100" duration="233000" />
       <workItem from="1767716345396" duration="10595000" />
-      <workItem from="1768313378461" duration="3385000" />
+      <workItem from="1768313378461" duration="4995000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -792,7 +827,15 @@
       <option name="project" value="LOCAL" />
       <updated>1767783392010</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Testing coupling with sgse scripts">
+      <option name="closed" value="true" />
+      <created>1768480933757</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1768480933757</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -833,7 +876,8 @@
     <MESSAGE value="New notebook to compute error signal noise models" />
     <MESSAGE value="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)" />
     <MESSAGE value="Update of fits readout functions" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of fits readout functions" />
+    <MESSAGE value="Testing coupling with sgse scripts" />
+    <option name="LAST_COMMIT_MESSAGE" value="Testing coupling with sgse scripts" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

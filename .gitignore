@@ -1,3 +1,6 @@
 *.pyc
-.idea/*
-__pycache__/*
+
+__pycache__
+
+# extra files from Laurent's IDE
+/.idea

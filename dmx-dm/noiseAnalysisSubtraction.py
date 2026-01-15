@@ -1,9 +1,11 @@
 # imports
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 import glob
+import os
 import zipfile
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as cst
 import general_tools as gt
 import noiseAnalysisTools as nat
