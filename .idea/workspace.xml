@@ -4,17 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of fits readout functions">
+      <change afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis_e2e.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/check_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/check_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/computeSQUIDsimGain.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/computeSQUIDsimGain.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/tstPatternTools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,76 +81,76 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.XTalkAnalysis.executor": "Run",
-    "Python.XnoiseAnalysis.executor": "Run",
-    "Python.bwAnalysisFromEdges.executor": "Run",
-    "Python.calibHkTemp.executor": "Run",
-    "Python.check_data.executor": "Run",
-    "Python.constants.executor": "Run",
-    "Python.cutoffFrequency.executor": "Run",
-    "Python.debugErrorFiles.executor": "Run",
-    "Python.dmx_tools.executor": "Run",
-    "Python.errorDumpEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis2.executor": "Run",
-    "Python.errorEnobAnalysis.executor": "Run",
-    "Python.errorLinearity.executor": "Run",
-    "Python.errorNolineEnobAnalysis.executor": "Run",
-    "Python.errorNolineEnobAnalysis2.executor": "Run",
-    "Python.errorSignalNoiseAnalysis.executor": "Run",
-    "Python.errorSignalNoiseAnalysis2.executor": "Run",
-    "Python.expertises.executor": "Run",
-    "Python.export_fits2txt.executor": "Run",
-    "Python.fakes.executor": "Run",
-    "Python.fdbkAndErrorLinearity.executor": "Run",
-    "Python.fdbkDacLinearity.executor": "Run",
-    "Python.fdbkDelayAnalysis.executor": "Run",
-    "Python.general_tools.executor": "Run",
-    "Python.noiseAnalysis.executor": "Run",
-    "Python.noiseAnalysisSubtraction.executor": "Run",
-    "Python.noiseAnalysisTools.executor": "Run",
-    "Python.noiseAnalysis_INI.executor": "Run",
-    "Python.noise_analysis.executor": "Run",
-    "Python.nonLinearity.executor": "Run",
-    "Python.nonLinearity_copy.executor": "Run",
-    "Python.process.executor": "Run",
-    "Python.process_expertise_data.executor": "Run",
-    "Python.readData.executor": "Run",
-    "Python.samplingDelayAnalysis-2.executor": "Run",
-    "Python.samplingDelayAnalysis.executor": "Run",
-    "Python.thermal_analysis.executor": "Run",
-    "Python.thermal_analysis_INI.executor": "Run",
-    "Python.timingAnalysis.executor": "Run",
-    "Python.toto.executor": "Run",
-    "Python.tstPatternAnalysis.executor": "Run",
-    "Python.tstPatternTools.executor": "Run",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "develop",
-    "last_opened_file_path": "/Users/laurent/PycharmProjects/analysis-tools/dmx-dm",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "ts.external.directory.path": "/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.XTalkAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.XnoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.bwAnalysisFromEdges.executor&quot;: &quot;Run&quot;,
+    &quot;Python.calibHkTemp.executor&quot;: &quot;Run&quot;,
+    &quot;Python.check_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.constants.executor&quot;: &quot;Run&quot;,
+    &quot;Python.cutoffFrequency.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debugErrorFiles.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dmx_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.expertises.executor&quot;: &quot;Run&quot;,
+    &quot;Python.export_fits2txt.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fakes.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkAndErrorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDacLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.general_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisSubtraction.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisTools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noise_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity_copy.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process_expertise_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.readData.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis-2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.timingAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.toto.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternTools.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/laurent/PycharmProjects/analysis-tools/dmx-dm&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecapSpentCounter">
     <option name="endsOfQuotaMs" value="1768316422654" />
-    <option name="spentUsd" value="0.03912815" />
+    <option name="spentUsd" value="0.07300499" />
   </component>
   <component name="RecapUselessUpdatesCounter">
-    <option name="suspendCountdown" value="5" />
+    <option name="suspendCountdown" value="0" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -470,8 +462,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.142" />
-        <option value="bundled-python-sdk-f2b7a9f6281b-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.142" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.308" />
+        <option value="bundled-python-sdk-ca5e2b39c7df-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.308" />
       </set>
     </attachedChunks>
   </component>
@@ -573,7 +565,8 @@
       <workItem from="1767628539764" duration="237000" />
       <workItem from="1767628801439" duration="933000" />
       <workItem from="1767716054100" duration="233000" />
-      <workItem from="1767716345396" duration="9602000" />
+      <workItem from="1767716345396" duration="10595000" />
+      <workItem from="1768313378461" duration="3385000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -791,7 +784,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766154220933</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Update of fits readout functions">
+      <option name="closed" value="true" />
+      <created>1767783392010</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1767783392010</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -831,7 +832,8 @@
     <MESSAGE value="Update of the noise analysis plots:&#10;- Fix of the ENOB level computation&#10;- Addition of the white noise level" />
     <MESSAGE value="New notebook to compute error signal noise models" />
     <MESSAGE value="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)" />
+    <MESSAGE value="Update of fits readout functions" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update of fits readout functions" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -933,7 +935,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>634</line>
+          <line>635</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -943,7 +945,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>219</line>
+          <line>220</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>
@@ -965,8 +967,8 @@
     <SUITE FILE_PATH="coverage/analysis_tools$noiseAnalysisTools.coverage" NAME="noiseAnalysisTools Coverage Results" MODIFIED="1762348203744" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$timingAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1729170096656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$XTalkAnalysis.coverage" NAME="XTalkAnalysis Coverage Results" MODIFIED="1767783043263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
-    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDelayAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1763390941220" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$errorNolineEnobAnalysis.coverage" NAME="errorNolineEnobAnalysis Coverage Results" MODIFIED="1737044641479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
+    <SUITE FILE_PATH="coverage/analysis_tools$fdbkDelayAnalysis.coverage" NAME="fdbkDelayAnalysis Coverage Results" MODIFIED="1767783282023" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$process.coverage" NAME="process Coverage Results" MODIFIED="1716990550654" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/analysis_tools$constants.coverage" NAME="constants Coverage Results" MODIFIED="1736412312158" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
     <SUITE FILE_PATH="coverage/analysis_tools$fdbkAndErrorLinearity.coverage" NAME="nonLinearity Coverage Results" MODIFIED="1736763614988" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dmx-dm" />
