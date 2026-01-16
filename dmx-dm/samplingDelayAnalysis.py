@@ -1,6 +1,5 @@
 # imports
 import os
-from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,21 +16,23 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
 
 # TODO: Add the model / module name on the plots
 
-def samplingDelay(tconf, col):
-    path = tconf.file_path
-    session_name = tconf.session_name
+def samplingDelayCol(col):
+    # Data directory
+    dirpath = os.path.join("..", "..")
 
-    bxl = int(path[-19:-17]) # boxcar length
-    pls = int(path[-1]) # pulse shaping set
-    pathData = os.path.join(path, cst.dataDirName)
-    pathPlot = os.path.join(path, cst.plotDirName)
+    session_name = os.path.realpath(dirpath).split("/")[-1].split("\\")[-1]
+
+    bxl = int(session_name[-19:-17])  # boxcar length
+    pls = int(session_name[-1])  # pulse shaping set
+    pathData = os.path.join(dirpath, cst.dataDirName)
+    pathPlot = os.path.join(dirpath, cst.plotDirName)
     gt.createdir(pathPlot)
     plotFileName = os.path.join(pathPlot, 'samplingDelay_col{0:}_bxl{1:}_pls{2:}.png'.format(col, bxl, pls))
 
     xlabel = 'Time (ns)'
     ylabel1 = 'Error signal Dump (ADU)'
     title1 = 'Column {0:}, nb of averaged samples = {1:}, pulse shaping set = {2:}\n'.format(col, bxl + 1, pls) \
-             + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+             + '(' + session_name + ')'
 
     x_min = 0
     x_max = 320
@@ -41,7 +42,7 @@ def samplingDelay(tconf, col):
     fig = plt.figure(figsize=(9, 7))
     plt.suptitle("Test of Sampling delay and boxcar length settings".format(col))
 
-    print("Processing data from directory " + path)
+    print("Processing data from directory " + dirpath)
     #---------------------------------------------
 
     # #######
@@ -132,30 +133,6 @@ def samplingDelay(tconf, col):
 
 # -------------------------------------------------------------------------------------
 
-@dataclass
-class TestConfig:
-    testPlanPath: str
-    session_name: str
-
-    @property
-    def file_path(self) -> str:
-        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
-
-
-list_of_configs = [
-    TestConfig(cst.TP21_PATH, "20250213_144452_samplingDelay-Bxl07-pulseShapingSet0"),
-    TestConfig(cst.TP21_PATH, "20250213_144532_samplingDelay-Bxl03-pulseShapingSet0"),
-    TestConfig(cst.TP21_PATH, "20250213_144611_samplingDelay-Bxl01-pulseShapingSet0"),
-    TestConfig(cst.TP21_PATH, "20250213_144648_samplingDelay-Bxl00-pulseShapingSet0"),
-    TestConfig(cst.TP27_PATH, "20251024_160757_samplingDelay-Bxl00-pulseShapingSet0"),
-    TestConfig(cst.TP27_PATH, "20251024_161301_samplingDelay-Bxl03-pulseShapingSet0"),
-    TestConfig(cst.TP27_PATH, "20251024_161419_samplingDelay-Bxl00-pulseShapingSet3"),
-    TestConfig(cst.TP27_PATH, "20251024_161530_samplingDelay-Bxl03-pulseShapingSet3"),
-    TestConfig(cst.TP27_PATH, "20251024_163817_samplingDelay-Bxl03-pulseShapingSet1"),
-    TestConfig(cst.TP27_PATH, "20251024_163927_samplingDelay-Bxl00-pulseShapingSet1")
-]
-
-for test_conf in list_of_configs[-2:]:
-    # for col in range(cst.nColPerDemux):
-    col = 2
-    samplingDelay(test_conf, col)
+def samplingDelayAnalysis():
+    for col in range(cst.nColPerDemux):
+        samplingDelayCol(col)
