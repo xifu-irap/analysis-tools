@@ -1,6 +1,5 @@
 # imports
 import os
-from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,7 +46,7 @@ def set_grid(ax, major_on, minor_on, xmajor, xminor, ymajor, yminor):
         ax.grid(True, which='minor', linestyle=':', linewidth='0.5', color='gray')
 
 
-def plot_non_linearity(tconf):
+def nonlinearity():
     """
     This functions characterises the non-linearity of DMX signals from scan data.
     This is applicable to feedback + error signals or offset + error signals.
@@ -69,14 +68,15 @@ def plot_non_linearity(tconf):
     nb_pix_avg = 16
 
     # Data directory
-    dir_path = tconf.file_path
-    pathData = os.path.join(dir_path, cst.scanDirName)
+    dirpath = os.path.join("..", "..")
 
-    # Session name
-    session_name = tconf.session_name
+    session_name = os.path.realpath(dirpath).split("/")[-1].split("\\")[-1]
 
-    # Creation of a directory for the plot files
-    pathPlot = os.path.join(dir_path, cst.plotDirName)
+    # Looking for test configuration parameters
+    index_bxl = session_name.find("BXL")
+    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 2])  # boxcar length
+    pathData = os.path.join(dirpath, cst.scanDirName)
+    pathPlot = os.path.join(dirpath, cst.plotDirName)
     gt.createdir(pathPlot)
 
     ytit1 = "Error values (ADU)"
@@ -84,6 +84,8 @@ def plot_non_linearity(tconf):
     ytit3 = "Non Linearity (% of ADC FSR)"
     ymargin = 1024 # margin for ylimits in the plot
     dotsize = 1
+    major_grid_ratio = 4
+    grid_ratio = 4
 
     print("/----------------------------------------------------------")
     print("/ Processing non linearity from directory:")
@@ -124,15 +126,15 @@ def plot_non_linearity(tconf):
                 xtit = "Feedback values (ADU)"
                 xlim = [-cst.fsrDACFdbkADU / 2, cst.fsrDACFdbkADU / 2]
                 ylim1 = [-cst.fsrADCErrorADU / 2 -ymargin, cst.fsrADCErrorADU / 2 +ymargin]
-                plotFileName = 'fdbkAndErrorLinearity_col{0:}.png'.format(col)
-                plotFileName2 = 'fdbkAndErrorDNL_col{0:}.png'.format(col)
-                plotFileName3 = 'fdbkAndErrorINL_col{0:}.png'.format(col)
-                figsuptitle = 'Feedback + Error linearity measurement for column {0:}\n'.format(col) \
-                              + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                plotFileName = 'fdbkAndErrorINL2_col{0:}_bxl{1:}.png'.format(col, bxl)
+                plotFileName2 = 'fdbkAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
+                plotFileName3 = 'fdbkAndErrorINL1_col{0:}_bxl{1:}.png'.format(col, bxl)
+                figsuptitle = 'Feedback + Error INL(2) measurement for column {0:}\n'.format(col) \
+                              + '(' + session_name + ')'
                 figsuptitle2 = 'Feedback + Error DNL measurement for column {0:}\n'.format(col) \
-                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
-                figsuptitle3 = 'Feedback + Error INL measurement for column {0:} \n'.format(col) \
-                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                               + '(' + session_name + ')'
+                figsuptitle3 = 'Feedback + Error INL(1) measurement for column {0:} \n'.format(col) \
+                               + '(' + session_name + ')'
             elif np.all(scan_type == "Offset"):
                 # For the offset scans we use 4 frames per steps because of the settling time
                 # We keep only the data of the last frame
@@ -142,15 +144,15 @@ def plot_non_linearity(tconf):
                 xtit = "Offset values (ADU)"
                 xlim = [0, cst.fsrDACOfcoCoarseADU]
                 ylim1 = [0-ymargin, cst.fsrADCErrorADU / 2 +ymargin]
-                plotFileName = 'ofcoAndErrorLinearity_col{0:}.png'.format(col)
-                plotFileName2 = 'ofcoAndErrorDNL_col{0:}.png'.format(col)
-                plotFileName3 = 'ofcoAndErrorINL_col{0:}.png'.format(col)
-                figsuptitle = 'Offset + Error linearity measurement for column {0:}\n'.format(col) \
-                              + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                plotFileName = 'ofcoAndErrorINL1_col{0:}_bxl{1:}.png'.format(col, bxl)
+                plotFileName2 = 'ofcoAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
+                plotFileName3 = 'ofcoAndErrorINL2_col{0:}_bxl{1:}.png'.format(col, bxl)
+                figsuptitle = 'Offset + Error INL-1 measurement for column {0:}\n'.format(col) \
+                              + '(' + session_name + ')'
                 figsuptitle2 = 'Offset + Error DNL measurement for column {0:}\n'.format(col) \
-                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
-                figsuptitle3 = 'Offset + Error INL measurement for column {0:}\n'.format(col) \
-                               + '(' + tconf.testPlanPath + '     ' + session_name + ')'
+                               + '(' + session_name + ')'
+                figsuptitle3 = 'Offset + Error INL-2 measurement for column {0:}\n'.format(col) \
+                               + '(' + session_name + ')'
             else:
                 raise ValueError("Error, found different scan types!")
 
@@ -255,16 +257,14 @@ def plot_non_linearity(tconf):
             ax22.set_ylim(ylims22)
             ax22.set_ylabel(ytit3)
 
-            #ymajor = 10 ** np.floor(np.log10(ylim_extension*deltay))*4
-            grid_ratio = 10
-            ymajor = np.round((ylim_extension*deltay)*grid_ratio)/grid_ratio
-            yminor = ymajor/5
+            ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
+            yminor = ymajor / grid_ratio
             set_grid(ax2, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
 
             fig.tight_layout()
 
             plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
-            print("results plotted in file " + plotFileName)
+            print("INL-2 results plotted in file " + plotFileName)
 
 
             # Doing the DNL plots
@@ -288,12 +288,14 @@ def plot_non_linearity(tconf):
             ax3.set_ylim(ylims3)
             ax3.set_ylabel(ytit3)
 
-            set_grid(ax, True, True, 2 ** 12, 2 ** 8, 5, 1)
+            ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
+            yminor = ymajor / grid_ratio
+            set_grid(ax, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
 
             fig.tight_layout()
 
             plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
-            print("DNL results plotted in file " + plotFileName)
+            print("DNL results plotted in file " + plotFileName2)
 
 
             # Doing the INL plots
@@ -315,46 +317,19 @@ def plot_non_linearity(tconf):
             ylims = ax.get_ylim()
             ylims3 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
             ax3.set_ylim(ylims3)
+            # ax3.set_ylim(ylimDNL)
             ax3.set_ylabel(ytit3)
 
-            set_grid(ax, True, True, 2 ** 12, 2 ** 8, 10, 2)
+            ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
+            yminor = ymajor / grid_ratio
+            set_grid(ax, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
 
             fig.tight_layout()
 
             plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
-            print("INL results plotted in file " + plotFileName)
+            print("INL-1 results plotted in file " + plotFileName3)
 
         print("/---------------")
 
 
 # -------------------------------------------------------------------------------------
-
-@dataclass
-class TestConfig:
-    testPlanPath: str
-    session_name: str
-
-    @property
-    def file_path(self) -> str:
-        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
-
-
-TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
-
-list_of_configs = [
-    TestConfig(cst.TP21_PATH, "20250108_150256_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250108_152522_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250108_163003_ofcoAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250109_181148_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250109_181826_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250110_112602_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250110_113807_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP21_PATH, "20250113_110936_ofcoAndErrorLinearity"),
-    TestConfig(TP27_TURBO45_PATH, "20250618_175057_fdbkAndErrorLinearity"),
-    TestConfig(TP27_TURBO45_PATH, "20250618_175605_ofcoAndErrorLinearity"),
-    TestConfig(cst.TP27_PATH, "20251024_155653_fdbkAndErrorLinearity"),
-    TestConfig(cst.TP27_PATH, "20251024_155252_ofcoAndErrorLinearity")
-]
-
-for test_conf in list_of_configs[-2:]:
-    plot_non_linearity(test_conf)

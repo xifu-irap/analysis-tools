@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2021-2030 Laurent Ravera, IRAP Toulouse.
@@ -38,24 +38,24 @@ fFrame = fRow / muxFactor
 
 # Error signal ADC
 dmxNbBitsADCError = 14
-fsrADCErrorADU = 2**dmxNbBitsADCError
+fsrADCErrorADU = 2 ** dmxNbBitsADCError
 fsrADCErrorV = 2
 
 # Feedback signal DAC
 dmxNbBitsDACFdbk = 14
-fsrDACFdbkADU = 2**dmxNbBitsDACFdbk
+fsrDACFdbkADU = 2 ** dmxNbBitsDACFdbk
 fsrDACFdbkV = 2
 
 # Offset compensation signal DAC
 dmxNbBitsDACOfcoCoarse = 12
-fsrDACOfcoCoarseADU = 2**dmxNbBitsDACOfcoCoarse
+fsrDACOfcoCoarseADU = 2 ** dmxNbBitsDACOfcoCoarse
 fsrDACOfcoCoarseV = 1
 
 # Test patterns
 tstPattern_nb_regions = 5
 tstPattern_nb_params_per_region = 4
 
-fFilterAdc = 20e6 # Anti aliasing filter cutoff frequency in Hz
+fFilterAdc = 20e6  # Anti aliasing filter cutoff frequency in Hz
 
 # Directories
 dataDirName = 'dmx_data'
@@ -63,9 +63,6 @@ scanDirName = 'scans'
 hkDirName = 'hks'
 plotDirName = 'PLOTS'
 
-BASE_DATA_PATH = "/Users/laurent/Data"
-TP21_PATH = "TestPlan21-perfo"
-TP24_PATH = "TestPlan24_DM-DMX2_elec"
-TP27_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs"
+BASE_DATA_PATH = "."
 
 # ---------------------------------------------------------------------------------

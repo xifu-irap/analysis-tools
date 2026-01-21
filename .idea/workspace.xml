@@ -5,16 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Testing coupling with sgse scripts">
-      <change afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/XnoiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XnoiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.bat" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants_e2e.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis_e2e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisSubtraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisSubtraction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis_e2e.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +19,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="75" />
+    <option name="cachedIndexableFilesCount" value="76" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -574,7 +571,9 @@
       <workItem from="1767628801439" duration="933000" />
       <workItem from="1767716054100" duration="233000" />
       <workItem from="1767716345396" duration="10595000" />
-      <workItem from="1768313378461" duration="5716000" />
+      <workItem from="1768313378461" duration="7419000" />
+      <workItem from="1768777088281" duration="453000" />
+      <workItem from="1768815348330" duration="6201000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -816,7 +815,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768495101091</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="Testing coupling with sgse scripts">
+      <option name="closed" value="true" />
+      <created>1768580886953</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1768580886953</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

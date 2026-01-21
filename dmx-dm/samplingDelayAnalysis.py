@@ -22,10 +22,14 @@ def samplingDelayCol(col):
 
     session_name = os.path.realpath(dirpath).split("/")[-1].split("\\")[-1]
 
-    bxl = int(session_name[-19:-17])  # boxcar length
-    pls = int(session_name[-1])  # pulse shaping set
+    # Looking for test configuration parameters
+    index_bxl = session_name.find("BXL")
+    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 2])  # boxcar length
+    index_pls = session_name.find("PLS+3")
+    pls = int(session_name[index_pls])  # pulse shaping set
     pathData = os.path.join(dirpath, cst.dataDirName)
     pathPlot = os.path.join(dirpath, cst.plotDirName)
+
     gt.createdir(pathPlot)
     plotFileName = os.path.join(pathPlot, 'samplingDelay_col{0:}_bxl{1:}_pls{2:}.png'.format(col, bxl, pls))
 

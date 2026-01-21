@@ -18,9 +18,10 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
 def fdbkDelay(col, verbose=False):
     # Data directory
     dir_path = os.path.join("..", "..")
-    # dir_path = "../.."
+
     path_data = os.path.join(dir_path, cst.dataDirName)
 
+    # Looking for test configuration parameters
     session_name = os.path.realpath(dir_path)
     start_str = session_name.split("_")[-2]
     end_str = session_name.split("_")[-1]
