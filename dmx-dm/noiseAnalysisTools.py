@@ -11,7 +11,7 @@ import general_tools as gt
 import readData as rddt
 
 
-def power_spectrum_from_dumps(data_path, npts, win_name):
+def power_spectrum_from_dumps(data_path, npts, win_name="none"):
     """
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
@@ -26,6 +26,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name):
         npts (int): Number of points for computing the power spectrum. It should be consistent
             with the sampling rate and signal properties.
         win_name (str): Name of the window function to be applied during the computation.
+            default="none"
 
     Raises:
         ValueError: If no valid dump files are found in the specified directory.
@@ -113,7 +114,7 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
     return xf, power_spectrum, data_exists
 
 
-def power_spectrum_from_error(data_path, npts, win_name):
+def power_spectrum_from_error(data_path, npts, win_name="none"):
     from joblib import Parallel, delayed
 
     results = Parallel(n_jobs=cst.nColPerDemux)(
@@ -417,7 +418,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
         The spectrum data to be plotted (in nV/√Hz).
 
     acq_mode : str
-        The acquisition mode, which can be either 'dump' or 'error'. This affects the
+        The acquisition mode, which can be either 'DUMP' or 'ERRO'. This affects the
         limits and the fitting behavior of the function.
 
     model_filename : str
@@ -455,19 +456,18 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
     ylims_dump: list[float] = [1e1, 1e2]
 
     # Processing science files
-    if acq_mode == 'dump':
+    if acq_mode == 'DUMP':
         fs = cst.fSamp
         xlims = xlims_dump
         ylims = ylims_dump
-
-    else:  # acq_mode == 'error'
+    else:  # acq_mode == 'ERRO'
         fs = cst.fRow
         xlims = xlims_erro
         ylims = ylims_erro
 
     req_nsd *= np.sqrt(cst.fSamp / fs)
 
-    if acq_mode == 'error':
+    if acq_mode == 'ERRO':
         # Fit of 1/f behavior
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e3 # max frequency of 1/f area
@@ -496,7 +496,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
         ax.loglog(f_theo, noise_theo * 1e9, '--', color='r', label=lbl2)
 
     # Plot of the averaged noise in the band for dump data
-    if acq_mode == "dump":
+    if acq_mode == "DUMP":
         f_range_limits = [500e3, 10e6]
         i_range_limit0 = int(len(xf) * f_range_limits[0] / (cst.fSamp / 2))
         i_range_limit1 = int(len(xf) * f_range_limits[1] / (cst.fSamp / 2))
@@ -506,7 +506,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
         ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nV, noise_avg_nV], '-', color='k',
                   label=lbl_noise_avg)
 
-    if acq_mode == 'error':
+    if acq_mode == 'ERRO':
         x = np.arange(1e4)
         lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$)'
         ax.loglog([xf[xf_white_start], xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl3)
@@ -523,7 +523,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel_log)
 
-    if acq_mode == 'dump':
+    if acq_mode == 'DUMP':
         # Désactiver la notation scientifique pour l'axe Y
         ax.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
         ax.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
@@ -558,7 +558,7 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
         The spectrum data to be plotted (in nV/√Hz).
 
     acq_mode : str
-        The acquisition mode, which can be either 'dump' or 'error'. This affects the
+        The acquisition mode, which can be either 'DUMP' or 'ERRO'. This affects the
         limits and the fitting behavior of the function.
 
     model_filename : str
@@ -599,12 +599,11 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     ylims_dump: list[float] = [1e1, 1e2]
 
     # Processing science files
-    if acq_mode == 'dump':
+    if acq_mode == 'DUMP':
         fs = cst.fSamp
         xlims = xlims_dump
         ylims = ylims_dump
-
-    else:  # acq_mode == 'error'
+    else:  # acq_mode == 'ERRO'
         fs = cst.fRow
         xlims = xlims_erro
         ylims = ylims_erro
@@ -616,7 +615,7 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     # Computation of the noise floor per sqrt(Hz) corresponding to the ENOB
     noise_floor = cst.fsrADCErrorV / (snr * np.sqrt(fs / 2))
 
-    if acq_mode == 'error':
+    if acq_mode == 'ERRO':
         # Fit of 1/f behavior
         xf_start = 3  # to avoid DC perturbations
         f_stop = 1e3  # max frequency of 1/f area
@@ -651,7 +650,7 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     # ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
     ax.loglog(f_theo2, noise_erro * 1e9, '--', color='r', label=lbl4)
 
-    if acq_mode == 'error':
+    if acq_mode == 'ERRO':
         x = np.arange(1e4)
         lbl6 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
         ax.loglog(x[1:], one_over_f(x[1:], a) * 1e9, '-.', color='k', label=lbl6)
@@ -661,7 +660,7 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel_log)
 
-    if acq_mode == 'dump':
+    if acq_mode == 'DUMP':
         # Désactiver la notation scientifique pour l'axe Y
         ax.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
         ax.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs

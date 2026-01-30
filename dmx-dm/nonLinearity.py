@@ -70,7 +70,7 @@ def nonlinearity():
     # Data directory
     dirpath = os.path.join("..", "..")
 
-    session_name = os.path.realpath(dirpath).split("/")[-1].split("\\")[-1]
+    session_name = os.path.basename(os.path.realpath(dir_path))
 
     # Looking for test configuration parameters
     index_bxl = session_name.find("BXL")

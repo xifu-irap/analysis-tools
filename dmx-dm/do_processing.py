@@ -2,11 +2,12 @@
 import os
 
 import fdbkDelayAnalysis
+import noiseAnalysis
 import nonLinearity
 import samplingDelayAnalysis
 
 
-def do_processing(verbose=False):
+def do_processing(verbose=True):
     """
     This function launch the data processing of the DEMUX performance tests
 
@@ -21,16 +22,18 @@ def do_processing(verbose=False):
     dir_path = os.path.join("..", "..")
     full_session_name = os.path.realpath(dir_path)
     session_name = os.path.basename(full_session_name)
-    test_type = session_name[16: 30]
-    print(test_type)
+    test_type = session_name[16: 31]
+    print("Test type:    ", test_type)
 
     match test_type:
-        case "FDBK_DELAY____":
+        case "FDBK_DELAY_____":
             fdbkDelayAnalysis.fdbkDelayAnalysis(verbose)
-        case "SAMP_DELAY____":
+        case "SAMP_DELAY_____":
             samplingDelayAnalysis.samplingDelayAnalysis()
-        case "FDBK_ERROR_LIN" | "OFCO_ERROR_LIN":
+        case "FDBK_ERROR_LIN_" | "OFCO_ERROR_LIN_":
             nonLinearity.nonlinearity()
+        case "NOISE_ERRO_ONLY" | "NOISE_ERRO_FDBK" | "NOISE_ERRO_OFCO":
+            noiseAnalysis.noiseAnalysis(verbose)
 
 
 do_processing()

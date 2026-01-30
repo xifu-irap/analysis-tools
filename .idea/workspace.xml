@@ -4,14 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Testing coupling with sgse scripts">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Optimization of NL processing">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/constants_e2e.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisSubtraction.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis_e2e.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,8 +19,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="76" />
-    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+    <option name="cachedIndexableFilesCount" value="75" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -573,7 +572,8 @@
       <workItem from="1767716345396" duration="10595000" />
       <workItem from="1768313378461" duration="7419000" />
       <workItem from="1768777088281" duration="453000" />
-      <workItem from="1768815348330" duration="6201000" />
+      <workItem from="1768815348330" duration="11825000" />
+      <workItem from="1769760919591" duration="7531000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -823,7 +823,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768580886953</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Optimization of NL processing">
+      <option name="closed" value="true" />
+      <created>1769014018803</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1769014018803</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -865,7 +873,8 @@
     <MESSAGE value="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)" />
     <MESSAGE value="Update of fits readout functions" />
     <MESSAGE value="Testing coupling with sgse scripts" />
-    <option name="LAST_COMMIT_MESSAGE" value="Testing coupling with sgse scripts" />
+    <MESSAGE value="Optimization of NL processing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Optimization of NL processing" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -967,7 +976,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>635</line>
+          <line>634</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -977,7 +986,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>220</line>
+          <line>221</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>
