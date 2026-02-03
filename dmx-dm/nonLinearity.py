@@ -70,7 +70,7 @@ def nonlinearity():
     # Data directory
     dirpath = os.path.join("..", "..")
 
-    session_name = os.path.basename(os.path.realpath(dir_path))
+    session_name = os.path.basename(os.path.realpath(dirpath))
 
     # Looking for test configuration parameters
     index_bxl = session_name.find("BXL")
@@ -92,12 +92,22 @@ def nonlinearity():
     print("/ ", pathData)
     print("/----------------------------------------------------------\n")
 
+    # looking for the position of the col id in the file names
+    files = [f for f in os.listdir(pathData) \
+             if os.path.isfile(os.path.join(pathData, f)) \
+             and f[:5] == "scan_" \
+             and f[-5:] == ".fits"]
+    index_col = files[0].find("col")  # to find the column index in the file names
+
+    
     for col in range(cst.nColPerDemux):
 
         # Searching fits files
         files = [f for f in os.listdir(pathData) \
                  if os.path.isfile(os.path.join(pathData, f)) \
-                 and f[-10:] == "_col{0:}.fits".format(col) and f[:5] == "scan_"]
+                 and f[:5] == "scan_" \
+                 and f[index_col:index_col + 4] == "col{0:}".format(col) \
+                 and f[-5:] == ".fits"]
 
         # Checking number of files
         if len(files) == 0:
