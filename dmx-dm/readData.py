@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 
+import constants as cst
+
 
 def read_event_records(fits_file):
     """
@@ -214,12 +216,71 @@ def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=F
     np.savetxt(txt_file_name, data)
 
 
-def read_hk_name_from_csv(hk_file, hk_name, encoding="latin1"):
-    # Loading the csv file
+# def read_hk_name_from_csv(hk_file, hk_name, encoding="latin1"):
+#    # Loading the csv file
+#    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
+#
+#    if hk_name[:4] == 'Date':
+#        df[hk_name] = pd.to_datetime(df[hk_name], dayfirst=True, errors="coerce")
+#        df[hk_name] = pd.to_datetime(df[hk_name], format="%Y:%M:%D %H:%M:%S")
+#
+#    return df[hk_name]
+
+
+def read_hk_name_from_csv(hk_file, hk_suffix, encoding="latin1"):
+    """
+    Lit une colonne d'un fichier CSV en utilisant les 'suffix_length' derniers caractères de son nom.
+
+    Args:
+        hk_file (str): Chemin vers le fichier CSV.
+        hk_suffix (str): Les 'suffix_length' derniers caractères du nom de la colonne.
+        suffix_length (int, optionnel): Longueur du suffixe à vérifier. Par défaut 10.
+        encoding (str, optionnel): Encodage du fichier. Par défaut "latin1".
+
+    Returns:
+        pd.Series: La colonne correspondante.
+
+    Raises:
+        ValueError: Si aucune ou plusieurs colonnes correspondent au suffixe.
+    """
     df = pd.read_csv(hk_file, sep=';', encoding=encoding)
 
-    if hk_name[:4] == 'Date':
-        df[hk_name] = pd.to_datetime(df[hk_name], dayfirst=True, errors="coerce")
-        df[hk_name] = pd.to_datetime(df[hk_name], format="%Y:%M:%D %H:%M:%S")
+    # Trouver les colonnes dont le nom se termine par hk_suffix
+    suffix_length = len(hk_suffix)
+    matching_columns = [
+        col for col in df.columns
+        if col[-suffix_length:] == hk_suffix
+    ]
 
-    return df[hk_name]
+    if not matching_columns:
+        raise ValueError(f"No HK match the name '{hk_suffix}'.")
+    if len(matching_columns) > 1:
+        raise ValueError(f"More than one HK match the name '{hk_suffix}': {matching_columns}")
+
+    selected_column = matching_columns[0]
+
+    # Conversion en datetime si le nom de la colonne commence par 'Date'
+    if selected_column[:4] == 'Date':
+        df[selected_column] = pd.to_datetime(df[selected_column], dayfirst=True, errors="coerce")
+        df[selected_column] = pd.to_datetime(df[selected_column], format="%Y:%M:%D %H:%M:%S")
+
+    return df[selected_column]
+
+
+def read_fwVersion_dmxModel(path):
+    # looking for the hk files
+    files = [f for f in os.listdir(path) \
+             if os.path.isfile(os.path.join(path, f)) \
+             and f[:8] == "Hks_DMX_" \
+             and f[-4:] == ".csv"]
+
+    if len(files) == 0:
+        print("No HK found")
+    else:
+        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "Firmware Version")[0]
+        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "Hardware Version")[0]
+
+        dmxModel = (ref >> 8) & 3
+        boardId = ref & (2 ** 5) - 1
+
+        return cst.dmx_models[dmxModel], boardId, fwVersion

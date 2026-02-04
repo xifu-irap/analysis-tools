@@ -26,13 +26,13 @@ def do_processing(verbose=True):
     print("Test type:    ", test_type)
 
     match test_type:
-        case "FDBK_DELAY_____":
+        case "FDBK-DELAY-----":
             fdbkDelayAnalysis.fdbkDelayAnalysis(verbose)
-        case "SAMP_DELAY_____":
+        case "SAMP-DELAY-----":
             samplingDelayAnalysis.samplingDelayAnalysis()
-        case "FDBK_ERROR_LIN_" | "OFCO_ERROR_LIN_":
+        case "FDBK-ERROR-LIN-" | "OFCO-ERROR-LIN-":
             nonLinearity.nonlinearity()
-        case "NOISE_ERRO_ONLY" | "NOISE_ERRO_FDBK" | "NOISE_ERRO_OFCO":
+        case "NOISE-ERRO-ONLY" | "NOISE-ERRO-FDBK" | "NOISE-ERRO-OFCO":
             noiseAnalysis.noiseAnalysis(verbose)
 
 

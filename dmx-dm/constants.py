@@ -63,6 +63,9 @@ scanDirName = 'scans'
 hkDirName = 'hks'
 plotDirName = 'PLOTS'
 
+# DEMUX models
+dmx_models = {0: "DM DMX", 1: "EM DMX", 2: "PFM DMX", 3: "FM DMX", 7: "DevKit"}
+
 BASE_DATA_PATH = "."
 
 # ---------------------------------------------------------------------------------

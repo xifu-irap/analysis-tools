@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of performance scripts">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="fix an issue when several error fits files are produced in a single second">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.bat" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +17,8 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="75" />
+    <option name="cachedIndexableFilesCount" value="73" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -569,7 +572,8 @@
       <workItem from="1768313378461" duration="7419000" />
       <workItem from="1768777088281" duration="453000" />
       <workItem from="1768815348330" duration="11825000" />
-      <workItem from="1769760919591" duration="7852000" />
+      <workItem from="1769760919591" duration="14644000" />
+      <workItem from="1770116259969" duration="10188000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -835,7 +839,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769790249525</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="fix an issue when several error fits files are produced in a single second">
+      <option name="closed" value="true" />
+      <created>1770106243805</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1770106243805</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -853,7 +865,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="New functions for analysis of DEMUX thermal HK" />
     <MESSAGE value="New function for linearity analysis" />
     <MESSAGE value="Update of error signal noise analysis" />
     <MESSAGE value="New functions for analysis of DEMUX performances" />
@@ -878,7 +889,8 @@
     <MESSAGE value="Testing coupling with sgse scripts" />
     <MESSAGE value="Optimization of NL processing" />
     <MESSAGE value="Update of performance scripts" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of performance scripts" />
+    <MESSAGE value="fix an issue when several error fits files are produced in a single second" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix an issue when several error fits files are produced in a single second" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
