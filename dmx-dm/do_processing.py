@@ -32,7 +32,7 @@ def do_processing(verbose=True):
             samplingDelayAnalysis.samplingDelayAnalysis()
         case "FDBK-ERROR-LIN-" | "OFCO-ERROR-LIN-":
             nonLinearity.nonlinearity()
-        case "NOISE-ERRO-ONLY" | "NOISE-ERRO-FDBK" | "NOISE-ERRO-OFCO":
+        case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
             noiseAnalysis.noiseAnalysis(verbose)
 
 

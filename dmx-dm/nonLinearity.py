@@ -67,6 +67,9 @@ def nonlinearity(verbose=False):
     # Number of pixels to be averaged
     nb_pix_avg = 16
 
+    colors = ['steelblue', 'cadetblue', 'slategrey', 'teal']
+    colors = ['steelblue', 'turquoise', 'blue', 'teal']
+
     # Data directory
     dirpath = os.path.join("..", "..")
 
@@ -74,7 +77,7 @@ def nonlinearity(verbose=False):
 
     # Looking for test configuration parameters
     index_bxl = session_name.find("BXL")
-    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 2])  # boxcar length
+    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 1])  # boxcar length
     pathData = os.path.join(dirpath, cst.scanDirName)
     pathHk = os.path.join(dirpath, cst.hkDirName)
     pathPlot = os.path.join(dirpath, cst.plotDirName)
@@ -117,6 +120,7 @@ def nonlinearity(verbose=False):
         print("/----------------------------------------------------------")
         print("/ DEMUX model:       " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:  {0:}".format(fwVersion))
+        print("/ Box car length:    {0:} samples".format(bxl))
         print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------\n")
 
@@ -244,22 +248,22 @@ def nonlinearity(verbose=False):
                 fig0.suptitle(figsuptitle0, fontsize=14)
                 ax0 = fig0.add_subplot(1, 1, 1)  # output vs input
 
-                ax0.scatter(scan, error, s=dotsize, label='Scan')
+                ax0.scatter(scan, error, s=dotsize, c='k', label='Scan')
                 if coeffs[1] > 0:
                     sign_str = ' + '
                 else:
                     sign_str = ' - '
                 lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(
                     abs(coeffs[1])) + ' (fit is done on FS)'
-                ax0.plot(scan[i_ok], fit, ':', color='red', linewidth=1, label=lbl)
+                ax0.plot(scan[i_ok], fit, ':', color=colors[0], linewidth=1, label=lbl)
                 nl_threshold_for_reduce_ranges = 0.3
                 if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
                     lbl = 'Linear fit2 (Y = {0:.4} X'.format(coeffs_red1[0]) + sign_str + '{0:.4})'.format(
                         abs(coeffs_red1[1])) + ' (fit2 is done on {0:}% of FS)'.format(int(red_factor1 * 100))
-                    ax0.plot(scan[i_red1], fit_red1, ':', color='orange', linewidth=1, label=lbl)
+                    ax0.plot(scan[i_red1], fit_red1, ':', color=colors[1], linewidth=1, label=lbl)
                     lbl = 'Linear fit3 (Y = {0:.4} X'.format(coeffs_red2[0]) + sign_str + '{0:.4})'.format(
                         abs(coeffs_red2[1])) + ' (fit3 is done on {0:}% of FS)'.format(int(red_factor2 * 100))
-                    ax0.plot(scan[i_red2], fit_red2, ':', color='purple', linewidth=1, label=lbl)
+                    ax0.plot(scan[i_red2], fit_red2, ':', color=colors[2], linewidth=1, label=lbl)
                 ax0.set_xlim(xlim)
                 ax0.set_ylim(ylim)
                 ax0.set_xlabel(xtit)
@@ -280,18 +284,18 @@ def nonlinearity(verbose=False):
                 val1 = max(np.abs(deviation_lsb))
                 val2 = val1 * 100 / cst.fsrADCErrorADU
                 lbl = 'Scan - linear Fit  (on FS the non linearity is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
-                ax1.scatter(scan[i_ok], deviation_lsb, s=dotsize, color='red', label=lbl)
+                ax1.scatter(scan[i_ok], deviation_lsb, s=dotsize, color=colors[0], label=lbl)
                 if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
                     val0, val1 = int(red_factor1 * 100), max(np.abs(deviation_lsb_red1))
                     val2 = val1 * 100 / cst.fsrADCErrorADU
                     lbl = 'Scan - linear Fit2  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(
                         val0, val1, val2)
-                    ax1.scatter(scan[i_red1], deviation_lsb_red1, s=dotsize, color='orange', label=lbl)
+                    ax1.scatter(scan[i_red1], deviation_lsb_red1, s=dotsize, color=colors[1], label=lbl)
                     val0, val1 = int(red_factor2 * 100), max(np.abs(deviation_lsb_red2))
                     val2 = val1 * 100 / cst.fsrADCErrorADU
                     lbl = 'Scan - linear Fit3  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(
                         val0, val1, val2)
-                    ax1.scatter(scan[i_red2], deviation_lsb_red2, s=dotsize, color='purple', label=lbl)
+                    ax1.scatter(scan[i_red2], deviation_lsb_red2, s=dotsize, color=colors[2], label=lbl)
                 ax1.set_xlim(xlim)
                 ax1.set_xlabel(xtit)
                 ax1.set_ylabel(ytit_ADU)
@@ -317,13 +321,13 @@ def nonlinearity(verbose=False):
                 plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
                 print("INL results plotted in file " + inl_plotFileName)
 
-                # DNL plots
+                ## DNL plots
                 fig2 = plt.figure(figsize=(12, 8))
                 plotFullFileName = os.path.join(pathPlot, dnl_plotFileName)
                 fig2.suptitle(figsuptitle2, fontsize=14)
                 ax2 = fig2.add_subplot(1, 1, 1)
 
-                ax2.scatter(scan[i_ok][:-1], dnl, s=dotsize, color='red', label='DNL')
+                ax2.scatter(scan[i_ok][:-1], dnl, s=dotsize, color=colors[0], label='DNL')
                 ax2.plot(xlim, [0, 0], '-k', linewidth=0.5)
                 ax2.set_xlim(xlim)
                 yl = max(np.abs(dnl).max() * 1.2, 5)

@@ -15,14 +15,14 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
     """
     Processes multiple dump files, extracts power spectrum data, and performs normalization.
 
-    This function processes dump files (.fits) located in the specified directory, computes
+    This function processes dump files located in the specified directory, computes
     the power spectrum for the 4 columns, and averages the spectrum across all the files.
     The computed spectra are normalized with respect to the root-mean-square (RMS) values of
     the signal in both time and frequency domains.
 
     Args:
         data_path (str): Path to the directory containing the dump files. The files must have
-            names starting with 'dump_' and ending with '.fits'.
+            names starting with 'dump_' and ending with '.h5'.
         npts (int): Number of points for computing the power spectrum. It should be consistent
             with the sampling rate and signal properties.
         win_name (str): Name of the window function to be applied during the computation.
@@ -41,7 +41,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
 
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
-             and f[:5] == "dump_" and f[-5:] == ".fits"]
+             and f[:5] == "dump_" and f[-3:] == ".h5"]
 
     if len(files) < 1:
         raise ValueError('Wrong number of files')
@@ -51,7 +51,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
     power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     for i in range(len(files)):
-        dumpData, _ = rddt.read_dump_from_fits(os.path.join(data_path, files[i]))
+        dumpData, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))
 
         # Computing spectrum (the 4 columns in parallel)
         # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)

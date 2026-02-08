@@ -1,6 +1,5 @@
 # imports
 import os
-import zipfile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,10 +8,11 @@ from scipy.optimize import curve_fit
 import constants as cst
 import general_tools as gt
 import noiseAnalysisTools as nat
+import readData as rddt
 
 # NSD definitions
 ## Wide band noise spectral density in V/sqrt(Hz) with BW = 62.5 MHz
-nsd_dict = {"ERRO_ONLY": 25e-9, "ERRO_FDBK": 20e-9, "ERRO_OFCO": 15e-9}
+nsd_dict = {"ERRO-ONLY": 25e-9, "FDBK-ERRO": 20e-9, "OFCO-ERRO": 15e-9}
 
 
 # Plotting noise spectral density for one column
@@ -72,16 +72,16 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
 
             # Selection of a noise model
             path_models = 'noise_models'
-            if config == 'ERRO_ONLY' and acq_mode == 'DUMP':
+            if config == 'ERRO-ONLY' and acq_mode == 'DUMP':
                 model_filename = os.path.join(path_models, "erro-only_125.txt")
-            elif config == 'ERRO_ONLY' and acq_mode == 'ERRO':
+            elif config == 'ERRO-ONLY' and acq_mode == 'ERRO':
                 model_filename = os.path.join(path_models, "erro-only_6p25.txt")
-            # elif config == 'ERRO-FDBK':
+            # elif config == 'FDBK-ERRO':
             #    if col_id == 0 or col_id == 3:
             #        model_filename = os.path.join(path_models, "erro-fdbk-awaxe.txt")
             #    else:
             #        model_filename = os.path.join(path_models, "erro-fdbk-rhf200.txt")
-            # elif signal == 'ERRO-OFCO':
+            # elif signal == 'OFCO-ERRO':
             #    model_filename = os.path.join(path_models, "erro-ofco.txt")
             else:
                 model_filename = ''  # file type is unknown, no model exists
@@ -117,7 +117,7 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
                 print("Results plotted in file ", plot_full_file_name)
 
 
-def noiseAnalysis(verbose):
+def noiseAnalysis(verbose=True):
     """
     Processes a list of directories, extracts data from zip files if required, applies specific
     data processing functions, and optionally cleans up extracted files. The function handles
@@ -128,23 +128,32 @@ def noiseAnalysis(verbose):
 
     """
 
-    #    import time
-    #    start = time.time()
-
     # Data directory
     dir_path = os.path.join("..", "..")
 
     # Data directory
     data_path = os.path.join(dir_path, cst.dataDirName)
+    hk_path = os.path.join(dir_path, cst.hkDirName)
 
     # Looking for the session name and test configuration : "ERRO_ONLY" or "ERRO_FDBK" or "ERRO_OFCO"
     session_name = os.path.basename(os.path.realpath(dir_path))
     tst_config = session_name[22:31]
 
+    # Looking for boxcar length value from session name
+    index_bxl = session_name.find("BXL")
+    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 1])  # boxcar length
+
+    # Looking for DEMUX identifiers (board, model, firmware)
+    dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
+
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Processing noise from session:")
-        print("/ ", session_name)
+        print("/ Noise test:        " + tst_config)
+        print("/----------------------------------------------------------")
+        print("/ DEMUX model:       " + dmxModel + " {0:}".format(boardId))
+        print("/ Firmware version:  {0:}".format(fwVersion))
+        print("/ Box car length:    {0:} samples".format(bxl))
+        print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------\n")
 
     if verbose:
@@ -153,33 +162,7 @@ def noiseAnalysis(verbose):
 
     if verbose:
         print("  Processing ERROR files")
-
-    # Looking for zip files if any
-    zipfiles = [f for f in os.listdir(data_path) \
-                if os.path.isfile(os.path.join(data_path, f)) \
-                and f[-4:] == '.zip']
-
-    # Unzipping zip files if any
-    data_from_zip_file = False
-    if len(zipfiles) > 0:
-        data_from_zip_file = True
-        for z in zipfiles:
-            print('    Unzipping ERROR files from ', os.path.join(data_path, z))
-            with zipfile.ZipFile(os.path.join(data_path, z), 'r') as zip_ref:
-                error_file_names = zip_ref.namelist()  # liste des noms dans l’archive
-                zip_ref.extractall(data_path)
-
     plot_col_spectrum(dir_path, "ERRO", tst_config, verbose=verbose)
-
-    # Removing fits files if extracted from a zip file
-    if (data_from_zip_file):
-        print('    Removing ERROR files... ')
-        for file in error_file_names:
-            os.remove(os.path.join(data_path, file))
-
-
-#    duration = time.time() - start
-#    print(f"Duration: {duration:.1f} s")
 
 
 #-------------------------------------------------------------------------------------

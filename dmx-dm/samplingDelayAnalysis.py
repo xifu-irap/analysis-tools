@@ -58,12 +58,12 @@ def samplingDelayCol(col):
     # Searching dump files
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
-             and f[-5:] == ".fits" and f[:5] == "dump_"]
+             and f[-3:] == ".h5" and f[:5] == "dump_"]
 
     # Reading and accumulating the dumps
     dump = np.zeros(2 * cst.nSamplesPerRow * cst.muxFactor)
     for file in files:
-        colDumps, _ = rddt.read_dump_from_fits(os.path.join(pathData, file))
+        colDumps, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
         dump+=colDumps[col, :]
     dump /= len(files)
 
@@ -86,10 +86,10 @@ def samplingDelayCol(col):
     print("  Processing error files")
 
     # Searching error files
-    suffix = "_C{0:}.fits".format(col)
+    suffix = "_C{0:}.h5".format(col)
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
-             and f[:13] == 'SamplingDelay' and f[-8:] == suffix]
+             and f[:13] == 'SamplingDelay' and f[-6:] == suffix]
 
     if len(files) != cst.nSamplesPerRow:
         raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), cst.nSamplesPerRow))
@@ -99,7 +99,7 @@ def samplingDelayCol(col):
     for index, file in enumerate (np.sort(files)):
         print("  {0:} > ".format(index) + file)
 
-        colData, _ = rddt.get_science_from_fits(os.path.join(pathData, file))
+        colData, _ = rddt.get_science_from_hdf5(os.path.join(pathData, file))
         pix0 = colData[0, :nVal].mean()
 
         # Adding error data on the plot

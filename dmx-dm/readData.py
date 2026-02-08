@@ -1,5 +1,6 @@
 import os
 
+import h5py
 import numpy as np
 import pandas as pd
 from astropy.io import fits
@@ -54,11 +55,33 @@ def get_science_from_fits(fullFileName):
 
     ctrl = dataArray[0, :]
     data = dataArray[1:, :].astype(float) / 4
+    print(data.shape)
 
     return data, ctrl
 
 
-def read_science_from_fits(fullFileName, flatten=False, remove_dc=True, verbose=True):
+def get_science_from_hdf5(fullFileName):
+    """
+    Reads DEMUX science data (error or science) from an HDF5 file.
+
+    Parameters:
+        fullFileName (str): Path to the HDF5 file.
+
+    Returns:
+        data (np.ndarray): The science data (one value per pixel and per step, divided by 4).
+        ctrl (np.ndarray): The control words (one value per step).
+    """
+    with h5py.File(fullFileName, 'r') as f:
+        # Lire les données
+        ctrl = f["ctrl"][()]
+        data = np.array(f["pixels"][()]).T
+
+        data = data.astype(float) / 4  # Conversion to s(16,2) format
+
+    return data, ctrl
+
+
+def read_science_from_file(fullFileName, flatten=False, remove_dc=True, verbose=True):
     """
     Reads DEMUX science data for one column from a fits file.
 
@@ -76,7 +99,7 @@ def read_science_from_fits(fullFileName, flatten=False, remove_dc=True, verbose=
     if verbose:
         print("    Reading TM data from ", fullFileName, ".... ")
 
-    col_data, _ = get_science_from_fits(fullFileName)
+    col_data, _ = get_science_from_hdf5(fullFileName)
     # If requested, flattening the array to have data at Frow
     if flatten:
         col_data = col_data.flatten('F')
@@ -111,7 +134,7 @@ def read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True, 
              if os.path.isfile(os.path.join(data_path, f)) \
              # and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
              and f[:4] != 'dump' \
-             and f[-6:] == '{0:}.fits'.format(col_id)]
+             and f[-4:] == '{0:}.h5'.format(col_id)]
 
     file_exists = (len(files) != 0)
 
@@ -121,7 +144,7 @@ def read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True, 
         file_name = files[0]
         file_name_with_path = os.path.join(data_path, file_name)
 
-        col_data = read_science_from_fits(file_name_with_path, flatten, remove_dc, verbose)
+        col_data = read_science_from_file(file_name_with_path, flatten, remove_dc, verbose)
 
     else:
         col_data = 0
@@ -154,6 +177,40 @@ def read_dump_from_fits(fits_file):
 
         # Return columns and errors
         return dump[0:-1,:], dump[-1,:]
+
+
+def read_dump_from_hdf5(hdf5_file):
+    """
+    Lit les données DEMUX dump et les erreurs ADC depuis un fichier HDF5.
+
+    Args:
+        hdf5_file (str): Chemin vers le fichier HDF5.
+
+    Returns:
+        tuple: (dump, adc_error)
+            - dump: tableau numpy de forme (3, 1360) contenant Col0, Col1, Col2
+            - adc_error: tableau numpy de forme (1360,) contenant les erreurs ADC (Col3 ou Errors)
+    """
+    size = 2 * cst.nSamplesPerRow * cst.nPixPerCol
+    with h5py.File(hdf5_file, 'r') as f:
+        # Read the columns data Col0, Col1, Col2, Col3
+        col0 = f['Col0'][0, :]
+        col1 = f['Col1'][0, :]
+        col2 = f['Col2'][0, :]
+        col3 = f['Col3'][0, :]
+
+        # Read the conversion errors
+        adc_error = f['Errors'][0, :]
+
+        # Check data format consistency
+        if col0.shape != (size,) or col1.shape != (size,) or col2.shape != (size,) or col3.shape != (
+                size,) or adc_error.shape != (size,):
+            print(col0.shape)
+            raise ValueError("Data have not the expected size ({0:},).".format(size))
+
+        # Retourner les 3 premières colonnes et les erreurs
+        dump = np.array([col0, col1, col2, col3])
+        return dump, adc_error
 
 
 def read_scan(fits_file):

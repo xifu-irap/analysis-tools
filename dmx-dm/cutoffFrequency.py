@@ -93,7 +93,7 @@ def cutoffFreq(tconf):
     # Getting data
     files = [f for f in os.listdir(path_data) \
              if os.path.isfile(os.path.join(path_data, f)) \
-             and f[-5:] == ".fits" and f[:5] == "dump_"]
+             and f[-3:] == ".h5" and f[:5] == "dump_"]
 
     if len(files) == 0:
         raise ValueError('Error, no dump files found')
@@ -103,7 +103,7 @@ def cutoffFreq(tconf):
     accuDumps = np.zeros((cst.nColPerDemux, lenDumps))
     for index, file in enumerate(np.sort(files)):
         print(file)
-        colDumps, errors = rddt.read_dump_from_fits(os.path.join(path_data, file))
+        colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(path_data, file))
         accuDumps += colDumps
     accuDumps = (accuDumps / len(files)) * (cst.fsrADCErrorV / cst.fsrADCErrorADU)
 

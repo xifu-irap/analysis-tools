@@ -44,7 +44,7 @@ def fdbkDelay(col, verbose=False):
         print("Processing dump files of column {0:} from directory ".format(col) + path_data)
     files = [f for f in os.listdir(path_data) \
              if os.path.isfile(os.path.join(path_data, f)) \
-             and f[-5:] == ".fits" and f[:5] == "dump_"]
+             and f[-3:] == ".h5" and f[:5] == "dump_"]
 
     if len(files) != nb_steps:
         raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), nb_steps))
@@ -58,8 +58,7 @@ def fdbkDelay(col, verbose=False):
     for index, file in enumerate(np.sort(files)):
         if verbose:
             print(file)
-        iDelay = index - 3
-        colDumps, errors = rddt.read_dump_from_fits(os.path.join(path_data, file))
+        colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(path_data, file))
 
         # Doing plot
         setting = start + index
