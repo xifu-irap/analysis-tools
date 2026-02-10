@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of non linearity processing">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Switched to hdf5 format for dumps and error files">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/cutoffFrequency.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.bat" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
@@ -578,7 +574,7 @@
       <workItem from="1768777088281" duration="453000" />
       <workItem from="1768815348330" duration="11825000" />
       <workItem from="1769760919591" duration="14644000" />
-      <workItem from="1770116259969" duration="23604000" />
+      <workItem from="1770116259969" duration="30563000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -860,7 +856,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770194117061</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Switched to hdf5 format for dumps and error files">
+      <option name="closed" value="true" />
+      <created>1770568365516</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1770568365516</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -878,7 +882,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Update of error signal noise analysis" />
     <MESSAGE value="New functions for analysis of DEMUX performances" />
     <MESSAGE value="Debug of noiseAnalysis.py scripts" />
     <MESSAGE value="Optimization of noise analysis tools" />
@@ -903,7 +906,8 @@
     <MESSAGE value="Update of performance scripts" />
     <MESSAGE value="fix an issue when several error fits files are produced in a single second" />
     <MESSAGE value="Update of non linearity processing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of non linearity processing" />
+    <MESSAGE value="Switched to hdf5 format for dumps and error files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Switched to hdf5 format for dumps and error files" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

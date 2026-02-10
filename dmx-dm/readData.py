@@ -341,3 +341,35 @@ def read_fwVersion_dmxModel(path):
         boardId = ref & (2 ** 5) - 1
 
         return cst.dmx_models[dmxModel], boardId, fwVersion
+
+
+def read_dmxConfig_fromXml(path):
+    from xml.dom import minidom
+
+    dict_conf = {'fw_version': '',
+                 'hw_version': '',
+                 'boxcar_length': '',
+                 'c0_pulse_shaping_set': '',
+                 'c0_offset_coarse': '',
+                 'c0_offset_lsb': '',
+                 'c0_sampling_delay': '',
+                 'c0_feedback_delay': '',
+                 'c0_offset_dac_delay': '',
+                 'c0_offset_mux_delay': '',
+                 'relock_delay': '',
+                 'relock_threshold': ''}
+
+    # looking for the hk files
+    files = [f for f in os.listdir(path) \
+             if os.path.isfile(os.path.join(path, f)) \
+             and f[-4:] == ".xml"]
+
+    if len(files) != 1:
+        raise ValueError(f"Wrong number of xml files: expected 1, found {0:}".format(len(files)))
+    else:
+        # parsing the xml file
+        file = minidom.parse(files[0])
+        dmx = file.getElementsByTagName('dmx')
+        dict_conf[key] = models[1].attributes['name'].value
+
+    return dmx_config

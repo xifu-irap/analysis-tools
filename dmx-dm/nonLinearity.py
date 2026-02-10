@@ -117,11 +117,11 @@ def nonlinearity(verbose=False):
 
         print("/----------------------------------------------------------")
         print("/ Non linearity test: ERROR + " + scan_type_text)
+        print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:       " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:  {0:}".format(fwVersion))
         print("/ Box car length:    {0:} samples".format(bxl))
-        print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------\n")
 
         for col in range(cst.nColPerDemux):

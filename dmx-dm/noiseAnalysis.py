@@ -149,11 +149,11 @@ def noiseAnalysis(verbose=True):
     if verbose:
         print("/----------------------------------------------------------")
         print("/ Noise test:        " + tst_config)
+        print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:       " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:  {0:}".format(fwVersion))
         print("/ Box car length:    {0:} samples".format(bxl))
-        print("/ Test session name: " + session_name)
         print("/----------------------------------------------------------\n")
 
     if verbose:
