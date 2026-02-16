@@ -76,8 +76,8 @@ def nonlinearity(verbose=False):
     session_name = os.path.basename(os.path.realpath(dirpath))
 
     # Looking for test configuration parameters
-    index_bxl = session_name.find("BXL")
-    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 1])  # boxcar length
+    index_bxl = session_name.find("BXL") + len("BXL")
+    bxl = int(session_name[index_bxl])  # boxcar length
     pathData = os.path.join(dirpath, cst.scanDirName)
     pathHk = os.path.join(dirpath, cst.hkDirName)
     pathPlot = os.path.join(dirpath, cst.plotDirName)

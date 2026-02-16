@@ -16,7 +16,24 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
           '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
 
-def fdbkDelayAnalysis(verbose=False):
+def delayAnalysis(test_type, verbose=False):
+    match test_type:
+        case "FDBK-DELAY-----":
+            test_name = "FEEDBACK DELAY"
+            fileName = "fdbkDelay_"
+            nb_files_ratio = 1
+            index_step = 1
+        case "OFCOMUX-DELAY--":
+            test_name = "OFCO-MUX DELAY"
+            fileName = "ofcoMuxDelay_"
+            nb_files_ratio = 1
+            index_step = 1
+        case "OFCODAC-DELAY--":
+            test_name = "OFCO-DAC DELAY"
+            fileName = "ofcoDacDelay_"
+            nb_files_ratio = 10
+            index_step = 40
+
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
@@ -30,14 +47,13 @@ def fdbkDelayAnalysis(verbose=False):
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Feedback delay test ")
+        print("/ " + test_name + " test ")
         print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
         # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
-
 
     # Looking for test configuration parameters
     split = re.split(r'[_-]+', session_name)  # splitting the session name with '_' and '-'
@@ -49,64 +65,83 @@ def fdbkDelayAnalysis(verbose=False):
     end = int(end_str[1:])
     if end_str[0] == "M":
         end *= -1
-    nb_steps = end - start + 1
+    nb_steps = (end - start) / index_step + 1
 
     xlabel = 'Time (ns)'
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'fdbkDelay_col{0:}.png'.format(colid))
+        plotFileName = os.path.join(plot_path, fileName + 'col{0:}.png'.format(colid))
         ylabel = 'Dump of error signal (ADU)'.format(colid)
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \
                  and f[-3:] == ".h5" and f[:5] == "dump_"]
 
-        if len(files) != nb_steps:
-            raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), nb_steps))
+        if len(files) != nb_steps * nb_files_ratio:
+            raise ValueError(
+                'Wrong number of files ({0:} instead of {1:})'.format(len(files), nb_steps * nb_files_ratio))
 
         fig = plt.figure(figsize=(12, 10))
-        ax1 = fig.add_subplot(2, 1, 1)  # global plot
-        ax2 = fig.add_subplot(2, 1, 2)  # zoom plot
-        plt.suptitle("Characterisation of the feedback delay compensation (column {0:})\n".format(colid) \
+        if (test_type != "OFCODAC-DELAY--"):
+            ax1 = fig.add_subplot(2, 1, 1)  # global plot
+            ax2 = fig.add_subplot(2, 1, 2)  # zoom plot
+        else:
+            ax1 = fig.add_subplot(1, 1, 1)  # global plot
+
+        plt.suptitle("Characterisation of the " + test_name + " compensation (column {0:})\n".format(colid) \
                      + '(' + session_name + ')')
 
         xTime = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp
-        for index, file in enumerate(np.sort(files)):
+        for i, file in enumerate(np.sort(files)):
             colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(data_path, file))
 
+            index = (i // nb_files_ratio)
+            use_legend = (i % nb_files_ratio) == 0
+
             # Doing plot
-            setting = start + index
+            setting = start + index * index_step
             lw = 2
             if setting == 0:
                 lw = 4
             lbl = 'Delay = {0:2d} ns'.format(int(setting * 1e9 / cst.fSamp))
-            ax1.plot(xTime[:], colDumps[colid, :], color=colors[index], label=lbl, linewidth=1)
-            ax2.plot(xTime[:xZoom], colDumps[colid, :xZoom], color=colors[index], label=lbl, linewidth=lw)
 
-        x1_max = 2 * cst.nSamplesPerRow * cst.muxFactor * 1e9 / cst.fSamp
-        x2_max = (xZoom - 1) * 1e9 / cst.fSamp
+            if use_legend:
+                ax1.plot(xTime[:], colDumps[colid, :], color=colors[index], label=lbl, linewidth=1)
+            else:
+                ax1.plot(xTime[:], colDumps[colid, :], color=colors[index], linewidth=1)
+
+            if (test_type != "OFCODAC-DELAY--"):
+                ax2.plot(xTime[:xZoom], colDumps[colid, :xZoom], color=colors[index], label=lbl, linewidth=lw)
+                ax2.plot(xTime[:xZoom], colDumps[colid, :xZoom], color=colors[index], linewidth=lw)
 
         ax1.set_ylabel(ylabel)
-        ax2.set_ylabel(ylabel)
         ax1.set_xlabel(xlabel)
-        ax2.set_xlabel(xlabel)
-        # ax1.legend(loc='upper right')
-        ax2.legend(loc='upper right')
-        xlims = ax2.get_xlim()
-        ax2.set_xlim([xlims[0], x2_max])
+
+        x1_max = 2 * cst.nSamplesPerRow * cst.muxFactor * 1e9 / cst.fSamp
+
+        if (test_type == "OFCODAC-DELAY--"):
+            ax1.legend(loc='upper right')
 
         # Définition des intervalles majeurs et mineurs pour la grille
         ax1.set_xticks(np.arange(0, x1_max, 4096))  # Intervalles majeurs tous les 64
         ax1.set_xticks(np.arange(0, x1_max, 512), minor=True)  # Intervalles mineurs tous les 8
-        ax2.set_xticks(np.arange(0, x2_max, 64))  # Intervalles majeurs tous les 64
-        ax2.set_xticks(np.arange(0, x2_max, 8), minor=True)  # Intervalles mineurs tous les 8
 
         # Activation de la grille majeure et mineure
         ax1.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
         ax1.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
-        ax2.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
-        ax2.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
+
+        if (test_type != "OFCODAC-DELAY--"):
+            x2_max = (xZoom - 1) * 1e9 / cst.fSamp
+            ax2.set_ylabel(ylabel)
+            ax2.set_xlabel(xlabel)
+            ax2.legend(loc='upper right')
+            xlims = ax2.get_xlim()
+            ax2.set_xlim([xlims[0], x2_max])
+            ax2.set_xticks(np.arange(0, x2_max, 64))  # Intervalles majeurs tous les 64
+            ax2.set_xticks(np.arange(0, x2_max, 8), minor=True)  # Intervalles mineurs tous les 8
+            ax2.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
+            ax2.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
 
         fig.tight_layout()
 

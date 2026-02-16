@@ -1,7 +1,7 @@
 # imports
 import os
 
-import fdbkDelayAnalysis
+import delayAnalysis
 import noiseAnalysis
 import nonLinearity
 import samplingDelayAnalysis
@@ -23,13 +23,12 @@ def do_processing(verbose=True):
     full_session_name = os.path.realpath(dir_path)
     session_name = os.path.basename(full_session_name)
     test_type = session_name[16: 31]
-    print("Test type:    ", test_type)
 
     match test_type:
-        case "FDBK-DELAY-----":
-            fdbkDelayAnalysis.fdbkDelayAnalysis(verbose)
+        case "FDBK-DELAY-----" | "OFCOMUX-DELAY--" | "OFCODAC-DELAY--":
+            delayAnalysis.delayAnalysis(test_type, verbose)
         case "SAMP-DELAY-----":
-            samplingDelayAnalysis.samplingDelayAnalysis()
+            samplingDelayAnalysis.samplingDelayAnalysis(verbose)
         case "FDBK-ERROR-LIN-" | "OFCO-ERROR-LIN-":
             nonLinearity.nonlinearity()
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":

@@ -16,7 +16,7 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
           '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
 
-def fdbkDelayAnalysis(verbose=False):
+def ofcoMuxDelayAnalysis(verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
@@ -30,14 +30,13 @@ def fdbkDelayAnalysis(verbose=False):
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Feedback delay test ")
+        print("/ Ofco MUX delay test ")
         print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
         # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
-
 
     # Looking for test configuration parameters
     split = re.split(r'[_-]+', session_name)  # splitting the session name with '_' and '-'
@@ -55,7 +54,7 @@ def fdbkDelayAnalysis(verbose=False):
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'fdbkDelay_col{0:}.png'.format(colid))
+        plotFileName = os.path.join(plot_path, 'ofcoMuxDelay_col{0:}.png'.format(colid))
         ylabel = 'Dump of error signal (ADU)'.format(colid)
 
         files = [f for f in os.listdir(data_path) \
@@ -68,7 +67,7 @@ def fdbkDelayAnalysis(verbose=False):
         fig = plt.figure(figsize=(12, 10))
         ax1 = fig.add_subplot(2, 1, 1)  # global plot
         ax2 = fig.add_subplot(2, 1, 2)  # zoom plot
-        plt.suptitle("Characterisation of the feedback delay compensation (column {0:})\n".format(colid) \
+        plt.suptitle("Characterisation of the ofco MUX delay compensation (column {0:})\n".format(colid) \
                      + '(' + session_name + ')')
 
         xTime = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp

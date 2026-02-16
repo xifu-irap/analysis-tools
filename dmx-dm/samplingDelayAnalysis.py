@@ -16,33 +16,30 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
 
 # TODO: Add the model / module name on the plots
 
-def samplingDelayAnalysis(verbose):
+def samplingDelayAnalysis(verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
     data_path = os.path.join(dir_path, cst.dataDirName)
     plot_path = os.path.join(dir_path, cst.plotDirName)
     gt.createdir(plot_path)
-    session_name = os.path.realpath(dir_path)
+    session_name = os.path.basename(os.path.realpath(dir_path))
 
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
     # Looking for test configuration parameters
-    index_bxl = session_name.find("BXL")
-    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 2])  # boxcar length
-    index_pls = session_name.find("PLS+3")
-    pls = int(session_name[index_pls])  # pulse shaping set
+    index_bxl = session_name.find("BXL") + len("BXL")
+    bxl = int(session_name[index_bxl])  # boxcar length
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Feedback delay test ")
+        print("/ Sampling delay and Boxcar length test ")
         print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
         print("/ Box car length:       {0:} samples".format(bxl))
-        print("/ Pulse shaping set:    {0:}".format(pls))
         print("/----------------------------------------------------------\n")
 
     xlabel = 'Time (ns)'
@@ -55,8 +52,8 @@ def samplingDelayAnalysis(verbose):
 
     for colId in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'samplingDelay_col{0:}_bxl{1:}_pls{2:}.png'.format(colId, bxl, pls))
-        title1 = 'Column {0:}, nb of averaged samples = {1:}, pulse shaping set = {2:}\n'.format(colId, bxl + 1, pls) \
+        plotFileName = os.path.join(plot_path, 'samplingDelay_col{0:}_bxl{1:}.png'.format(colId, bxl))
+        title1 = 'Column {0:}, nb of averaged samples = {1:}\n'.format(colId, bxl + 1) \
                  + '(' + session_name + ')'
 
         fig = plt.figure(figsize=(9, 7))

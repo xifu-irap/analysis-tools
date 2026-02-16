@@ -15,9 +15,48 @@ import readData as rddt
 nsd_dict = {"ERRO-ONLY": 25e-9, "FDBK-ERRO": 20e-9, "OFCO-ERRO": 15e-9}
 
 
+# TODO
+## Change this function to retrieve the information from a configuration file (xml format)
+
+def get_config(session_name):
+    """
+    Extracts configuration details from a given session name string.
+
+    This function parses the input session name to extract specific values associated with
+    boxcar length (`BXL`), feedback (`FDBK`), and coarse offset calibration (`OFCO`).
+    The extracted data is stored in a dictionary along with a setup identifier.
+
+    Args:
+        session_name (str): The session name string containing encoded configuration details.
+
+    Returns:
+        dict: A dictionary containing the parsed configuration with the following keys:
+            - "setup" (str): A substring representing the setup identifier.
+            - "bxl" (int): The boxcar length value extracted from the session name.
+            - "fdbk" (str): The feedback value extracted from the session name.
+            - "ofco" (str): The coarse offset calibration value extracted from the session name.
+    """
+    # Looking for boxcar length value from session name
+    index_bxl = session_name.find("BXL") + len("BXL")
+    bxl = int(session_name[index_bxl])
+
+    # Looking for FB0 value
+    txt = "_FDBK"
+    index_fdbk = session_name.find(txt) + len(txt)
+    fdbk = session_name[index_fdbk:].split('_')[0]
+
+    # Looking for OFCO COARSE value
+    txt = "_OFCO"
+    index_ofco = session_name.find(txt) + len(txt)
+    ofco = session_name[index_ofco:]
+
+    config = {"setup": session_name[22:31], "bxl": bxl, "fdbk": fdbk, "ofco": ofco}
+
+    return config
+
+
 # Plotting noise spectral density for one column
 def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
-
     """
     Plots a column spectrum based on the provided input parameters.
 
@@ -35,7 +74,7 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
     """
 
     # Test configuration data
-    nsd = nsd_dict[config]
+    nsd = nsd_dict[config["setup"]]
 
     # session name
     session_name = os.path.basename(os.path.realpath(dir_path))
@@ -49,7 +88,10 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
 
     # Processing science files
     data_exists = [True, True, True, True]
-    plot_file_name = 'noise_' + config + '_' + acq_mode
+
+    plot_file_name = 'noise_' + config["setup"] + '_' + acq_mode + '_BXL' + \
+                     "{0:}".format(config["bxl"]) + '_FDBK' + config["fdbk"] + '_OFCO' + config["ofco"]
+
     if acq_mode == 'DUMP':
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
         xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts)
@@ -72,11 +114,11 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
 
             # Selection of a noise model
             path_models = 'noise_models'
-            if config == 'ERRO-ONLY' and acq_mode == 'DUMP':
+            if config["setup"] == 'ERRO-ONLY' and acq_mode == 'DUMP':
                 model_filename = os.path.join(path_models, "erro-only_125.txt")
-            elif config == 'ERRO-ONLY' and acq_mode == 'ERRO':
+            elif config["setup"] == 'ERRO-ONLY' and acq_mode == 'ERRO':
                 model_filename = os.path.join(path_models, "erro-only_6p25.txt")
-            # elif config == 'FDBK-ERRO':
+            # elif config["setup"] == 'FDBK-ERRO':
             #    if col_id == 0 or col_id == 3:
             #        model_filename = os.path.join(path_models, "erro-fdbk-awaxe.txt")
             #    else:
@@ -88,7 +130,9 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
 
             # Doing the plot
             fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-            suptitle = config + ' (' + acq_mode + ' acquisition mode in column {0:})'.format(col_id)
+            suptitle = config["setup"] + ' (' + acq_mode + ' acquisition mode in column {0:})\n'.format(col_id) \
+                       + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
+                           "ofco"]
 
             fig.suptitle(suptitle, fontsize=12)
             ax.set_title(session_name, fontsize=10)
@@ -132,37 +176,35 @@ def noiseAnalysis(verbose=True):
     dir_path = os.path.join("..", "..")
 
     # Data directory
-    data_path = os.path.join(dir_path, cst.dataDirName)
     hk_path = os.path.join(dir_path, cst.hkDirName)
 
     # Looking for the session name and test configuration : "ERRO_ONLY" or "ERRO_FDBK" or "ERRO_OFCO"
     session_name = os.path.basename(os.path.realpath(dir_path))
-    tst_config = session_name[22:31]
-
-    # Looking for boxcar length value from session name
-    index_bxl = session_name.find("BXL")
-    bxl = int(session_name[index_bxl + 3:index_bxl + 3 + 1])  # boxcar length
 
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
+    config = get_config(session_name)
+
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Noise test:        " + tst_config)
-        print("/ Test session name: " + session_name)
+        print("/ Noise test:          " + config["setup"])
+        print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
-        print("/ DEMUX model:       " + dmxModel + " {0:}".format(boardId))
-        print("/ Firmware version:  {0:}".format(fwVersion))
-        print("/ Box car length:    {0:} samples".format(bxl))
+        print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
+        print("/ Firmware version:    {0:}".format(fwVersion))
+        print("/ Box car length:      {0:} samples".format(config["bxl"] + 1))
+        print("/ Feedback:            " + config["fdbk"])
+        print("/ Offset compensation: " + config["ofco"])
         print("/----------------------------------------------------------\n")
 
     if verbose:
         print("  Processing DUMP files")
-    plot_col_spectrum(dir_path, "DUMP", tst_config, verbose=verbose)
+    plot_col_spectrum(dir_path, "DUMP", config, verbose=verbose)
 
     if verbose:
         print("  Processing ERROR files")
-    plot_col_spectrum(dir_path, "ERRO", tst_config, verbose=verbose)
+    plot_col_spectrum(dir_path, "ERRO", config, verbose=verbose)
 
 
 #-------------------------------------------------------------------------------------
