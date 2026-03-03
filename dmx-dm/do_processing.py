@@ -7,6 +7,9 @@ import nonLinearity
 import samplingDelayAnalysis
 
 
+# import XTalkAnalysis
+
+
 def do_processing(verbose=True):
     """
     This function launch the data processing of the DEMUX performance tests
@@ -33,6 +36,10 @@ def do_processing(verbose=True):
             nonLinearity.nonlinearity()
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
             noiseAnalysis.noiseAnalysis(verbose)
+
+
+#        case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
+#            XTalkAnalysis.xtalkAnalysis(verbose)
 
 
 do_processing()

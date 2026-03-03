@@ -12,10 +12,10 @@ import readData as rddt
 
 # TODO: Add the model / module name on the plots
 
-def get_dump(path, c_perp, pls_set, config):
+def get_dump(path, perp, c_perp, config, verbose=True):
 
     # Searching directories
-    dir_extension = "{0:}_".format(c_perp) + "pulseShape-{0:}_".format(pls_set) + config
+    dir_extension = "-XTALK-PERP-" + perp + "-C{:0}".format(c_perp) + config
     dirlist = [d for d in os.listdir(path) \
              if os.path.isdir(os.path.join(path, d)) \
                and d[-1 * len(dir_extension):] == dir_extension]
@@ -32,20 +32,21 @@ def get_dump(path, c_perp, pls_set, config):
     # Searching dump files
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
-             and f[-5:] == ".fits" and f[:5] == "dump_"]
+             and f[-3:] == ".h5" and f[:5] == "dump_"]
+    if verbose:
+        print("Accumulating {0:} dump files".format(len(files)))
 
     # Reading and accumulating the dumps
-    print("Reading and accumulating the data from {0} dumps".format(len(files)))
     dump = np.zeros((cst.nColPerDemux, 2 * cst.nSamplesPerRow * cst.muxFactor))
     for file in files:
-        idump, _ = rddt.read_dump_from_fits(os.path.join(pathData, file))
+        idump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
         dump += idump
     dump /= len(files)
 
     # Setting the baseline to 0
     for col in range(cst.nColPerDemux):
-        # Defining the reference level (expected to be on pixels 1 to 34)
-        margin = 5
+        # Defining the reference level (expected to be on pixels 1 to TMux-1)
+        margin = 15
         first_sample = cst.nSamplesPerRow + margin
         last_sample = cst.nSamplesPerRow * (cst.muxFactor - 1) - margin
         ref_level = dump[col, first_sample : last_sample].mean()

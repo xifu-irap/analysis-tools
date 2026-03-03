@@ -4,13 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of feedback and sampling delay analysis">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of noise models">
+      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/ADC chain noise.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_125.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_183.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_6p25.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/samplingDelayAnalysis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,13 +20,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="73" />
+    <option name="cachedIndexableFilesCount" value="90" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -163,8 +166,8 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/dmx-dm" />
       <recent name="$PROJECT_DIR$/dmx-dm/noise_models" />
+      <recent name="$PROJECT_DIR$/dmx-dm" />
       <recent name="$PROJECT_DIR$/../sgse-tools/demux" />
       <recent name="$PROJECT_DIR$/proto-fdm" />
     </key>
@@ -574,7 +577,10 @@
       <workItem from="1768777088281" duration="453000" />
       <workItem from="1768815348330" duration="11825000" />
       <workItem from="1769760919591" duration="14644000" />
-      <workItem from="1770116259969" duration="38608000" />
+      <workItem from="1770116259969" duration="41851000" />
+      <workItem from="1771259870714" duration="164000" />
+      <workItem from="1771404717151" duration="27509000" />
+      <workItem from="1772542137179" duration="1643000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -872,7 +878,23 @@
       <option name="project" value="LOCAL" />
       <updated>1770733555590</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Update of functional and performance analisys scripts">
+      <option name="closed" value="true" />
+      <created>1771237574182</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1771237574182</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Update of noise models">
+      <option name="closed" value="true" />
+      <created>1771591849079</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1771591849079</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -890,8 +912,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Debug of noiseAnalysis.py scripts" />
-    <MESSAGE value="Optimization of noise analysis tools" />
     <MESSAGE value="New tools for crosstalk analysis" />
     <MESSAGE value="Improvement of noise analysis functions" />
     <MESSAGE value="Debug of noise analysis" />
@@ -915,7 +935,9 @@
     <MESSAGE value="Update of non linearity processing" />
     <MESSAGE value="Switched to hdf5 format for dumps and error files" />
     <MESSAGE value="Update of feedback and sampling delay analysis" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of feedback and sampling delay analysis" />
+    <MESSAGE value="Update of functional and performance analisys scripts" />
+    <MESSAGE value="Update of noise models" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update of noise models" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -1015,11 +1037,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py</url>
-          <line>634</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py</url>
           <line>40</line>

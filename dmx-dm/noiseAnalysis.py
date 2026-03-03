@@ -100,7 +100,7 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
         npts = 2 ** 23
         xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts)
 
-
+    # Iterates columns; plots spectrum with noise model
     for col_id in range(cst.nColPerDemux):
 
         if data_exists[col_id]:
@@ -115,16 +115,23 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
             # Selection of a noise model
             path_models = 'noise_models'
             if config["setup"] == 'ERRO-ONLY' and acq_mode == 'DUMP':
-                model_filename = os.path.join(path_models, "erro-only_125.txt")
+                model_filename = os.path.join(path_models, "mod-erro-only_Fref.txt")
             elif config["setup"] == 'ERRO-ONLY' and acq_mode == 'ERRO':
-                model_filename = os.path.join(path_models, "erro-only_6p25.txt")
-            # elif config["setup"] == 'FDBK-ERRO':
-            #    if col_id == 0 or col_id == 3:
-            #        model_filename = os.path.join(path_models, "erro-fdbk-awaxe.txt")
-            #    else:
-            #        model_filename = os.path.join(path_models, "erro-fdbk-rhf200.txt")
-            # elif signal == 'OFCO-ERRO':
-            #    model_filename = os.path.join(path_models, "erro-ofco.txt")
+                model_filename = os.path.join(path_models, "mod-erro-only_Frow.txt")
+            elif config["setup"] == 'FDBK-ERRO' and acq_mode == 'DUMP':
+                if col_id == 0 or col_id == 3:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Fref.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Fref.txt")
+            elif config["setup"] == 'FDBK-ERRO' and acq_mode == 'ERRO':
+                if col_id == 0 or col_id == 3:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Frow.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Frow.txt")
+            elif config["setup"] == 'OFCO-ERRO' and acq_mode == 'DUMP':
+                model_filename = os.path.join(path_models, "mod-erro-ofco_Fref.txt")
+            elif config["setup"] == 'OFCO-ERRO' and acq_mode == 'ERRO':
+                model_filename = os.path.join(path_models, "mod-erro-ofco_Frow.txt")
             else:
                 model_filename = ''  # file type is unknown, no model exists
 
@@ -137,7 +144,7 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
             fig.suptitle(suptitle, fontsize=12)
             ax.set_title(session_name, fontsize=10)
 
-            nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, nsd)
+            nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename)
 
             if lpf != 0:  # comparison with a low pass filter model
                 a_dc_estimated = spectrum[4:50].mean()
@@ -152,8 +159,8 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
                 lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
                 ax.loglog(xf, nat.low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
 
-            ax.legend(loc='lower left')
-            ax.grid(True)
+            ax.legend(loc='upper right')
+            ax.grid(True, which='both', linestyle='--')
             fig.tight_layout()
             plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
             plt.close()

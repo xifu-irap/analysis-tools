@@ -227,12 +227,12 @@ def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
     return xf, cross_power_spectrum
 
 
-def one_over_f(f: ArrayLike, num: ArrayLike) -> np.ndarray:
+def one_over_f(freq: ArrayLike, num: ArrayLike) -> np.ndarray:
     """
     Calculate num / sqrt(f), supports scalars, lists, and arrays.
     Always returns a NumPy array.
     """
-    return np.asarray(num) / np.sqrt(np.asarray(f))
+    return np.asarray(num) / np.sqrt(np.asarray(freq))
 
 
 def fit_one_over_f(x, y):
@@ -397,7 +397,7 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
     return nsd
 
 
-def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
+def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename):
     """
     Plot the spectrum and noise floor in both linear and logarithmic scales.
 
@@ -424,9 +424,6 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
     model_filename : str
         The filename of the model data to be used for theoretical noise calculations.
         If an empty string is provided, the model will not be used.
-
-    req_nsd : float
-        The requested noise spectral density over a BW of 125 MHz / 2.
 
     Returns:
     -------
@@ -465,35 +462,48 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
         xlims = xlims_erro
         ylims = ylims_erro
 
-    req_nsd *= np.sqrt(cst.fSamp / fs)
-
     if acq_mode == 'ERRO':
+        # Fit of white noise
+        f_white_start = 30e3  # to avoid 1/f contribution
+        xf_white_start = np.where(xf > f_white_start)[0][0]
+        white_noise = spectrum[xf_white_start:].mean()
+
         # Fit of 1/f behavior
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e3 # max frequency of 1/f area
         xf_stop = np.where(xf < f_stop)[0][-1]
         a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
-        # Fit of white noise
-        f_white_start = 30e3  # to avoid 1/f contribution
-        xf_white_start = np.where(xf > f_white_start)[0][0]
-        white_noise = spectrum[xf_white_start:].mean()
+        # 1/f noise at 1 Hz
+        one_over_f_at_one_Hz = one_over_f(1, a)
+
+        # Corner frequency
+        f_corner = (a / white_noise) ** 2
+
+        # 1/f plus white noise contributions
+        one_over_f_plus_white_noise = np.sqrt(one_over_f(xf[1:], a) ** 2 + np.ones(len(xf[1:])) * white_noise ** 2)
 
     if model_filename != '':
-        # Getting theoretical noise data from 0 to 125 MHz
-        f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
+        # Getting theoretical noise data from 0 to fs
+        f_mod, noise_mod = gt.read_two_vectors_from_file(model_filename)
         # Aliasing the noise
-        # f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs)
-        print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
+        # f_mod, noise_mod = undersampling_with_aliasing(f_mod, noise_mod, fs)
+        print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_mod[0] * 1e9))
+
+        # Getting the requirement limit filename
+        index1 = model_filename.find("mod-")
+        index2 = index1 + len("mod-")
+        req_filename = model_filename[0: index1] + "req-" + model_filename[index2: index2 + 9]
+        if acq_mode == 'DUMP':
+            req_filename = req_filename + '_Fref.txt'
+        else:
+            req_filename = req_filename + '_Frow.txt'
+
+        f_req, noise_req = gt.read_two_vectors_from_file(req_filename)
 
     # Plot of the measured spectrum
     lbl1 = "Measurement"
     ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
-
-    # Plot of the model
-    if model_filename != '':
-        lbl2 = 'Model (from datasheets)'
-        ax.loglog(f_theo, noise_theo * 1e9, '--', color='r', label=lbl2)
 
     # Plot of the averaged noise in the band for dump data
     if acq_mode == "DUMP":
@@ -507,153 +517,21 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename, req_nsd):
                   label=lbl_noise_avg)
 
     if acq_mode == 'ERRO':
-        x = np.arange(1e4)
         lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$)'
-        ax.loglog([xf[xf_white_start], xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl3)
+        ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
         lbl4 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax.loglog(x[1:], one_over_f(x[1:], a) * 1e9, '-.', color='k', label=lbl4)
+        ax.loglog([1, f_corner], [one_over_f_at_one_Hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl4)
+        lbl5 = r'Quadratic sum of 1/f and white noise contributions'
+        ax.loglog(xf[1:], one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl5)
 
-    if req_nsd != 0:
-        lbl5 = (r"Required noise floor for a bandwidth of {0:3.3f} MHz: {1:3.0f} nV/$\sqrt{{\mathrm{{Hz}}}}$"
-                .format(fs / 2e6, req_nsd * 1e9))
-        ax.loglog(xlims, [req_nsd * 1e9, req_nsd * 1e9], ':', color='purple', label=lbl5)
+    # Plot of the model
+    if model_filename != '':
+        lbl2 = 'Model (from datasheets)'
+        ax.loglog(f_mod, noise_mod * 1e9, '--', color='purple', label=lbl2)
 
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel_log)
-
-    if acq_mode == 'DUMP':
-        # Désactiver la notation scientifique pour l'axe Y
-        ax.yaxis.set_major_formatter(ScalarFormatter())  # Utiliser ScalarFormatter
-        ax.yaxis.set_minor_formatter(ScalarFormatter())  # Idem pour les ticks mineurs
-        ax.ticklabel_format(style='plain', axis='y')  # Forcer le style "plain" (non scientifique)
-
-        # Configurer les ticks pour afficher uniquement des entiers
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-
-    ax.grid(True, which='both', linestyle='--')
-    ax.legend(loc='best', framealpha=1)
-
-
-def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
-    """
-    Plot the spectrum and noise floor in both linear and logarithmic scales.
-
-    This function generates a spectrum plot in logarithmic scale,
-    displaying the spectrum of a signal and the expected noise floor based on the
-    specified Effective Number of Bits (ENOB). The function also supports
-    theoretical noise data from a model file and fits a 1/f behavior to the spectrum
-    if the acquisition mode is set to 'error'.
-
-    Parameters:
-    ----------
-    ax : list
-        A list of two matplotlib Axes objects for plotting the spectrum and noise floor.
-
-    xf : array_like
-        The frequency data (in Hz) corresponding to the spectrum.
-
-    spectrum : array_like
-        The spectrum data to be plotted (in nV/√Hz).
-
-    acq_mode : str
-        The acquisition mode, which can be either 'DUMP' or 'ERRO'. This affects the
-        limits and the fitting behavior of the function.
-
-    model_filename : str
-        The filename of the model data to be used for theoretical noise calculations.
-        If an empty string is provided, the model will not be used.
-
-    enob : float, optional
-        The Effective Number of Bits for the measurement. Default is 11.5.
-
-    Returns:
-    -------
-    None
-        This function does not return any value. It modifies the provided Axes
-        objects directly to display the plots.
-
-    Raises:
-    ------
-    FileNotFoundError
-        If the specified model_filename does not exist.
-
-    Notes:
-    -----
-    - The function assumes that the constant values and functions such as `cst.fRow`,
-      `cst.fSamp`, and `one_over_f` are defined elsewhere in the code.
-    - The noise floor is calculated based on the SNR derived from the provided ENOB.
-    - The function handles both linear and logarithmic axes for better visualization of
-      the spectrum and noise floor.
-    """
-
-    model_filename = os.path.join('noise_models',
-                                  "fdbk-awaxe.txt")  # to subtract this model from erro + feedback measurements
-    erro_model_filename = os.path.join('noise_models', "erro-only.txt")  # to overplot the moise model
-    xlabel_log: str = r'Frequencies (Hz)'
-    ylabel: str = r'Error signal (nV / $\sqrt{Hz}$)'
-    xlims_erro: list[int | float] = [1, cst.fRow / 2]
-    xlims_dump: list[float] = [1e5, cst.fSamp / 2]
-    ylims_erro: list[float] = [1e1, 1e4]
-    ylims_dump: list[float] = [1e1, 1e2]
-
-    # Processing science files
-    if acq_mode == 'DUMP':
-        fs = cst.fSamp
-        xlims = xlims_dump
-        ylims = ylims_dump
-    else:  # acq_mode == 'ERRO'
-        fs = cst.fRow
-        xlims = xlims_erro
-        ylims = ylims_erro
-
-    # Computation of the SNR equivalent to the requested ENOB
-    snr_db = 6.02 * enob + 1.76
-    snr = 10 ** (snr_db / 20)
-
-    # Computation of the noise floor per sqrt(Hz) corresponding to the ENOB
-    noise_floor = cst.fsrADCErrorV / (snr * np.sqrt(fs / 2))
-
-    if acq_mode == 'ERRO':
-        # Fit of 1/f behavior
-        xf_start = 3  # to avoid DC perturbations
-        f_stop = 1e3  # max frequency of 1/f area
-        xf_stop = np.where(xf < f_stop)[0][-1]
-        a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
-
-    # Getting theoretical noise data from 0 to 125 MHz
-    f_theo, noise_theo = gt.read_two_vectors_from_file(model_filename)
-    # Aliasing the noise
-    f_theo, noise_theo = undersampling_with_aliasing(f_theo, noise_theo, fs)
-    print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
-
-    # Getting theoretical noise data from 0 to 125 MHz
-    f_theo2, noise_erro = gt.read_two_vectors_from_file(erro_model_filename)
-    # Aliasing the noise
-    f_theo2, noise_erro = undersampling_with_aliasing(f_theo2, noise_erro, fs)
-    print("     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_theo[0] * 1e9))
-
-    lbl1 = "Spectrum"
-    lbl2 = "Expected noise floor for ENOB={0:}\nand bandwidth = {1:} MHz".format(enob, fs / 2 / 1e6)
-    lbl4 = 'Model of error chain (from datasheets)'
-
-    noise_theo_resamp = np.interp(xf, f_theo, noise_theo)
-
-    # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    # ax.loglog(xf[1:], noise_theo_resamp[1:])
-    # plt.close()
-
-    spectrum_erro_estimated = np.sqrt(spectrum ** 2 - noise_theo_resamp ** 2)
-    ax.loglog(xf[1:], spectrum_erro_estimated[1:] * 1e9, label=lbl1)
-    # ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
-    ax.loglog(f_theo2, noise_erro * 1e9, '--', color='r', label=lbl4)
-
-    if acq_mode == 'ERRO':
-        x = np.arange(1e4)
-        lbl6 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax.loglog(x[1:], one_over_f(x[1:], a) * 1e9, '-.', color='k', label=lbl6)
+        # Plot of the requirement
+        lbl6 = (r"Requirement for a sampling at {0:3.2f} MHz".format(fs / 1e6))
+        ax.loglog(f_req, noise_req * 1e9, '--', color='red', label=lbl6)
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
@@ -668,9 +546,6 @@ def plot_spectrum2(ax, xf, spectrum, acq_mode, model_filename, enob=11.5):
 
         # Configurer les ticks pour afficher uniquement des entiers
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-
-    ax.grid(True, which='both', linestyle='--')
-    ax.legend(loc='best', framealpha=1)
 
 
 def plot_cross_spectrum(ax, xf, spectrum, col_ref):
