@@ -1,5 +1,4 @@
 # imports
-import math
 import os
 
 import matplotlib.pyplot as plt
@@ -12,192 +11,143 @@ import readData as rddt
 
 # TODO: Add the model / module name on the plots
 
-def get_dump(path, perp, c_perp, config, verbose=True):
-
-    # Searching directories
-    dir_extension = "-XTALK-PERP-" + perp + "-C{:0}".format(c_perp) + config
-    dirlist = [d for d in os.listdir(path) \
-             if os.path.isdir(os.path.join(path, d)) \
-               and d[-1 * len(dir_extension):] == dir_extension]
-    print(path)
-    print(dir_extension)
-    print(dirlist)
-
-    if len(dirlist) != 1:
-        print("Error, wrong number of directories. Found {0:}".format(len(dirlist)))
-
-    pathDir = os.path.join(path, dirlist[0])
-    pathData = os.path.join(pathDir, cst.dataDirName)
+def get_dump(pathData, verbose=True):
+    # Constants
+    ## Number of files
+    ndumps_per_measure = 32
+    n_measures = 2 * cst.nColPerDemux
+    n_dumps = ndumps_per_measure * n_measures
+    ## Area where no signals are expected (a pulse is done on pixel 0)
+    pix_min = 3
+    pix_max = cst.muxFactor - 2
 
     # Searching dump files
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
              and f[-3:] == ".h5" and f[:5] == "dump_"]
+    if (len(files) != n_dumps):
+        raise ValueError("Wrong number of dump files. Found {0:}, {1:} were expected".format(len(files, n_dumps)))
+
+    files = np.sort(files)  # Sorting the files in alphabetical order (i.e. chronological order)
+
+    # Reading and accumulating the dumps for loop back configuration
     if verbose:
-        print("Accumulating {0:} dump files".format(len(files)))
+        print("   Reading dump files for the loop back configuration...")
+    dumps_lb = np.zeros((cst.nColPerDemux, cst.nColPerDemux, 2 * cst.nSamplesPerRow * cst.muxFactor))
+    for col_id in range(cst.nColPerDemux):
+        if verbose:
+            print("      Column {0:}".format(col_id))
+        for file in files[col_id * ndumps_per_measure:(col_id + 1) * ndumps_per_measure]:
+            if verbose:
+                print("         --> ", file)
+            dump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
+            dumps_lb[col_id] += dump
+        dumps_lb[col_id] /= ndumps_per_measure
+        # Setting the baseline to 0
+        for col in range(cst.nColPerDemux):
+            avg = dumps_lb[col_id, col, pix_min * cst.nSamplesPerRow:pix_max * cst.nSamplesPerRow].mean()
+            dumps_lb[col_id, col, :] -= avg
 
-    # Reading and accumulating the dumps
-    dump = np.zeros((cst.nColPerDemux, 2 * cst.nSamplesPerRow * cst.muxFactor))
-    for file in files:
-        idump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
-        dump += idump
-    dump /= len(files)
+    # Reading and accumulating the dumps for 100 Ohm configuration
+    if verbose:
+        print("   Reading dump files for the 100 Ohms loaded configuration...")
+    dumps_100_ohms = np.zeros((cst.nColPerDemux, cst.nColPerDemux, 2 * cst.nSamplesPerRow * cst.muxFactor))
+    for col_id in range(cst.nColPerDemux):
+        if verbose:
+            print("      Column {0:}".format(col_id))
+        i0 = cst.nColPerDemux * ndumps_per_measure  # offset to read the following files
+        for file in files[i0 + col_id * ndumps_per_measure:i0 + (col_id + 1) * ndumps_per_measure]:
+            if verbose:
+                print("         --> ", file)
+            dump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
+            dumps_100_ohms[col_id] += dump
+        dumps_100_ohms[col_id] /= ndumps_per_measure
+        # Setting the baseline to 0
+        for col in range(cst.nColPerDemux):
+            dumps_100_ohms[col_id, col, :] -= dumps_100_ohms[
+                col_id, col, pix_min * cst.nSamplesPerRow:pix_max * cst.nSamplesPerRow].mean()
 
-    # Setting the baseline to 0
-    for col in range(cst.nColPerDemux):
-        # Defining the reference level (expected to be on pixels 1 to TMux-1)
-        margin = 15
-        first_sample = cst.nSamplesPerRow + margin
-        last_sample = cst.nSamplesPerRow * (cst.muxFactor - 1) - margin
-        ref_level = dump[col, first_sample : last_sample].mean()
-
-        dump[col, :] = np.abs(dump[col, :] - ref_level)
-
-    return dump
+    return dumps_lb, dumps_100_ohms
 
 
-def xtalk_analysis(path, c_perp, pls_set, config):
+def xtalkAnalysis(verbose=True):
+    # Paths definition
+    dir_path = os.path.join("..", "..")
+    hk_path = os.path.join(dir_path, cst.hkDirName)
+    data_path = os.path.join(dir_path, cst.dataDirName)
+    plot_path = os.path.join(dir_path, cst.plotDirName)
+    gt.createdir(plot_path)
+    session_name = os.path.basename(os.path.realpath(dir_path))
 
-    dump = get_dump(path, c_perp, pls_set, config)
-    dump_ref = get_dump(path, c_perp, pls_set, "fbk-looped")
+    # Looking for DEMUX identifiers (board, model, firmware)
+    dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
-    col_dump_db = 20*np.log10(dump / (dump_ref[c_perp, :].max() - dump_ref[c_perp, :].min()))
+    # Looking for test configuration parameters
+    index_bxl = session_name.find("BXL") + len("BXL")
+    bxl = int(session_name[index_bxl])  # boxcar length
 
-    pathPlot = os.path.join(path, cst.plotDirName)
-    gt.createdir(pathPlot)
+    # Looking for the signal characterised by the test (fdbk or ofco)
+    index_sig = session_name.find("PERP-") + len("PERP-")
+    signal = session_name[index_sig:index_sig + 4]
 
-    plotFileName = os.path.join(pathPlot, 'XTalk_'+config+'_pls{0:}'.format(pls_set)+'_cPerp{0:}.png'.format(c_perp))
+    if verbose:
+        print("/----------------------------------------------------------")
+        print("/ " + signal + " crosstalk characterisation ")
+        print("/ Test session name:   " + session_name)
+        print("/----------------------------------------------------------")
+        print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
+        print("/ Firmware version:     {0:}".format(fwVersion))
+        print("/ Box car length:       {0:} samples".format(bxl))
+        print("/----------------------------------------------------------\n")
 
-    # Doing the plot
-    title = 'Crosstalk from column {0:} in '.format(c_perp) + config + ' mode with ' + gt.pulseshapingtext(pls_set)
+    dumps_lb, dumps_100_ohms = get_dump(data_path, verbose)
+
+    plot_fdbk_2_error_xtalk(dumps_lb, dumps_100_ohms, signal, plot_path)
+
+
+def plot_fdbk_2_error_xtalk(dumps_lb, dumps_100_ohms, sig, pathPlot):
+
     xlabel = 'Time (ns)'
-    ylabel = 'Error signal Dump (ADU)'
-    ylabel1 = 'Ratio with max of column {0:} (dB)'.format(c_perp)
-    col1 = 'k'
-    col2, col2grid = 'b', 'lightblue'
-    t = np.arange(2*cst.nSamplesPerRow*cst.muxFactor) * 1e9 / cst.fSamp
-
-    fig = plt.figure(figsize=(12, 10))
-    plt.suptitle(title)
-
-
-    nb_plot_cols = 2 # number of columns in the plot
-    for col in range(cst.nColPerDemux):
-
-        ax1 = fig.add_subplot(int(cst.nColPerDemux/nb_plot_cols), nb_plot_cols, col+1)
-        ax1.plot(t, dump[col, :], color=col1)
-        tit = "Column {0:}".format(col)
-        if col == c_perp:
-            tit += ' (perpetrator)'
-        ax1.set_title(tit)
-        ax1.set_xlabel(xlabel)
-        ax1.set_ylabel(ylabel, color=col1)
-        nsamples = 80
-        #xlims = [0, nsamples*1e9/cst.fSamp]
-        #ax1.set_xlim(xlims)
-        [t.set_color(col1) for t in ax1.yaxis.get_ticklabels()]
-
-        ax2 = ax1.twinx()
-        ax2.plot(t, col_dump_db[col, :], color=col2)
-        maxi = col_dump_db[col, :].max()
-        if math.isnan(maxi) or math.isinf(maxi):
-            lbl = ''
-        else:
-            lbl = '{0:} dB'.format(int(maxi))
-        ax2.plot([t[0], t[-1]], [maxi, maxi], ':', color=col2, label=lbl)
-        ax2.set_ylabel(ylabel1, color=col2)
-        [t.set_color(col2) for t in ax2.yaxis.get_ticklabels()]
-        ax2.grid(color=col2grid)
-        #ax2.set_xlim(xlims)
-
-        ax2.legend(loc='best')
-        #ax2.set_xlim([0, x_max])
-
-    fig.tight_layout()
-
-    plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
-    print("results plotted in file " + plotFileName)
-
-
-def fdbk_2_error_xtalk_analysis(path, c_perp, pls_set):
-    dump_no_fdbk = get_dump(path, c_perp, pls_set, "not-loaded")[c_perp, :]
-    dump_fdbk = get_dump(path, c_perp, pls_set, "fbk-looped")[c_perp, :]
-
-    xtalk_db = 20 * np.log10(np.abs(dump_no_fdbk / dump_fdbk))
-
-    pathPlot = os.path.join(path, cst.plotDirName)
-    gt.createdir(pathPlot)
-
-    plotFileName = os.path.join(pathPlot, 'XTalk_fdbk2error_pls{0:}'.format(pls_set) + '_cPerp{0:}.png'.format(c_perp))
-
-    # Doing the plot
-    t = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp
-    title = 'Crosstalk in column {0:} between feedback and error'.format(c_perp) + ' with ' + gt.pulseshapingtext(
-        pls_set)
-    xlabel = 'Time (ns)'
-    title1 = 'Plot 1: The feedback is looped in the Error'
-    ylabel1 = 'Error (ADU)'
-    title2 = 'Plot 2: The feedback is not looped in the Error'
-    ylabel2 = 'Error (ADU)'
-    title3 = 'Plot 3: Cross talk'
-    ylabel3 = 'Plot 2 / Plot 1 (dB)'
-    index_xmean = [5, 20]
-    xmean = t[index_xmean]
-    index_xlims = [0, 25]
-    xlims = t[index_xlims]
+    ylabel = 'Error (ADU)'
     col1, col2, col3, col2grid = 'k', 'b', 'r', 'lightblue'
 
-    fig = plt.figure(figsize=(10, 10))
-    plt.suptitle(title)
+    for c_perp in range(cst.nColPerDemux):
 
-    ax1 = fig.add_subplot(3, 1, 1)
-    ax1.plot(t, dump_fdbk, color=col1)
-    ax1.set_title(title1)
-    ax1.set_ylabel(ylabel1, color=col1)
-    ax1.set_xlim(xlims)
-    ax1.grid(color=col2grid)
+        plotFileName = os.path.join(pathPlot, 'XTalk_' + sig + '2ERRO_cPerp{0:}.png'.format(c_perp))
 
-    ax2 = fig.add_subplot(3, 1, 2)
-    ax2.plot(t, dump_no_fdbk, color=col2)
-    ####
-    ax2.set_title(title2)
-    ax2.set_ylabel(ylabel2, color=col2)
-    ax2.set_xlim(xlims)
-    ax2.grid(color=col2grid)
+        # Doing the plot
+        t = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp
+        suptitle = 'Crosstalk between ' + sig + ' and ERROR'
+        title1 = 'Perpetrator column {0:}: '.format(c_perp) + sig + ' looped back to ERROR (reference)'
 
-    ax3 = fig.add_subplot(3, 1, 3)
-    ax3.plot(t, xtalk_db, color=col3)
-    xtalk = xtalk_db[index_xmean[0]:index_xmean[1]].mean()
-    ax3.set_title(title3)
-    ax3.plot(xmean, [xtalk, xtalk], '--', color='k', label='Cross talk: {0:3.0f} dB'.format(xtalk))
-    ax3.set_xlabel(xlabel)
-    ax3.set_ylabel(ylabel3, color=col3)
-    ax3.set_xlim(xlims)
-    ax3.grid(color=col2grid)
-    ax3.legend(loc='best')
+        fig = plt.figure(figsize=(9, 11))
+        plt.suptitle(suptitle)
 
-    fig.tight_layout()
+        ax1 = fig.add_subplot(5, 1, 1)
+        ax1.plot(t, dumps_lb[c_perp, c_perp, :], color=col1)
+        ax1.set_title(title1)
+        ax1.set_ylabel(ylabel, color=col1)
+        ax1.grid(color=col2grid)
 
-    plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
-    print("results plotted in file " + plotFileName)
+        for col in range(cst.nColPerDemux):
+            xtalk = np.abs(dumps_100_ohms[c_perp, col, :]).max() / dumps_lb[c_perp, c_perp, :].max()
+            xtalk_db = 20 * np.log10(xtalk).min()
+
+            title = 'Victim column {0}: 100 Ohms on error. Cross talk = {1:2.1f}dB'.format(col, xtalk_db)
+
+            ax = fig.add_subplot(5, 1, col + 2)
+            ax.plot(t, dumps_100_ohms[c_perp, col, :], color=col2)
+            ax.set_title(title)
+            ax.set_ylabel(ylabel)
+            ax.grid(color=col2grid)
+
+        ax.set_xlabel(xlabel)
+
+        fig.tight_layout()
+
+        plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
+        print("results plotted in file " + plotFileName)
 
 #------------------------------------------------------------------
 
 # TODO: Clarify the Xtalk test configuration and update the analysis script accordingly
-
-# conf = ["bob-looped", "not-loaded", "harness-08"]
-conf = ["fbk-looped", "not-loaded", "harness-08"]
-
-pls_sets = [0, 1]
-
-list_of_paths = [
-    os.path.join(cst.BASE_DATA_PATH, cst.TP27_PATH, "20251117_110000_XTalk"),
-    os.path.join(cst.BASE_DATA_PATH, cst.TP27_PATH, "20251118_160000_XTalk")
-]
-
-for path in list_of_paths:
-    for pls_set in pls_sets:
-        for cPerp in range(cst.nColPerDemux):
-            fdbk_2_error_xtalk_analysis(path, cPerp, pls_set)
-            # for config in conf:
-            #xtalk_analysis(path, cPerp, pls_set, config)

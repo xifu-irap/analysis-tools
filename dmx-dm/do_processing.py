@@ -1,13 +1,11 @@
 # imports
 import os
 
+import XTalkAnalysis
 import delayAnalysis
 import noiseAnalysis
 import nonLinearity
 import samplingDelayAnalysis
-
-
-# import XTalkAnalysis
 
 
 def do_processing(verbose=True):
@@ -36,10 +34,8 @@ def do_processing(verbose=True):
             nonLinearity.nonlinearity()
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
             noiseAnalysis.noiseAnalysis(verbose)
-
-
-#        case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
-#            XTalkAnalysis.xtalkAnalysis(verbose)
+        case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
+            XTalkAnalysis.xtalkAnalysis(verbose)
 
 
 do_processing()

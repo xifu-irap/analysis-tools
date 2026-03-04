@@ -4,15 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of noise models">
-      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/ADC chain noise.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_125.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_183.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/old_dmx-dm-model-files/erro-only_6p25.txt" afterDir="false" />
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Important update of noise analysis">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/XTalkAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/constants.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/Noise Limits.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-fdbk_Fref.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-fdbk_Frow.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-ofco_Fref.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-ofco_Frow.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-only_Fref.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/req-erro-only_Frow.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,7 +25,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="90" />
+    <option name="cachedIndexableFilesCount" value="96" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -45,6 +50,7 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
+        <option value="LaurentRavera" />
         <option value="LaurentRavera &lt;laurent.ravera@irap.omp.eu&gt;" />
       </list>
     </option>
@@ -581,6 +587,7 @@
       <workItem from="1771259870714" duration="164000" />
       <workItem from="1771404717151" duration="27509000" />
       <workItem from="1772542137179" duration="1643000" />
+      <workItem from="1772543789788" duration="20747000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -894,7 +901,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771591849079</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="Important update of noise analysis">
+      <option name="closed" value="true" />
+      <created>1772543861737</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1772543861737</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -912,7 +927,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="New tools for crosstalk analysis" />
     <MESSAGE value="Improvement of noise analysis functions" />
     <MESSAGE value="Debug of noise analysis" />
     <MESSAGE value="News tools to process TestPattern Acqmode files" />
@@ -937,7 +951,8 @@
     <MESSAGE value="Update of feedback and sampling delay analysis" />
     <MESSAGE value="Update of functional and performance analisys scripts" />
     <MESSAGE value="Update of noise models" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of noise models" />
+    <MESSAGE value="Important update of noise analysis" />
+    <option name="LAST_COMMIT_MESSAGE" value="Important update of noise analysis" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

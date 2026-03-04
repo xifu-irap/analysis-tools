@@ -397,13 +397,13 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
     return nsd
 
 
-def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename):
+def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
     """
     Plot the spectrum and noise floor in both linear and logarithmic scales.
 
-    This function generates a spectrum plot in logarithmic scale,
-    displaying the spectrum of a signal and the expected noise floor. The function also supports
-    theoretical noise data from a model file and fits a 1/f behavior to the spectrum
+    This function generates one_over_f_at_one_hz spectrum plot in logarithmic scale,
+    displaying the spectrum of one_over_f_at_one_hz signal and the expected noise floor. The function also supports
+    theoretical noise data from one_over_f_at_one_hz model file and fits one_over_f_at_one_hz 1/f behavior to the spectrum
     if the acquisition mode is set to 'error'.
 
     Parameters:
@@ -452,6 +452,36 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename):
     ylims_erro: list[float] = [1e1, 1e4]
     ylims_dump: list[float] = [1e1, 1e2]
 
+    path_models = 'noise_models'
+    # Selection of one_over_f_at_one_hz noise model
+    match config["setup"]:
+        case 'ERRO-ONLY':
+            if acq_mode == 'DUMP':
+                model_filename = os.path.join(path_models, "mod-erro-only_Fref.txt")
+            else:
+                model_filename = os.path.join(path_models, "mod-erro-only_Frow.txt")
+
+        case 'FDBK-ERRO':
+            if acq_mode == 'DUMP':
+                if col_id == 0 or col_id == 3:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Fref.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Fref.txt")
+            else:
+                if col_id == 0 or col_id == 3:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Frow.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Frow.txt")
+
+        case 'OFCO-ERRO':
+            if acq_mode == 'DUMP':
+                model_filename = os.path.join(path_models, "mod-erro-ofco_Fref.txt")
+            else:
+                model_filename = os.path.join(path_models, "mod-erro-ofco_Frow.txt")
+
+        case '':
+            model_filename = ''  # file type is unknown, no model exists
+
     # Processing science files
     if acq_mode == 'DUMP':
         fs = cst.fSamp
@@ -472,38 +502,45 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename):
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e3 # max frequency of 1/f area
         xf_stop = np.where(xf < f_stop)[0][-1]
-        a = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
-
-        # 1/f noise at 1 Hz
-        one_over_f_at_one_Hz = one_over_f(1, a)
+        one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
         # Corner frequency
-        f_corner = (a / white_noise) ** 2
+        f_corner = (one_over_f_at_one_hz / white_noise) ** 2
 
         # 1/f plus white noise contributions
-        one_over_f_plus_white_noise = np.sqrt(one_over_f(xf[1:], a) ** 2 + np.ones(len(xf[1:])) * white_noise ** 2)
+        one_over_f_plus_white_noise = np.sqrt(
+            one_over_f(xf[1:], one_over_f_at_one_hz) ** 2 + np.ones(len(xf[1:])) * white_noise ** 2)
 
     if model_filename != '':
         # Getting theoretical noise data from 0 to fs
         f_mod, noise_mod = gt.read_two_vectors_from_file(model_filename)
         # Aliasing the noise
         # f_mod, noise_mod = undersampling_with_aliasing(f_mod, noise_mod, fs)
-        print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_mod[0] * 1e9))
+        # print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_mod[0] * 1e9))
 
-        # Getting the requirement limit filename
-        index1 = model_filename.find("mod-")
-        index2 = index1 + len("mod-")
-        req_filename = model_filename[0: index1] + "req-" + model_filename[index2: index2 + 9]
-        if acq_mode == 'DUMP':
-            req_filename = req_filename + '_Fref.txt'
-        else:
-            req_filename = req_filename + '_Frow.txt'
+    # Computing requirement limits (1/f plus white noise contributions)
+    ## Applying the aliasing factor on the white noise
+    match config["setup"]:
+        case 'ERRO-ONLY':
+            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['ERRO-ONLY']
+            white_noise_req = cst.nsd['ERRO-ONLY'] * np.sqrt(cst.fSamp / fs)
+            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
+        case 'FDBK-ERRO':
+            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['FDBK-ERRO']
+            white_noise_req = cst.nsd['FDBK-ERRO'] * np.sqrt(cst.fSamp / fs)
+            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
+        case 'OFCO-ERRO':
+            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['OFCO-ERRO']
+            white_noise_req = cst.nsd['OFCO-ERRO'] * np.sqrt(cst.fSamp / fs)
+            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
 
-        f_req, noise_req = gt.read_two_vectors_from_file(req_filename)
+    # The aliasing factor is applied on the white noise
+    noise_req = np.sqrt(one_over_f(xf[1:], one_over_f_at_one_hz_req) ** 2
+                        + np.ones(len(xf[1:])) * (white_noise_req ** 2))
 
     # Plot of the measured spectrum
     lbl1 = "Measurement"
-    ax.loglog(xf[1:], spectrum[1:]*1e9, label=lbl1)
+    ax.loglog(xf[1:], spectrum[1:] * 1e9)
 
     # Plot of the averaged noise in the band for dump data
     if acq_mode == "DUMP":
@@ -517,21 +554,29 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, model_filename):
                   label=lbl_noise_avg)
 
     if acq_mode == 'ERRO':
-        lbl3 = r'White noise level ({0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$)'
-        ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
-        lbl4 = r'1/f noise ({0:3.1f}'.format(one_over_f(1, a) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz)'
-        ax.loglog([1, f_corner], [one_over_f_at_one_Hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl4)
-        lbl5 = r'Quadratic sum of 1/f and white noise contributions'
-        ax.loglog(xf[1:], one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl5)
+        lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
+        ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
+        lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
+            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+        ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
+        lbl4 = r'Quadratic sum of 1/f and white noise contributions'
+        ax.loglog(xf[1:], one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
 
     # Plot of the model
     if model_filename != '':
-        lbl2 = 'Model (from datasheets)'
-        ax.loglog(f_mod, noise_mod * 1e9, '--', color='purple', label=lbl2)
 
         # Plot of the requirement
-        lbl6 = (r"Requirement for a sampling at {0:3.2f} MHz".format(fs / 1e6))
-        ax.loglog(f_req, noise_req * 1e9, '--', color='red', label=lbl6)
+        lbl5 = r'White noise requirement: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
+        ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
+        lbl6 = r'1/f noise requirement: {0:3.1f}'.format(
+            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+        ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
+                  label=lbl6)
+        lbl7 = r'Quadratic sum of both requirements'
+        ax.loglog(xf[1:], noise_req * 1e9, '-', linewidth=2, color='r', label=lbl7)
+
+        lbl8 = 'Model (from datasheets)'
+        ax.loglog(f_mod, noise_mod * 1e9, '--', color='purple', label=lbl8)
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)

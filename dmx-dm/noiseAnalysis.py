@@ -10,10 +10,6 @@ import general_tools as gt
 import noiseAnalysisTools as nat
 import readData as rddt
 
-# NSD definitions
-## Wide band noise spectral density in V/sqrt(Hz) with BW = 62.5 MHz
-nsd_dict = {"ERRO-ONLY": 25e-9, "FDBK-ERRO": 20e-9, "OFCO-ERRO": 15e-9}
-
 
 # TODO
 ## Change this function to retrieve the information from a configuration file (xml format)
@@ -73,9 +69,6 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
         verbose (boolean): If True some text is displayed
     """
 
-    # Test configuration data
-    nsd = nsd_dict[config["setup"]]
-
     # session name
     session_name = os.path.basename(os.path.realpath(dir_path))
 
@@ -112,28 +105,6 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
             col_plot_file_name = plot_file_name + '_c{0}'.format(col_id)
             plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
 
-            # Selection of a noise model
-            path_models = 'noise_models'
-            if config["setup"] == 'ERRO-ONLY' and acq_mode == 'DUMP':
-                model_filename = os.path.join(path_models, "mod-erro-only_Fref.txt")
-            elif config["setup"] == 'ERRO-ONLY' and acq_mode == 'ERRO':
-                model_filename = os.path.join(path_models, "mod-erro-only_Frow.txt")
-            elif config["setup"] == 'FDBK-ERRO' and acq_mode == 'DUMP':
-                if col_id == 0 or col_id == 3:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Fref.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Fref.txt")
-            elif config["setup"] == 'FDBK-ERRO' and acq_mode == 'ERRO':
-                if col_id == 0 or col_id == 3:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Frow.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Frow.txt")
-            elif config["setup"] == 'OFCO-ERRO' and acq_mode == 'DUMP':
-                model_filename = os.path.join(path_models, "mod-erro-ofco_Fref.txt")
-            elif config["setup"] == 'OFCO-ERRO' and acq_mode == 'ERRO':
-                model_filename = os.path.join(path_models, "mod-erro-ofco_Frow.txt")
-            else:
-                model_filename = ''  # file type is unknown, no model exists
 
             # Doing the plot
             fig, ax = plt.subplots(1, 1, figsize=(8, 6))
@@ -144,7 +115,7 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
             fig.suptitle(suptitle, fontsize=12)
             ax.set_title(session_name, fontsize=10)
 
-            nat.plot_spectrum(ax, xf, spectrum, acq_mode, model_filename)
+            nat.plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config)
 
             if lpf != 0:  # comparison with a low pass filter model
                 a_dc_estimated = spectrum[4:50].mean()
