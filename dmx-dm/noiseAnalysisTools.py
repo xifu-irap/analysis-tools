@@ -475,9 +475,15 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
 
         case 'OFCO-ERRO':
             if acq_mode == 'DUMP':
-                model_filename = os.path.join(path_models, "mod-erro-ofco_Fref.txt")
+                if config["ofco"] == "P0V":
+                    model_filename = os.path.join(path_models, "mod-erro-ofco_0_Fref.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-ofco_1023_Fref.txt")
             else:
-                model_filename = os.path.join(path_models, "mod-erro-ofco_Frow.txt")
+                if config["ofco"] == "P0V":
+                    model_filename = os.path.join(path_models, "mod-erro-ofco_0_Frow.txt")
+                else:
+                    model_filename = os.path.join(path_models, "mod-erro-ofco_1023_Frow.txt")
 
         case '':
             model_filename = ''  # file type is unknown, no model exists
@@ -500,7 +506,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
 
         # Fit of 1/f behavior
         xf_start = 3 # to avoid DC perturbations
-        f_stop = 1e3 # max frequency of 1/f area
+        f_stop = 1e2  # max frequency of 1/f area
         xf_stop = np.where(xf < f_stop)[0][-1]
         one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
