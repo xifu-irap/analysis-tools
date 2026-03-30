@@ -1,6 +1,7 @@
 # imports
 import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 from numpy.typing import ArrayLike
@@ -72,7 +73,7 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
     return xf, power_spectrum
 
 
-def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
+def power_spectrum_from_1error_column(data_path, col_id, npts, rate, win_name):
     """
     Compute the power spectrum from error data.
 
@@ -99,26 +100,40 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, win_name):
             in the provided directory.
     """
 
-    col_data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True,
+    if rate == 'FROW':  # Column data
+        data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True,
                                                            verbose=False)
 
-    if not data_exists:
-        xf, power_spectrum = 0, 0
-    else:
         # Computing spectrum
-        xf, power_spectrum = gt.do_power_spectrum(col_data, cst.fRow, npts, window=win_name)
+        if not data_exists:
+            xf, power_spectrum = 0, 0
+        else:
+            xf, power_spectrum = gt.do_power_spectrum(data, cst.fRow, npts, window=win_name)
 
-        # passage V => ADU
-        power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
+    elif rate == 'FFRAME':  # Pixels data
+        data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True,
+                                                           verbose=False)
+
+        # Computing spectrum
+        if not data_exists:
+            xf, power_spectrum = 0, 0
+        else:
+            power_spectrum = np.zeros(int(npts / 2) + 1)
+            for pix in range(cst.nPixPerCol):
+                xf, power_spectrum_pix = gt.do_power_spectrum(data[pix, :], cst.fFrame, npts, window=win_name)
+                power_spectrum += power_spectrum_pix / cst.nPixPerCol
+
+    # passage V => ADU
+    power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
 
     return xf, power_spectrum, data_exists
 
 
-def power_spectrum_from_error(data_path, npts, win_name="none"):
+def power_spectrum_from_error(data_path, npts, rate, win_name="none"):
     from joblib import Parallel, delayed
 
     results = Parallel(n_jobs=cst.nColPerDemux)(
-        delayed(power_spectrum_from_1error_column)(data_path, col_id, npts, win_name) for col_id in
+        delayed(power_spectrum_from_1error_column)(data_path, col_id, npts, rate, win_name) for col_id in
         range(cst.nColPerDemux))
 
     # Construction du vecteur booléen indiquant la présence de données par colonne
@@ -368,7 +383,7 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
         fig, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.semilogx(frequencies, signal * 1e9)
         ax.semilogx(new_frequencies, np.sqrt(folded_pow) * 1e9)
-        ax.set_xlim([1e5, 125e6])
+        ax.set_xlim(1e5, 125e6)
 
     return new_frequencies, np.sqrt(folded_pow)
 
@@ -397,7 +412,7 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
     return nsd
 
 
-def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
+def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
     """
     Plot the spectrum and noise floor in both linear and logarithmic scales.
 
@@ -444,61 +459,66 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
     - The function handles both linear and logarithmic axes for better visualization of
       the spectrum and noise floor.
     """
+    plt.rcParams['agg.path.chunksize'] = 200
 
     xlabel_log: str = r'Frequencies (Hz)'
     ylabel: str = r'Error signal noise (nV / $\sqrt{\mathrm{Hz}}$)'
-    xlims_erro: list[int | float] = [1, cst.fRow/2]
-    xlims_dump: list[float] = [1e5, cst.fSamp/2]
-    ylims_erro: list[float] = [1e1, 1e4]
-    ylims_dump: list[float] = [1e1, 1e2]
+
+    plot_path = os.path.join(config["dir_path"], cst.plotDirName)
+
+    plot_file_name_base = 'noise_' + config["setup"] + '_' + config["rate"] + '_BXL' + \
+                          "{0:}".format(config["bxl"]) + '_FDBK' + config["fdbk"] + '_OFCO' + config["ofco"]
+
+    col_plot_file_name = plot_file_name_base + '_c{0}'.format(col_id)
+    plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
+
+    # Doing the plot
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+    suptitle = config["setup"] + ' (Fs = ' + config["rate"] + ' in column {0:})\n'.format(col_id) \
+               + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
+                   "ofco"]
+
+    fig.suptitle(suptitle, fontsize=12)
+    ax.set_title(config["session_name"], fontsize=10)
 
     path_models = 'noise_models'
-    # Selection of one_over_f_at_one_hz noise model
+    match config["rate"]:
+        case 'FREF':
+            fs = cst.fSamp
+            xlims: list[float] = [xf[1], fs / 2]
+            ylims: list[float] = [1e1, 1e2]
+            model_file_name_end = "_Fref.txt"
+            af_text = ""  # Aliasing factor description
+        case 'FROW':
+            fs = cst.fRow
+            xlims: list[int | float] = [xf[1], fs / 2]
+            ylims: list[float] = [1e1, 1e4]
+            model_file_name_end = "_Frow.txt"
+            af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Row}}}$'  # Aliasing factor description
+        case 'FFRAME':
+            fs = cst.fFrame
+            xlims: list[int | float] = [xf[1], fs / 2]
+            ylims: list[float] = [1e2, 1e4]
+            model_file_name_end = "_Fframe.txt"
+            af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Frame}}}$'  # Aliasing factor description
+
     match config["setup"]:
         case 'ERRO-ONLY':
-            if acq_mode == 'DUMP':
-                model_filename = os.path.join(path_models, "mod-erro-only_Fref.txt")
-            else:
-                model_filename = os.path.join(path_models, "mod-erro-only_Frow.txt")
-
+            model_file_name_base = "mod-erro-only"
         case 'FDBK-ERRO':
-            if acq_mode == 'DUMP':
-                if col_id == 0 or col_id == 3:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Fref.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Fref.txt")
+            if col_id == 0 or col_id == 3:
+                model_file_name_base = "mod-erro-fdbk-awaxe"
             else:
-                if col_id == 0 or col_id == 3:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-awaxe_Frow.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-fdbk-rhf200_Frow.txt")
-
+                model_file_name_base = "mod-erro-fdbk-rhf200"
         case 'OFCO-ERRO':
-            if acq_mode == 'DUMP':
-                if config["ofco"] == "P0V":
-                    model_filename = os.path.join(path_models, "mod-erro-ofco_0_Fref.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-ofco_1023_Fref.txt")
+            if config["ofco"] == "P0V":
+                model_file_name_base = "mod-erro-ofco_0"
             else:
-                if config["ofco"] == "P0V":
-                    model_filename = os.path.join(path_models, "mod-erro-ofco_0_Frow.txt")
-                else:
-                    model_filename = os.path.join(path_models, "mod-erro-ofco_1023_Frow.txt")
+                model_file_name_base = "mod-erro-ofco_1023"
+        case _:
+            model_file_name_base = ''
 
-        case '':
-            model_filename = ''  # file type is unknown, no model exists
-
-    # Processing science files
-    if acq_mode == 'DUMP':
-        fs = cst.fSamp
-        xlims = xlims_dump
-        ylims = ylims_dump
-    else:  # acq_mode == 'ERRO'
-        fs = cst.fRow
-        xlims = xlims_erro
-        ylims = ylims_erro
-
-    if acq_mode == 'ERRO':
+    if acq_mode[:4] == 'ERRO':
         # Fit of white noise
         f_white_start = 30e3  # to avoid 1/f contribution
         xf_white_start = np.where(xf > f_white_start)[0][0]
@@ -506,7 +526,7 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
 
         # Fit of 1/f behavior
         xf_start = 3 # to avoid DC perturbations
-        f_stop = 1e2  # max frequency of 1/f area
+        f_stop = 1e1  # max frequency of 1/f area
         xf_stop = np.where(xf < f_stop)[0][-1]
         one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
@@ -515,38 +535,39 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
 
         # 1/f plus white noise contributions
         one_over_f_plus_white_noise = np.sqrt(
-            one_over_f(xf[1:], one_over_f_at_one_hz) ** 2 + np.ones(len(xf[1:])) * white_noise ** 2)
+            one_over_f(xf, one_over_f_at_one_hz) ** 2 + np.ones(len(xf)) * white_noise ** 2)
 
-    if model_filename != '':
-        # Getting theoretical noise data from 0 to fs
-        f_mod, noise_mod = gt.read_two_vectors_from_file(model_filename)
-        # Aliasing the noise
-        # f_mod, noise_mod = undersampling_with_aliasing(f_mod, noise_mod, fs)
-        # print(r"     Noise from model at low frequencies: {0:6.3f} nV/sqrt(Hz)".format(noise_mod[0] * 1e9))
+        # Sauvegarde des résultats
+        spectra_path = os.path.join(config["dir_path"], cst.spectraDirname)
+        spectrum_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_spectrum.txt")
+        spectrum_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_spectrum_fit.txt")
+        param_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_param_fit.txt")
+        gt.save_two_vectors_to_file(xf, spectrum, spectrum_file_name, label1='frequency', label2='noise_req')
+        gt.save_two_vectors_to_file(xf, one_over_f_plus_white_noise, spectrum_fit_file_name, label1='frequency',
+                                    label2='noise_req')
+        gt.save_two_vectors_to_file(np.array([one_over_f_at_one_hz]), np.array([white_noise]), param_fit_file_name,
+                                    label1='one_over_f_at_one_hz', label2='white_noise')
 
     # Computing requirement limits (1/f plus white noise contributions)
     ## Applying the aliasing factor on the white noise
-    match config["setup"]:
-        case 'ERRO-ONLY':
-            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['ERRO-ONLY']
-            white_noise_req = cst.nsd['ERRO-ONLY'] * np.sqrt(cst.fSamp / fs)
-            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
-        case 'FDBK-ERRO':
-            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['FDBK-ERRO']
-            white_noise_req = cst.nsd['FDBK-ERRO'] * np.sqrt(cst.fSamp / fs)
-            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
-        case 'OFCO-ERRO':
-            one_over_f_at_one_hz_req = cst.one_over_f_at_1hz['OFCO-ERRO']
-            white_noise_req = cst.nsd['OFCO-ERRO'] * np.sqrt(cst.fSamp / fs)
-            f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
+    if fs == cst.fSamp:
+        aliasing_factor = 1
+    else:
+        aliasing_factor = np.sqrt(np.pi * cst.fSamp / fs)
 
-    # The aliasing factor is applied on the white noise
-    noise_req = np.sqrt(one_over_f(xf[1:], one_over_f_at_one_hz_req) ** 2
-                        + np.ones(len(xf[1:])) * (white_noise_req ** 2))
+    one_over_f_at_one_hz_req = cst.one_over_f_at_1hz[config["setup"]]
+    white_noise_req = cst.nsd[config["setup"]] * aliasing_factor
+    f_corner_req = (one_over_f_at_one_hz_req / white_noise_req) ** 2
+
+    # Quadratic sum of 1/f and white noise requirements
+    noise_req = np.sqrt(one_over_f(xf, one_over_f_at_one_hz_req) ** 2 + np.ones(len(xf)) * (white_noise_req ** 2))
 
     # Plot of the measured spectrum
     lbl1 = "Measurement"
-    ax.loglog(xf[1:], spectrum[1:] * 1e9)
+    ax.loglog(xf, spectrum * 1e9)
 
     # Plot of the averaged noise in the band for dump data
     if acq_mode == "DUMP":
@@ -559,27 +580,30 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
         ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nV, noise_avg_nV], '-', color='k',
                   label=lbl_noise_avg)
 
-    if acq_mode == 'ERRO':
+    if acq_mode[0:4] == 'ERRO':
         lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
         lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
             one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
         ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise contributions'
-        ax.loglog(xf[1:], one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
+        ax.loglog(xf, one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
+
+    # Plot of the requirements
+    lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$' + af_text
+    ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
+    lbl6 = r'1/f noise req.: {0:3.1f}'.format(
+        one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+    ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
+              label=lbl6)
+    lbl7 = r'Quadratic sum of both req.'
+    ax.loglog(xf, noise_req * 1e9, '-', linewidth=2, color='r', label=lbl7)
 
     # Plot of the model
-    if model_filename != '':
-
-        # Plot of the requirement
-        lbl5 = r'White noise requirement: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
-        ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
-        lbl6 = r'1/f noise requirement: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
-        ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
-                  label=lbl6)
-        lbl7 = r'Quadratic sum of both requirements'
-        ax.loglog(xf[1:], noise_req * 1e9, '-', linewidth=2, color='r', label=lbl7)
+    # Getting theoretical noise data from 0 to fs
+    if model_file_name_base != '':
+        model_file_name = os.path.join(path_models, model_file_name_base + model_file_name_end)
+        f_mod, noise_mod = gt.read_two_vectors_from_file(model_file_name)
 
         lbl8 = 'Model (from datasheets)'
         ax.loglog(f_mod, noise_mod * 1e9, '--', color='purple', label=lbl8)
@@ -597,6 +621,30 @@ def plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config):
 
         # Configurer les ticks pour afficher uniquement des entiers
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+
+    if lpf != 0:  # comparison with a low pass filter model
+        a_dc_estimated = spectrum[4:50].mean()
+        popt, pcov = curve_fit(low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
+        a_dc = popt[0]
+        fc = popt[1]
+        if verbose:
+            print("Estimated cutoff frequency: {0:4.0f} MHz".format(fc / 1e6))
+            print("Estimated DC level: {0:4.1f} nV/rtHz".format(a_dc * 1e9))
+
+        # Plotting the 1st order LPF fit
+        lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
+        ax.loglog(xf, low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
+
+    # Afficher la légende
+    ax.legend(loc='upper right', fontsize=9)
+
+    ax.grid(True, which='both', linestyle='--')
+    fig.tight_layout()
+    plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
+    plt.close()
+
+    if verbose:
+        print("Results plotted in file ", plot_full_file_name)
 
 
 def plot_cross_spectrum(ax, xf, spectrum, col_ref):

@@ -1,9 +1,7 @@
 # imports
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
 
 import constants as cst
 import general_tools as gt
@@ -14,7 +12,7 @@ import readData as rddt
 # TODO
 ## Change this function to retrieve the information from a configuration file (xml format)
 
-def get_config(session_name):
+def get_config():
     """
     Extracts configuration details from a given session name string.
 
@@ -32,6 +30,13 @@ def get_config(session_name):
             - "fdbk" (str): The feedback value extracted from the session name.
             - "ofco" (str): The coarse offset calibration value extracted from the session name.
     """
+
+    # Data directory
+    dir_path = os.path.join("..", "..")
+
+    # Looking for the session name and test configuration : "ERRO_ONLY" or "ERRO_FDBK" or "ERRO_OFCO"
+    session_name = os.path.basename(os.path.realpath(dir_path))
+
     # Looking for boxcar length value from session name
     index_bxl = session_name.find("BXL") + len("BXL")
     bxl = int(session_name[index_bxl])
@@ -46,13 +51,20 @@ def get_config(session_name):
     index_ofco = session_name.find(txt) + len(txt)
     ofco = session_name[index_ofco:]
 
-    config = {"setup": session_name[22:31], "bxl": bxl, "fdbk": fdbk, "ofco": ofco}
+    config = {"session_name": session_name,
+              "dir_path": dir_path,
+              "setup": session_name[22:31],
+              "rate": '',
+              "bxl": bxl,
+              "fdbk": fdbk,
+              "ofco": ofco
+              }
 
     return config
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
+def plot_col_spectrum(acq_mode, config, verbose=False, lpf=False):
     """
     Plots a column spectrum based on the provided input parameters.
 
@@ -69,74 +81,66 @@ def plot_col_spectrum(dir_path, acq_mode, config, verbose=False, lpf=False):
         verbose (boolean): If True some text is displayed
     """
 
-    # session name
-    session_name = os.path.basename(os.path.realpath(dir_path))
-
     # Data directory
-    data_path = os.path.join(dir_path, cst.dataDirName)
-
-    # Creation of a directory for the plot files
-    plot_path = os.path.join(dir_path, cst.plotDirName)
-    gt.createdir(plot_path)
+    data_path = os.path.join(config["dir_path"], cst.dataDirName)
 
     # Processing science files
-    data_exists = [True, True, True, True]
-
-    plot_file_name = 'noise_' + config["setup"] + '_' + acq_mode + '_BXL' + \
-                     "{0:}".format(config["bxl"]) + '_FDBK' + config["fdbk"] + '_OFCO' + config["ofco"]
 
     if acq_mode == 'DUMP':
+        config["rate"] = "FREF"
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
-        xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts)
+        xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
+        plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf, verbose)
 
     elif acq_mode == 'ERRO':
+        config["rate"] = "FROW"
         npts = 2 ** 23
-        xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts)
+        xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
+        plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
+
+        config["rate"] = "FFRAME"
+        npts = 2 ** 18
+        xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
+        plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
+
+
+def plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf=False, verbose=False):
+    rbw = xf[1]
+    xf = xf[1:]  # Removing f=0 to make log scale plots easier to manage
+    spectrum = np.sqrt(power_spectrum[:, 1:] / rbw)
+
+    spectra_path = os.path.join(config["dir_path"], cst.spectraDirname)
+    gt.createdir(spectra_path)
+
+    # Creation of a directory for the plot files
+    plot_path = os.path.join(config["dir_path"], cst.plotDirName)
+    gt.createdir(plot_path)
+
+    if config["setup"] != "ERRO-ONLY":
+        substract_error = True
+    else:
+        substract_error = False
 
     # Iterates columns; plots spectrum with noise model
     for col_id in range(cst.nColPerDemux):
 
         if data_exists[col_id]:
 
-            rbw = xf[1]
+            nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, lpf, verbose)
 
-            spectrum = np.sqrt(power_spectrum[col_id, :] / rbw)
+            if substract_error and acq_mode == "ERRO":
+                # Soustraction du spectre du signal d'erreur si disponible
+                error_spectra_path = os.path.join(".", cst.errorSpectraDirname)
+                error_spectrum_fit_file_name = os.path.join(error_spectra_path,
+                                                            "ERRO-ONLY_" + config[
+                                                                "rate"] + "_col{0:}_spectrum_fit.txt".format(col_id))
 
-            col_plot_file_name = plot_file_name + '_c{0}'.format(col_id)
-            plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
-
-
-            # Doing the plot
-            fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-            suptitle = config["setup"] + ' (' + acq_mode + ' acquisition mode in column {0:})\n'.format(col_id) \
-                       + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
-                           "ofco"]
-
-            fig.suptitle(suptitle, fontsize=12)
-            ax.set_title(session_name, fontsize=10)
-
-            nat.plot_spectrum(ax, xf, spectrum, acq_mode, col_id, config)
-
-            if lpf != 0:  # comparison with a low pass filter model
-                a_dc_estimated = spectrum[4:50].mean()
-                popt, pcov = curve_fit(nat.low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
-                a_dc = popt[0]
-                fc = popt[1]
-                if verbose:
-                    print("Estimated cutoff frequency: {0:4.0f} MHz".format(fc / 1e6))
-                    print("Estimated DC level: {0:4.1f} nV/rtHz".format(a_dc * 1e9))
-
-                # Plotting the 1st order LPF fit
-                lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
-                ax.loglog(xf, nat.low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
-
-            ax.legend(loc='upper right')
-            ax.grid(True, which='both', linestyle='--')
-            fig.tight_layout()
-            plt.savefig(plot_full_file_name, dpi=300, bbox_inches='tight')
-            plt.close()
-            if verbose:
-                print("Results plotted in file ", plot_full_file_name)
+                if os.path.isfile(error_spectrum_fit_file_name):
+                    print(">>>", error_spectrum_fit_file_name)
+                    f_error_fit, noise_error_fit = gt.read_two_vectors_from_file(error_spectrum_fit_file_name)
+                    spectrum_without_error = np.sqrt(spectrum[col_id, :] ** 2 - noise_error_fit ** 2)
+                    config["setup"] = config["setup"][:-4] + "ONLY"
+                    nat.plot_spectrum(xf, spectrum_without_error, acq_mode, col_id, config, lpf, verbose)
 
 
 def noiseAnalysis(verbose=True):
@@ -150,24 +154,19 @@ def noiseAnalysis(verbose=True):
 
     """
 
-    # Data directory
-    dir_path = os.path.join("..", "..")
+    config = get_config()
 
     # Data directory
-    hk_path = os.path.join(dir_path, cst.hkDirName)
-
-    # Looking for the session name and test configuration : "ERRO_ONLY" or "ERRO_FDBK" or "ERRO_OFCO"
-    session_name = os.path.basename(os.path.realpath(dir_path))
+    hk_path = os.path.join(config["dir_path"], cst.hkDirName)
 
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
-    config = get_config(session_name)
 
     if verbose:
         print("/----------------------------------------------------------")
         print("/ Noise test:          " + config["setup"])
-        print("/ Test session name:   " + session_name)
+        print("/ Test session name:   " + config["session_name"])
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:    {0:}".format(fwVersion))
@@ -178,11 +177,11 @@ def noiseAnalysis(verbose=True):
 
     if verbose:
         print("  Processing DUMP files")
-    plot_col_spectrum(dir_path, "DUMP", config, verbose=verbose)
+    plot_col_spectrum("DUMP", config, verbose=verbose)
 
     if verbose:
         print("  Processing ERROR files")
-    plot_col_spectrum(dir_path, "ERRO", config, verbose=verbose)
+    plot_col_spectrum("ERRO", config, verbose=verbose)
 
 
 #-------------------------------------------------------------------------------------

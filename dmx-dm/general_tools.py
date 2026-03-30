@@ -448,22 +448,22 @@ def read_two_vectors_from_file(nom_fichier):
 
     Returns:
         A tuple containing:
-            - frequency: A NumPy array representing the first vector (frequency values)
+            - x: A NumPy array representing the first vector
               extracted from the specified file.
-            - onoise: A NumPy array representing the second vector (noise values)
+            - y: A NumPy array representing the second vector
               extracted from the specified file.
     """
     # Charger les données en ignorant les lignes d'en-tête
     data = np.loadtxt(nom_fichier, skiprows=1)
 
     # Séparer les colonnes en deux vecteurs
-    frequency = data[:, 0]
-    onoise = data[:, 1]
+    x = data[:, 0]
+    y = data[:, 1]
 
-    return frequency, onoise
+    return x, y
 
 
-def save_two_vectors_to_file(vecteur1, vecteur2, fichier):
+def save_two_vectors_to_file(vecteur1, vecteur2, fichier, label1='x', label2='y'):
     """
     Sauvegarde deux vecteurs dans un fichier texte.
 
@@ -476,7 +476,7 @@ def save_two_vectors_to_file(vecteur1, vecteur2, fichier):
         raise ValueError("Les deux vecteurs doivent avoir la même longueur.")
 
     with open(fichier, "w") as f:
-        f.write("  frequency  V(onoise)")
+        f.write(label1 + '   ' + label2 + "\n")
         for val1, val2 in zip(vecteur1, vecteur2):
             f.write(f"{val1}{"  "}{val2}\n")
 
