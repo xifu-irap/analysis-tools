@@ -431,7 +431,7 @@ def unzip_files_from_dir(dir):
 
 
 # -----------------------------------------------------------------------
-def read_two_vectors_from_file(nom_fichier):
+def read_two_vectors_from_file_obsolete(nom_fichier):
     """
     Reads two vectors from a specified file, ignoring header rows.
 
@@ -462,6 +462,43 @@ def read_two_vectors_from_file(nom_fichier):
 
     return x, y
 
+
+def read_two_vectors_from_file(nom_fichier):
+    """
+    Lit deux vecteurs depuis un fichier contenant 2 colonnes et 1 ou plusieurs lignes de données.
+    Ignore la première ligne (en-tête).
+    Retourne deux tableaux numpy x et y.
+    """
+    # Lire toutes les lignes du fichier
+    with open(nom_fichier, 'r') as fichier:
+        lines = fichier.readlines()
+
+    # Ignorer la première ligne (en-tête)
+    data_lines = lines[1:]
+
+    # Préparer une liste pour stocker les données
+    data = []
+    for line in data_lines:
+        # Nettoyer la ligne : remplacer les espaces multiples par un seul
+        line = line.strip()
+        line = ' '.join(line.split())
+        # Ajouter les valeurs à la liste data
+        data.extend(line.split())
+
+    # Convertir en tableau numpy
+    data = np.array(data, dtype=float)
+
+    # Reshaper en deux colonnes (on suppose que le nombre total de valeurs est pair)
+    if len(data) % 2 != 0:
+        raise ValueError("Le nombre total de valeurs doit être pair (2 colonnes).")
+
+    data = data.reshape((-1, 2))
+
+    # Séparer les colonnes en deux vecteurs
+    x = data[:, 0]
+    y = data[:, 1]
+
+    return x, y
 
 def save_two_vectors_to_file(vecteur1, vecteur2, fichier, label1='x', label2='y'):
     """

@@ -1,0 +1,2 @@
+one_over_f_at_one_hz   white_noise
+4.719110150219088e-06  5.204876125409525e-07

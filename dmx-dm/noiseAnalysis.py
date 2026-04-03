@@ -93,10 +93,10 @@ def plot_col_spectrum(acq_mode, config, verbose=False, lpf=False):
         plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf, verbose)
 
     elif acq_mode == 'ERRO':
-        config["rate"] = "FROW"
-        npts = 2 ** 23
-        xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
-        plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
+        # config["rate"] = "FROW"
+        # npts = 2 ** 23
+        # xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
+        # plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
 
         config["rate"] = "FFRAME"
         npts = 2 ** 18
@@ -129,18 +129,14 @@ def plot_acqmode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists,
             nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, lpf, verbose)
 
             if substract_error and acq_mode == "ERRO":
+
                 # Soustraction du spectre du signal d'erreur si disponible
                 error_spectra_path = os.path.join(".", cst.errorSpectraDirname)
-                error_spectrum_fit_file_name = os.path.join(error_spectra_path,
-                                                            "ERRO-ONLY_" + config[
-                                                                "rate"] + "_col{0:}_spectrum_fit.txt".format(col_id))
-
-                if os.path.isfile(error_spectrum_fit_file_name):
-                    print(">>>", error_spectrum_fit_file_name)
-                    f_error_fit, noise_error_fit = gt.read_two_vectors_from_file(error_spectrum_fit_file_name)
-                    spectrum_without_error = np.sqrt(spectrum[col_id, :] ** 2 - noise_error_fit ** 2)
-                    config["setup"] = config["setup"][:-4] + "ONLY"
-                    nat.plot_spectrum(xf, spectrum_without_error, acq_mode, col_id, config, lpf, verbose)
+                error_param_fit_file_name = os.path.join(error_spectra_path,
+                                                         "ERRO-ONLY_" + config[
+                                                             "rate"] + "_col{0:}_param_fit.txt".format(col_id))
+                if os.path.isfile(error_param_fit_file_name):
+                    nat.plot_fit(xf, col_id, config, verbose)
 
 
 def noiseAnalysis(verbose=True):
