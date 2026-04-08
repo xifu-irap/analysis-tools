@@ -86,22 +86,26 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, verbose=False, lpf=F
         config["rate"] = "FREF"
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
         xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
-        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf, verbose)
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf,
+                                   peak_detect=False, verbose=verbose)
 
     elif acq_mode == 'ERRO':
         if process_frow:
             config["rate"] = "FROW"
             npts = 2 ** 23
             xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
-            plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
+            plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, peak_detect=True,
+                                       verbose=verbose)
 
         config["rate"] = "FFRAME"
         npts = 2 ** 18
         xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
-        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, verbose)
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, peak_detect=True,
+                                   verbose=verbose)
 
 
-def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf=False, verbose=False):
+def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf=False, peak_detect=True,
+                               verbose=False):
     """
     Plots the acquisition mode column spectrum based on the given parameters.
 
@@ -139,7 +143,7 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists
 
         if data_exists[col_id]:
 
-            nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, lpf, verbose)
+            nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, lpf, peak_detect, verbose)
 
             if substract_error and acq_mode == "ERRO":
 

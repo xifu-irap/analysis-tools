@@ -571,3 +571,20 @@ def bit_value(x, bit_id):
         raise TypeError("The bit number shall be an integer")
     else:
         return (x >> bit_id) % 2
+
+
+def peakdetect(sig, half_space, ref_ratio=5):
+    # First search of a spike (could do a double detection on the rise and fall edges)
+    ratio = np.zeros_like(sig)
+    ratio[half_space:-1 * half_space] = sig[half_space:-1 * half_space] / (
+                np.abs(sig[2 * half_space:] + sig[:-2 * half_space]) / 2)
+    x_ini = np.where(ratio > ref_ratio)[0]
+
+    # Second search around the first detections based on a maximum detection
+    for ix in range(len(x_ini)):
+        new_ix = x_ini[ix] - half_space + np.where(sig[x_ini[ix] - half_space:x_ini[ix] + half_space] == sig[
+            x_ini[ix] - half_space:x_ini[ix] + half_space].max())[0]
+        x_ini[ix] = new_ix
+
+    # Removing multiple identical results
+    return np.unique(x_ini)

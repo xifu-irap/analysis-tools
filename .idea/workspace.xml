@@ -5,36 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of noise analysis tools&#10;Update of the noise models computation script">
-      <change afterPath="$PROJECT_DIR$/dmx-dm/noise_models/dre_noise_models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fframe.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fframe.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/general_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/general_tools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/ADC chain noise.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/ADC_input_chain.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/AWAXE boucle.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/FBMUX RHF200.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/OFCO.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/OFCO_equivalent_rebouclé.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/Zout_ISL_model.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/Zout_ref_tension.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/isl21010_datasets.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/ADC chain noise/slow_dac_noise.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_Fframe.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Frow.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +16,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="101" />
+    <option name="cachedIndexableFilesCount" value="93" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -116,76 +90,76 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.XTalkAnalysis.executor": "Run",
-    "Python.XnoiseAnalysis.executor": "Run",
-    "Python.bwAnalysisFromEdges.executor": "Run",
-    "Python.calibHkTemp.executor": "Run",
-    "Python.check_data.executor": "Run",
-    "Python.constants.executor": "Run",
-    "Python.cutoffFrequency.executor": "Run",
-    "Python.debugErrorFiles.executor": "Run",
-    "Python.dmx_tools.executor": "Run",
-    "Python.dre_noise_models.executor": "Run",
-    "Python.errorDumpEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis.executor": "Run",
-    "Python.errorDumpNolineEnobAnalysis2.executor": "Run",
-    "Python.errorEnobAnalysis.executor": "Run",
-    "Python.errorLinearity.executor": "Run",
-    "Python.errorNolineEnobAnalysis.executor": "Run",
-    "Python.errorNolineEnobAnalysis2.executor": "Run",
-    "Python.errorSignalNoiseAnalysis.executor": "Run",
-    "Python.errorSignalNoiseAnalysis2.executor": "Run",
-    "Python.expertises.executor": "Run",
-    "Python.export_fits2txt.executor": "Run",
-    "Python.fakes.executor": "Run",
-    "Python.fdbkAndErrorLinearity.executor": "Run",
-    "Python.fdbkDacLinearity.executor": "Run",
-    "Python.fdbkDelayAnalysis.executor": "Run",
-    "Python.general_tools.executor": "Run",
-    "Python.noiseAnalysis.executor": "Run",
-    "Python.noiseAnalysisSubtraction.executor": "Run",
-    "Python.noiseAnalysisTools.executor": "Run",
-    "Python.noiseAnalysis_INI.executor": "Run",
-    "Python.noise_analysis.executor": "Run",
-    "Python.nonLinearity.executor": "Run",
-    "Python.nonLinearity_copy.executor": "Run",
-    "Python.process.executor": "Run",
-    "Python.process_expertise_data.executor": "Run",
-    "Python.readData.executor": "Run",
-    "Python.samplingDelayAnalysis-2.executor": "Run",
-    "Python.samplingDelayAnalysis.executor": "Run",
-    "Python.thermal_analysis.executor": "Run",
-    "Python.thermal_analysis_INI.executor": "Run",
-    "Python.timingAnalysis.executor": "Run",
-    "Python.toto.executor": "Run",
-    "Python.tstPatternAnalysis.executor": "Run",
-    "Python.tstPatternTools.executor": "Run",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "develop",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/Users/laurent/PycharmProjects/analysis-tools/dmx-dm",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.XTalkAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.XnoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.bwAnalysisFromEdges.executor&quot;: &quot;Run&quot;,
+    &quot;Python.calibHkTemp.executor&quot;: &quot;Run&quot;,
+    &quot;Python.check_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.constants.executor&quot;: &quot;Run&quot;,
+    &quot;Python.cutoffFrequency.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debugErrorFiles.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dmx_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dre_noise_models.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorDumpNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorNolineEnobAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.errorSignalNoiseAnalysis2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.expertises.executor&quot;: &quot;Run&quot;,
+    &quot;Python.export_fits2txt.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fakes.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkAndErrorLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDacLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fdbkDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.general_tools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisSubtraction.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysisTools.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noiseAnalysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.noise_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nonLinearity_copy.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process_expertise_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.readData.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis-2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.samplingDelayAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.thermal_analysis_INI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.timingAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.toto.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternAnalysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tstPatternTools.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/laurent/PycharmProjects/analysis-tools/dmx-dm&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/laurent/Applications/PyCharm Professional.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecapSpentCounter">
     <option name="endsOfQuotaMs" value="1768316422654" />
     <option name="spentUsd" value="0.07300499" />
@@ -639,7 +613,8 @@
       <workItem from="1775057457766" duration="482000" />
       <workItem from="1775222351941" duration="3073000" />
       <workItem from="1775455411280" duration="169000" />
-      <workItem from="1775455884706" duration="8948000" />
+      <workItem from="1775455884706" duration="11005000" />
+      <workItem from="1775666943944" duration="8235000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -1001,7 +976,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775228606768</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="Update of noise analysis tools&#10;Update of the noise models computation script">
+      <option name="closed" value="true" />
+      <created>1775664509581</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1775664509581</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

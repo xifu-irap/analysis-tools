@@ -411,7 +411,7 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
     return nsd
 
 
-def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
+def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=False, verbose=False):
     """
     Generates and saves a spectrum plot for a given frequency and noise spectrum dataset. The plot
     includes measured data, model data (if available), and noise requirements, providing visual
@@ -441,7 +441,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
     plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
 
     # Doing the plot
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(9, 7))
     suptitle = config["setup"] + ' (Fs = ' + config["rate"] + ' in column {0:})\n'.format(col_id) \
                + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
                    "ofco"]
@@ -602,6 +602,21 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
         lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
         ax.loglog(xf, low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
 
+    # Plot of the spuriousses
+    if peak_detect:
+        x_peaks = gt.peakdetect(spectrum, half_space=3, ref_ratio=1.8)
+        # tri des valeurs en ordre decroissant
+        idx = np.argsort(spectrum[x_peaks])[::-1]
+        x_peaks = x_peaks[idx]
+        if len(x_peaks) > 0:
+            for i in range(min(len(x_peaks), 4)):
+                ax.loglog(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]], 'o', color='r', markersize=2)
+                ax.annotate(
+                    '{0:4.3f} kHz\n{1:6.1f} nV'.format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]),
+                    xy=(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]), xycoords='data', ha='left',
+                    fontweight='bold', fontsize=5)
+                print("{0:4.3f} kHz -->  {1:6.1f} nV".format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]))
+
     ax.legend(loc='upper right', fontsize=9)
 
     ax.grid(True, which='both', linestyle='--')
@@ -643,7 +658,7 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
     col_plot_file_name = plot_file_name_base + '_c{0}'.format(col_id)
     plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(9, 7))
     suptitle = config_minus_error + ' (Fs = ' + config["rate"] + ' in column {0:})\n'.format(col_id) \
                + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
                    "ofco"]
