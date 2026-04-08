@@ -101,33 +101,31 @@ def power_spectrum_from_1error_column(data_path, col_id, npts, rate, win_name):
             in the provided directory.
     """
 
+    x_freq, power_spectrum = 0, 0  # Default values if there are no data
+
     if rate == 'FROW':  # Column data
         data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True,
                                                            verbose=False)
 
         # Computing spectrum
-        if not data_exists:
-            xf, power_spectrum = 0, 0
-        else:
-            xf, power_spectrum = gt.do_power_spectrum(data, cst.fRow, npts, window=win_name)
+        if data_exists:
+            x_freq, power_spectrum = gt.do_power_spectrum(data, cst.fRow, npts, window=win_name)
 
     else:  # rate == 'FFRAME':  # Pixels data
         data, data_exists = rddt.read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True,
                                                            verbose=False)
 
         # Computing spectrum
-        if not data_exists:
-            xf, power_spectrum = 0, 0
-        else:
+        if data_exists:
             power_spectrum = np.zeros(int(npts / 2) + 1)
             for pix in range(cst.nPixPerCol):
-                xf, power_spectrum_pix = gt.do_power_spectrum(data[pix, :], cst.fFrame, npts, window=win_name)
+                x_freq, power_spectrum_pix = gt.do_power_spectrum(data[pix, :], cst.fFrame, npts, window=win_name)
                 power_spectrum += power_spectrum_pix / cst.nPixPerCol
 
     # passage V => ADU
     power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
 
-    return xf, power_spectrum, data_exists
+    return x_freq, power_spectrum, data_exists
 
 
 def power_spectrum_from_error(data_path, npts, rate, win_name="none"):
@@ -415,50 +413,19 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
 
 def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
     """
-    Plot the spectrum and noise floor in both linear and logarithmic scales.
+    Generates and saves a spectrum plot for a given frequency and noise spectrum dataset. The plot
+    includes measured data, model data (if available), and noise requirements, providing visual
+    insight into the frequency behavior.
 
-    This function generates one_over_f_at_one_hz spectrum plot in logarithmic scale,
-    displaying the spectrum of one_over_f_at_one_hz signal and the expected noise floor. The function also supports
-    theoretical noise data from one_over_f_at_one_hz model file and fits one_over_f_at_one_hz 1/f behavior to the spectrum
-    if the acquisition mode is set to 'error'.
-
-    Parameters:
-    ----------
-    ax : list
-        A list of two matplotlib Axes objects for plotting the spectrum and noise floor.
-
-    xf : array_like
-        The frequency data (in Hz) corresponding to the spectrum.
-
-    spectrum : array_like
-        The spectrum data to be plotted (in nV/√Hz).
-
-    acq_mode : str
-        The acquisition mode, which can be either 'DUMP' or 'ERRO'. This affects the
-        limits and the fitting behavior of the function.
-
-    model_filename : str
-        The filename of the model data to be used for theoretical noise calculations.
-        If an empty string is provided, the model will not be used.
-
-    Returns:
-    -------
-    None
-        This function does not return any value. It modifies the provided Axes
-        objects directly to display the plots.
-
-    Raises:
-    ------
-    FileNotFoundError
-        If the specified model_filename does not exist.
-
-    Notes:
-    -----
-    - The function assumes that the constant values and functions such as `cst.fRow`,
-      `cst.fSamp`, and `one_over_f` are defined elsewhere in the code.
-    - The noise floor is calculated based on the SNR derived from the provided ENOB.
-    - The function handles both linear and logarithmic axes for better visualization of
-      the spectrum and noise floor.
+    Args:
+        xf: Frequency data array.
+        spectrum: Measured noise spectrum array.
+        acq_mode: Acquisition mode identifier ('DUMP', 'ERRO', etc.).
+        col_id: Column identifier for the data (e.g., channel ID).
+        config: Configuration dictionary containing the setup details such as directory paths,
+            setup type, acquisition rate, etc.
+        lpf: (Optional) Low pass filter value applied (default is 0).
+        verbose: (Optional) If True, enables additional output/logging (default is False).
     """
     plt.rcParams['agg.path.chunksize'] = 200
 
@@ -484,12 +451,6 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
 
     path_models = 'noise_models'
     match config["rate"]:
-        case 'FREF':
-            fs = cst.fSamp
-            xlims: list[float] = [xf[1], fs / 2]
-            ylims: list[float] = [1e1, 1e2]
-            model_file_name_end = "_Fref.txt"
-            af_text = ""  # Aliasing factor description
         case 'FROW':
             fs = cst.fRow
             xlims: list[int | float] = [xf[1], fs / 2]
@@ -502,6 +463,12 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
             ylims: list[float] = [1e2, 1e4]
             model_file_name_end = "_Fframe.txt"
             af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Frame}}}$'  # Aliasing factor description
+        case _:  # 'FREF'
+            fs = cst.fSamp
+            xlims: list[float] = [xf[1], fs / 2]
+            ylims: list[float] = [1e1, 1e2]
+            model_file_name_end = "_Fref.txt"
+            af_text = ""  # Aliasing factor description
 
     match config["setup"]:
         case 'ERRO-ONLY':
@@ -518,39 +485,6 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
                 model_file_name_base = "mod-erro-ofco_1023"
         case _:
             model_file_name_base = ''
-
-    if acq_mode[:4] == 'ERRO':
-        # Fit of white noise
-        f_white_start = 30e3  # to avoid 1/f contribution
-        xf_white_start = np.where(xf > f_white_start)[0][0]
-        white_noise = spectrum[xf_white_start:].mean()
-
-        # Fit of 1/f behavior
-        xf_start = 3 # to avoid DC perturbations
-        f_stop = 1e1  # max frequency of 1/f area
-        xf_stop = np.where(xf < f_stop)[0][-1]
-        one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
-
-        # Corner frequency
-        f_corner = (one_over_f_at_one_hz / white_noise) ** 2
-
-        # 1/f plus white noise contributions
-        one_over_f_plus_white_noise = np.sqrt(
-            one_over_f(xf, one_over_f_at_one_hz) ** 2 + np.ones(len(xf)) * white_noise ** 2)
-
-        # Sauvegarde des résultats
-        spectra_path = os.path.join(config["dir_path"], cst.spectraDirname)
-        spectrum_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_spectrum.txt")
-        spectrum_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_spectrum_fit.txt")
-        param_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_param_fit.txt")
-        gt.save_two_vectors_to_file(xf, spectrum, spectrum_file_name, label1='frequency', label2='noise_req')
-        gt.save_two_vectors_to_file(xf, one_over_f_plus_white_noise, spectrum_fit_file_name, label1='frequency',
-                                    label2='noise_req')
-        gt.save_two_vectors_to_file(np.array([one_over_f_at_one_hz]), np.array([white_noise]), param_fit_file_name,
-                                    label1='one_over_f_at_one_hz', label2='white_noise')
 
     # Computing requirement limits (1/f plus white noise contributions)
     ## Applying the aliasing factor on the white noise
@@ -581,7 +515,39 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
         ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nV, noise_avg_nV], '-', color='k',
                   label=lbl_noise_avg)
 
-    if acq_mode[0:4] == 'ERRO':
+    if acq_mode.startswith('ERRO'):
+        # Fit of white noise
+        f_white_start = 30e3  # to avoid 1/f contribution
+        xf_white_start = np.where(xf > f_white_start)[0][0]
+        white_noise = spectrum[xf_white_start:].mean()
+
+        # Fit of 1/f behavior
+        xf_start = 3 # to avoid DC perturbations
+        f_stop = 1e1  # max frequency of 1/f area
+        xf_stop = np.where(xf < f_stop)[0][-1]
+        one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
+
+        # Corner frequency
+        f_corner = (one_over_f_at_one_hz / white_noise) ** 2
+
+        # 1/f plus white noise contributions
+        one_over_f_plus_white_noise = np.sqrt(
+            one_over_f(xf, one_over_f_at_one_hz) ** 2 + np.ones(len(xf)) * white_noise ** 2)
+
+        # Saving results
+        spectra_path = os.path.join(config["dir_path"], cst.spectraDirname)
+        spectrum_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_spectrum.txt")
+        spectrum_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_spectrum_fit.txt")
+        param_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
+            col_id) + "_param_fit.txt")
+        gt.save_two_vectors_to_file(xf, spectrum, spectrum_file_name, label1='frequency', label2='noise_req')
+        gt.save_two_vectors_to_file(xf, one_over_f_plus_white_noise, spectrum_fit_file_name, label1='frequency',
+                                    label2='noise_req')
+        gt.save_two_vectors_to_file(np.array([one_over_f_at_one_hz]), np.array([white_noise]), param_fit_file_name,
+                                    label1='one_over_f_at_one_hz', label2='white_noise')
+
         lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
         lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
@@ -636,7 +602,6 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
         lbl = '1st order LPF fit (fc = {0:4.0f} MHz)'.format(fc / 1e6)
         ax.loglog(xf, low_pass_filter_1(xf, a_dc, fc) * 1e9, '--', color="orange", label=lbl)
 
-    # Afficher la légende
     ax.legend(loc='upper right', fontsize=9)
 
     ax.grid(True, which='both', linestyle='--')
@@ -648,36 +613,21 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, verbose=False):
         print("Results plotted in file ", plot_full_file_name)
 
 
-def plot_fit(xf, col_id, config, verbose=False):
+def plot_fit_spectrum(xf, col_id, config, verbose=False):
     """
-    Plot the spectrum and noise floor in both linear and logarithmic scales.
+    Generates and saves a plot of the fit for noise measurements and their corresponding requirements,
+    based on the provided configuration and data.
 
-    This function generates one_over_f_at_one_hz spectrum plot in logarithmic scale,
-    displaying the spectrum of one_over_f_at_one_hz signal and the expected noise floor. The function also supports
-    theoretical noise data from one_over_f_at_one_hz model file and fits one_over_f_at_one_hz 1/f behavior to the spectrum
-    if the acquisition mode is set to 'error'.
+    This function computes noise contributions (1/f noise and white noise), applies aliasing factors,
+    and compares the noise measurements against the specified requirements. The resulting plot
+    includes derived noise levels, their respective fits, requirements, and applicable models.
 
-    Parameters:
-    ----------
-
-    Returns:
-    -------
-    None
-        This function does not return any value. It modifies the provided Axes
-        objects directly to display the plots.
-
-    Raises:
-    ------
-    FileNotFoundError
-        If the specified model_filename does not exist.
-
-    Notes:
-    -----
-    - The function assumes that the constant values and functions such as `cst.fRow`,
-      `cst.fSamp`, and `one_over_f` are defined elsewhere in the code.
-    - The noise floor is calculated based on the SNR derived from the provided ENOB.
-    - The function handles both linear and logarithmic axes for better visualization of
-      the spectrum and noise floor.
+    Args:
+        xf (list[float]): Frequency array used for plotting and calculations.
+        col_id (int): Identifier of the data column to process.
+        config (dict): Configuration dictionary that includes various settings such as directory paths,
+            session name, setup mode, and noise-related parameters.
+        verbose (bool): If True, prints the location of the saved plot file upon completion. Defaults to False.
     """
 
     xlabel_log: str = r'Frequencies (Hz)'
@@ -717,7 +667,6 @@ def plot_fit(xf, col_id, config, verbose=False):
             aliasing_factor = np.sqrt(np.pi * cst.fSamp / fs)
             af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Frame}}}$'  # Aliasing factor description
         case _:
-            fs = cst.fSamp
             aliasing_factor = 1
             af_text = r''  # Aliasing factor description
 
@@ -814,7 +763,6 @@ def plot_fit(xf, col_id, config, verbose=False):
 
         if verbose:
             print("Results plotted in file ", plot_full_file_name)
-
 
 
 def plot_cross_spectrum(ax, xf, spectrum, col_ref):
