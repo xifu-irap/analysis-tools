@@ -38,38 +38,39 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
             - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum.
     """
 
-    global xf
     from joblib import Parallel, delayed
+
+    xf = np.zeros((int(npts / 2) + 1))
+    power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
              and f[:5] == "dump_" and f[-3:] == ".h5"]
 
-    if len(files) < 1:
-        raise ValueError('Wrong number of files')
+    if len(files) == 0:
+        print("      --> No dump files found!")
 
-    print("    Accumulating {0:} DUMP files... ".format(len(files)))
+    else:
+        print("    Accumulating {0:} DUMP files... ".format(len(files)))
 
-    power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
+        for i in range(len(files)):
+            dumpData, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))
 
-    for i in range(len(files)):
-        dumpData, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))
+            # Computing spectrum (the 4 columns in parallel)
+            # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
+            results = Parallel(n_jobs=cst.nColPerDemux)(
+                delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
+                range(cst.nColPerDemux))
 
-        # Computing spectrum (the 4 columns in parallel)
-        # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
-        results = Parallel(n_jobs=cst.nColPerDemux)(
-            delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
-            range(cst.nColPerDemux))
+            # Accumulating power spectra
+            for col_id in range(cst.nColPerDemux):
+                power_spectrum[col_id, :] += results[col_id][1]
+            xf = results[0][0]
 
-        # Accumulating power spectra
-        for col_id in range(cst.nColPerDemux):
-            power_spectrum[col_id, :] += results[col_id][1]
-        xf = results[0][0]
+        power_spectrum = power_spectrum / len(files)
 
-    power_spectrum = power_spectrum / len(files)
-
-    # passage V => ADU
-    power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
+        # passage V => ADU
+        power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
 
     return xf, power_spectrum
 
@@ -604,18 +605,22 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=Fal
 
     # Plot of the spuriousses
     if peak_detect:
-        x_peaks = gt.peakdetect(spectrum, half_space=3, ref_ratio=1.8)
+        x_peaks = gt.peakdetect(spectrum, half_space=3, ref_ratio=3)
         # tri des valeurs en ordre decroissant
         idx = np.argsort(spectrum[x_peaks])[::-1]
         x_peaks = x_peaks[idx]
-        if len(x_peaks) > 0:
-            for i in range(min(len(x_peaks), 4)):
+        for i in range(len(x_peaks)):
+            print("{0:4.3f} kHz -->  {1:6.1f} nV".format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]))
+            if i < 4:  # Plotting only the biggest spuriousses
                 ax.loglog(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]], 'o', color='r', markersize=2)
                 ax.annotate(
                     '{0:4.3f} kHz\n{1:6.1f} nV'.format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]),
                     xy=(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]), xycoords='data', ha='left',
                     fontweight='bold', fontsize=5)
-                print("{0:4.3f} kHz -->  {1:6.1f} nV".format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]))
+        # delta = 5000
+        # if len(x_peaks) > 0:
+        #    ax.set_xlim([xf[x_peaks[0]]-delta, xf[x_peaks[0]]+delta])
+
 
     ax.legend(loc='upper right', fontsize=9)
 

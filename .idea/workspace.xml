@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of noise analysis tools&#10;Update of the noise models computation script">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Peak detection added in noise spectra plots">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/general_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/general_tools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
     </list>
@@ -614,7 +613,7 @@
       <workItem from="1775222351941" duration="3073000" />
       <workItem from="1775455411280" duration="169000" />
       <workItem from="1775455884706" duration="11005000" />
-      <workItem from="1775666943944" duration="8235000" />
+      <workItem from="1775666943944" duration="12733000" />
     </task>
     <task id="LOCAL-00001" summary="New functions for thermal analysis">
       <option name="closed" value="true" />
@@ -984,7 +983,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775664509581</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="Peak detection added in noise spectra plots">
+      <option name="closed" value="true" />
+      <created>1775681650085</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1775681650085</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1002,7 +1009,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Optimisation of noise analysis functions" />
     <MESSAGE value="New functions for coupled noise analyses&#10;Noise analysis updated&#10;Thermal analysis updated" />
     <MESSAGE value="Obsolete files removed&#10;Noise analysis tools optimised" />
     <MESSAGE value="Fdbk linearity analysis from oscilloscope removed&#10;Several TODOs added" />
@@ -1027,7 +1033,8 @@
     <MESSAGE value="Update of noise models" />
     <MESSAGE value="Major update of noise analysis tools" />
     <MESSAGE value="Update of noise analysis tools&#10;Update of the noise models computation script" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of noise analysis tools&#10;Update of the noise models computation script" />
+    <MESSAGE value="Peak detection added in noise spectra plots" />
+    <option name="LAST_COMMIT_MESSAGE" value="Peak detection added in noise spectra plots" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
