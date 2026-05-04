@@ -162,43 +162,35 @@ def nonlinearity(verbose=False):
                     raise ValueError("Error, found different scan types!")
 
                 if scan_type_ini == "Feedback":
-                    xtit = "Feedback values (ADU)"
+                    sig_full = "Feedback"
+                    sig_short = "fdbk"
                     xlim = [-cst.fsrDACFdbkADU / 2, cst.fsrDACFdbkADU / 2]
                     ylim = [-cst.fsrADCErrorADU / 2 - ymargin, cst.fsrADCErrorADU / 2 + ymargin]
-                    data_plotFileName = 'fdbkAndError_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    dnl_plotFileName = 'fdbkAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    inl_plotFileName = 'fdbkAndErrorINL_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    figsuptitle0 = 'Feedback + Error non linearity measurement for column {0:}\n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
-                    figsuptitle1 = 'Feedback + Error DNL measurement for column {0:}\n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
-                    figsuptitle2 = 'Feedback + Error INL measurement for column {0:} \n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
 
                 elif scan_type_ini == "Offset":
-                    xtit = "Offset values (ADU)"
+                    sig_full = "Offset"
+                    sig_short = "ofco"
                     xlim = [0, cst.fsrDACOfcoCoarseADU]
                     ylim = [0 - ymargin, cst.fsrADCErrorADU / 2 + ymargin]
-                    data_plotFileName = 'ofcoAndError_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    dnl_plotFileName = 'ofcoAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    inl_plotFileName = 'ofcoAndErrorINL_col{0:}_bxl{1:}.png'.format(col, bxl)
-                    figsuptitle0 = 'Offset + Error non linearity measurement for column {0:}\n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
-                    figsuptitle1 = 'Offset + Error DNL measurement for column {0:}\n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
-                    figsuptitle2 = 'Offset + Error INL measurement for column {0:}\n'.format(col) \
-                                   + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
-                        fwVersion) + session_name + ')'
 
                     # For the offset scans we use 4 frames per steps because of the settling time
                     # We keep only the data of the last frame
                     scan = scan[3::4]
                     error = error[3::4]
+
+                xtit = sig_full + " values (ADU)"
+                data_plotFileName = sig_short + 'AndError_col{0:}_bxl{1:}.png'.format(col, bxl)
+                dnl_plotFileName = sig_short + 'AndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
+                inl_plotFileName = sig_short + 'AndErrorINL_col{0:}_bxl{1:}.png'.format(col, bxl)
+                figsuptitle0 = sig_full + ' + Error non linearity measurement for column {0:}\n'.format(col) \
+                               + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
+                    fwVersion) + session_name + ')'
+                figsuptitle1 = sig_full + ' + Error INL measurement for column {0:}\n'.format(col) \
+                               + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
+                    fwVersion) + session_name + ')'
+                figsuptitle2 = sig_full + ' + Error DNL measurement for column {0:}\n'.format(col) \
+                               + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
+                    fwVersion) + session_name + ')'
 
                 # Sorting the data wrt DAC values
                 unique_values, unique_i = np.unique(scan, return_index=True)
@@ -216,30 +208,32 @@ def nonlinearity(verbose=False):
 
                 # Ignoring saturations
                 i_ok = np.where(np.abs(error) < 2 ** (cst.dmxNbBitsADCError - 1) - 1)[0]
+                scan = scan[i_ok]
+                error = error[i_ok]
 
-                # Linear fit of the data (full range)
-                coeffs = np.polyfit(scan[i_ok], error[i_ok], 1)
-                fit = coeffs[1] + coeffs[0] * scan[i_ok]
-                deviation_lsb = error[i_ok] - fit
+                # Computing INL
+                ## Linear fit of the data (full range)
+                coeffs = np.polyfit(scan, error, 1)
+                fit = coeffs[1] + coeffs[0] * scan
+                inl = error - fit
 
-                # Linear fit of the data (reduced range1)
+                ## Linear fit of the data (reduced range1)
                 red_factor1 = 0.85
                 i_red1 = np.where(np.abs(error) < 2 ** (cst.dmxNbBitsADCError - 1) * red_factor1)[0]
                 coeffs_red1 = np.polyfit(scan[i_red1], error[i_red1], 1)
                 fit_red1 = coeffs_red1[1] + coeffs_red1[0] * scan[i_red1]
-                deviation_lsb_red1 = error[i_red1] - fit_red1
+                inl_red1 = error[i_red1] - fit_red1
 
-                # Linear fit of the data (reduced range2)
+                ## Linear fit of the data (reduced range2)
                 red_factor2 = 0.7
                 i_red2 = np.where(np.abs(error) < 2 ** (cst.dmxNbBitsADCError - 1) * red_factor2)[0]
                 coeffs_red2 = np.polyfit(scan[i_red2], error[i_red2], 1)
                 fit_red2 = coeffs_red2[1] + coeffs_red2[0] * scan[i_red2]
-                deviation_lsb_red2 = error[i_red2] - fit_red2
+                inl_red2 = error[i_red2] - fit_red2
 
-                # Computing DNL and INL
-                lsb_ideal = (error[i_ok].max() - error[i_ok].min()) / len(error[i_ok])
-                dnl = (error[i_ok][1:] - error[i_ok][:-1]) / lsb_ideal - 1
-                inl = (error[i_ok] - error[i_ok][0]) / lsb_ideal - np.arange(len(error[i_ok]))
+                # Computing DNL
+                lsb_ideal = (error.max() - error.min()) / len(error)
+                dnl = (error[1:] - error[:-1]) / lsb_ideal - 1
 
                 # Doing the plots
                 ## Non linearity tests data (output versus input)
@@ -255,9 +249,9 @@ def nonlinearity(verbose=False):
                     sign_str = ' - '
                 lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(
                     abs(coeffs[1])) + ' (fit is done on FS)'
-                ax0.plot(scan[i_ok], fit, ':', color=colors[0], linewidth=1, label=lbl)
+                ax0.plot(scan, fit, ':', color=colors[0], linewidth=1, label=lbl)
                 nl_threshold_for_reduce_ranges = 0.3
-                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
+                if np.abs(inl).max() > nl_threshold_for_reduce_ranges:
                     lbl = 'Linear fit2 (Y = {0:.4} X'.format(coeffs_red1[0]) + sign_str + '{0:.4})'.format(
                         abs(coeffs_red1[1])) + ' (fit2 is done on {0:}% of FS)'.format(int(red_factor1 * 100))
                     ax0.plot(scan[i_red1], fit_red1, ':', color=colors[1], linewidth=1, label=lbl)
@@ -275,27 +269,26 @@ def nonlinearity(verbose=False):
                 plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
                 print("Linearity data plotted in file " + data_plotFileName)
 
+
                 ## INL plot
                 fig1 = plt.figure(figsize=(12, 8))
                 plotFullFileName = os.path.join(pathPlot, inl_plotFileName)
                 fig1.suptitle(figsuptitle1, fontsize=14)
                 ax1 = fig1.add_subplot(1, 1, 1)  # non linearity
 
-                val1 = max(np.abs(deviation_lsb))
+                val1 = max(np.abs(inl))
                 val2 = val1 * 100 / cst.fsrADCErrorADU
-                lbl = 'Scan - linear Fit  (on FS the non linearity is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
-                ax1.scatter(scan[i_ok], deviation_lsb, s=dotsize, color=colors[0], label=lbl)
-                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
-                    val0, val1 = int(red_factor1 * 100), max(np.abs(deviation_lsb_red1))
+                lbl = 'INL = {0:2.1f} ADC LSB or {1:.2} % of FS (on FS)'.format(val1, val2)
+                ax1.scatter(scan[i_ok], inl, s=dotsize, color=colors[0], label=lbl)
+                if np.abs(inl).max() > nl_threshold_for_reduce_ranges:
+                    val0, val1 = int(red_factor1 * 100), max(np.abs(inl_red1))
                     val2 = val1 * 100 / cst.fsrADCErrorADU
-                    lbl = 'Scan - linear Fit2  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(
-                        val0, val1, val2)
-                    ax1.scatter(scan[i_red1], deviation_lsb_red1, s=dotsize, color=colors[1], label=lbl)
-                    val0, val1 = int(red_factor2 * 100), max(np.abs(deviation_lsb_red2))
+                    lbl = 'INL = {0:2.1f} ADC LSB or {1:.2} % of FS (on {2:2}% of FS)'.format(val1, val2, val0)
+                    ax1.scatter(scan[i_red1], inl_red1, s=dotsize, color=colors[1], label=lbl)
+                    val0, val1 = int(red_factor2 * 100), max(np.abs(inl_red2))
                     val2 = val1 * 100 / cst.fsrADCErrorADU
-                    lbl = 'Scan - linear Fit3  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(
-                        val0, val1, val2)
-                    ax1.scatter(scan[i_red2], deviation_lsb_red2, s=dotsize, color=colors[2], label=lbl)
+                    lbl = 'INL = {0:2.1f} ADC LSB or {1:.2} % of FS (on {2:2}% of FS)'.format(val1, val2, val0)
+                    ax1.scatter(scan[i_red2], inl_red2, s=dotsize, color=colors[2], label=lbl)
                 ax1.set_xlim(xlim)
                 ax1.set_xlabel(xtit)
                 ax1.set_ylabel(ytit_ADU)
@@ -307,11 +300,11 @@ def nonlinearity(verbose=False):
                 ax1.legend(loc='upper left')
 
                 # second y axis for LSB units
-                ax11 = ax1.twinx()
+                ax10 = ax1.twinx()
                 ylims = ax1.get_ylim()
-                ylims11 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
-                ax11.set_ylim(ylims11)
-                ax11.set_ylabel(ytit_pc)
+                ylims10 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+                ax10.set_ylim(ylims10)
+                ax10.set_ylabel(ytit_pc)
 
                 ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
                 yminor = ymajor / grid_ratio
@@ -321,16 +314,20 @@ def nonlinearity(verbose=False):
                 plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
                 print("INL results plotted in file " + inl_plotFileName)
 
+
                 ## DNL plots
                 fig2 = plt.figure(figsize=(12, 8))
                 plotFullFileName = os.path.join(pathPlot, dnl_plotFileName)
                 fig2.suptitle(figsuptitle2, fontsize=14)
                 ax2 = fig2.add_subplot(1, 1, 1)
-
-                ax2.scatter(scan[i_ok][:-1], dnl, s=dotsize, color=colors[0], label='DNL')
+                val1 = max(np.abs(dnl))
+                val2 = val1 * 100 / cst.fsrADCErrorADU
+                ax2.scatter(scan[:-1], dnl, s=dotsize, color=colors[0],
+                            label='DNL = {0:2.1f} ADC LSB or {1:.2} % of FS'.format(val1, val2))
                 ax2.plot(xlim, [0, 0], '-k', linewidth=0.5)
                 ax2.set_xlim(xlim)
                 yl = max(np.abs(dnl).max() * 1.2, 5)
+                ax2.legend(loc='upper left')
 
                 ax2.set_ylim([-yl, yl])
                 ax2.set_xlabel(xtit)
