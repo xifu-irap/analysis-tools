@@ -80,13 +80,14 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, verbose=False, lpf=F
     # Data directory
     data_path = os.path.join(config["dir_path"], cst.dataDirName)
 
+    # Processing science files
+
     if acq_mode == 'DUMP':
         config["rate"] = "FREF"
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
         xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
-        if xf[1] != 0:  # xf and the spectrum have been computed
-            plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf,
-                                       peak_detect=False, verbose=verbose)
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf,
+                                   peak_detect=False, verbose=verbose)
 
     elif acq_mode == 'ERRO':
         if process_frow:

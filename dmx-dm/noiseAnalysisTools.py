@@ -38,20 +38,20 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
             - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum.
     """
 
+    global xf
     from joblib import Parallel, delayed
-
-    xf = np.zeros((int(npts / 2) + 1))
-    power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
              and f[:5] == "dump_" and f[-3:] == ".h5"]
 
     if len(files) == 0:
-        print("      --> No dump files found!")
+        print('No dump files to process')
 
     else:
         print("    Accumulating {0:} DUMP files... ".format(len(files)))
+
+        power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
         for i in range(len(files)):
             dumpData, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))

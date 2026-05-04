@@ -328,14 +328,14 @@ def read_fwVersion_dmxModel(path):
     # looking for the hk files
     files = [f for f in os.listdir(path) \
              if os.path.isfile(os.path.join(path, f)) \
-             and f[:8] == "Hks_DMX_" \
+             and f[:7] == "Hks_DMX" \
              and f[-4:] == ".csv"]
 
     if len(files) == 0:
         print("No HK found")
     else:
-        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "Firmware Version")[0]
-        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "Hardware Version")[0]
+        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "firmwareVersion")[0]
+        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "hardwareVersion")[0]
 
         dmxModel = (ref >> 8) & 3
         boardId = ref & (2 ** 5) - 1
