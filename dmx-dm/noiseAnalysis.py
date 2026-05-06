@@ -59,7 +59,7 @@ def get_config():
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(acq_mode, config, process_frow=False, verbose=False, lpf=False):
+def plot_col_spectrum(acq_mode, config, process_frow=False, plot_model=False, lpf=0, verbose=False):
     """
     Plots the column spectrum based on the acquisition mode provided. This function processes science
     files and generates power spectra for either 'DUMP' or 'ERRO' acquisition modes. Visualization
@@ -86,7 +86,8 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, verbose=False, lpf=F
         config["rate"] = "FREF"
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
         xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
-        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True], lpf,
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True],
+                                   plot_model=plot_model, lpf=lpf,
                                    peak_detect=False, verbose=verbose)
 
     elif acq_mode == 'ERRO':
@@ -94,18 +95,21 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, verbose=False, lpf=F
             config["rate"] = "FROW"
             npts = 2 ** 23
             xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
-            plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, peak_detect=True,
+            plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, plot_model=plot_model,
+                                       lpf=lpf, peak_detect=True,
                                        verbose=verbose)
 
         config["rate"] = "FFRAME"
         npts = 2 ** 18
         xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
-        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf, peak_detect=True,
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, plot_model=plot_model, lpf=lpf,
+                                   peak_detect=True,
                                    verbose=verbose)
 
 
-def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, lpf=False, peak_detect=True,
-                               verbose=False):
+def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config,
+                               data_exists, plot_model=False, lpf=0,
+                               peak_detect=True, verbose=False):
     """
     Plots the acquisition mode column spectrum based on the given parameters.
 
@@ -143,7 +147,8 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists
 
         if data_exists[col_id]:
 
-            nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, lpf, peak_detect, verbose)
+            nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, plot_model=plot_model, lpf=lpf,
+                              peak_detect=peak_detect, verbose=verbose)
 
             if substract_error and acq_mode == "ERRO":
 
@@ -155,7 +160,7 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists
                     nat.plot_fit_spectrum(xf, col_id, config, verbose)
 
 
-def noiseAnalysis(process_frow=False, verbose=True):
+def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
     """
     Analyzes noise characteristics based on DEMUX identifiers and configurations,
     processes specific file types, and optionally provides verbose output for
@@ -192,11 +197,11 @@ def noiseAnalysis(process_frow=False, verbose=True):
 
     if verbose:
         print("  Processing DUMP files")
-    plot_col_spectrum("DUMP", config, process_frow=False, verbose=verbose)
+    plot_col_spectrum("DUMP", config, process_frow=False, plot_model=plot_model, lpf=lpf, verbose=verbose)
 
     if verbose:
         print("  Processing ERROR files")
-    plot_col_spectrum("ERRO", config, process_frow=process_frow, verbose=verbose)
+    plot_col_spectrum("ERRO", config, process_frow=process_frow, plot_model=plot_model, lpf=lpf, verbose=verbose)
 
 
 #-------------------------------------------------------------------------------------

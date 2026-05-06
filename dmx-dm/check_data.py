@@ -46,11 +46,11 @@ def check_bits(path_data, data_types, column):
     if data_types == "scan":
         files = [f for f in os.listdir(path_data) \
                  if os.path.isfile(os.path.join(path_data, f)) \
-                 and f[-5:] == ".fits" and f[:5] == "scan_"]
+                 and f[-3:] == ".h5" and f[:5] == "scan_"]
     elif data_types == "dump":
         files = [f for f in os.listdir(path_data) \
                  if os.path.isfile(os.path.join(path_data, f)) \
-                 and f[-5:] == ".fits" and f[:5] == "dump_"]
+                 and f[-3:] == ".h5" and f[:5] == "dump_"]
 
     path_plot = os.path.join(path_data, cst.plotDirName)
     gtools.createdir(path_plot)

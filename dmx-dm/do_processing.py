@@ -33,7 +33,9 @@ def do_processing(verbose=True):
         case "FDBK-ERROR-LIN-" | "OFCO-ERROR-LIN-":
             nonLinearity.nonlinearity()
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
-            noiseAnalysis.noiseAnalysis(verbose)
+            process_frow = False
+            plot_model = False
+            noiseAnalysis.noiseAnalysis(process_frow=process_frow, plot_model=plot_model, lpf=0, verbose=verbose)
         case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
             XTalkAnalysis.xtalkAnalysis(verbose)
 

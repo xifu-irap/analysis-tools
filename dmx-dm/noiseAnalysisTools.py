@@ -412,7 +412,7 @@ def enob_to_nsd(enob, fsr, fs, reference="picpic"):
     return nsd
 
 
-def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=False, verbose=False):
+def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=0, peak_detect=False, verbose=False):
     """
     Generates and saves a spectrum plot for a given frequency and noise spectrum dataset. The plot
     includes measured data, model data (if available), and noise requirements, providing visual
@@ -429,6 +429,10 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=Fal
         verbose: (Optional) If True, enables additional output/logging (default is False).
     """
     plt.rcParams['agg.path.chunksize'] = 200
+
+    lw_fit = 1  # line width of measurement fits
+    alpha_req = 1  # transparency of the requirements plots
+    lw_req = 1  # line width of the requirements plots
 
     xlabel_log: str = r'Frequencies (Hz)'
     ylabel: str = r'Error signal noise (nV / $\sqrt{\mathrm{Hz}}$)'
@@ -550,26 +554,29 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=Fal
                                     label1='one_over_f_at_one_hz', label2='white_noise')
 
         lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
-        ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
+        ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', linewidth=lw_fit, color='k',
+                  label=lbl2)
         lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
             one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
-        ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
+        ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', linewidth=lw_fit, color='k',
+                  label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise contributions'
-        ax.loglog(xf, one_over_f_plus_white_noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
+        ax.loglog(xf, one_over_f_plus_white_noise * 1e9, '-', linewidth=lw_fit, color='k', label=lbl4)
 
     # Plot of the requirements
     lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$' + af_text
-    ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
+    ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9],
+              '--', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl5)
     lbl6 = r'1/f noise req.: {0:3.1f}'.format(
         one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
-    ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
-              label=lbl6)
+    ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9],
+              '-.', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl6)
     lbl7 = r'Quadratic sum of both req.'
-    ax.loglog(xf, noise_req * 1e9, '-', linewidth=2, color='r', label=lbl7)
+    ax.loglog(xf, noise_req * 1e9, '-', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl7)
 
     # Plot of the model
     # Getting theoretical noise data from 0 to fs
-    if model_file_name_base != '':
+    if plot_model and model_file_name_base != '':
         model_file_name = os.path.join(path_models, model_file_name_base + model_file_name_end)
         f_mod, noise_mod = gt.read_two_vectors_from_file(model_file_name)
 
@@ -605,22 +612,18 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, lpf=0, peak_detect=Fal
 
     # Plot of the spuriousses
     if peak_detect:
-        x_peaks = gt.peakdetect(spectrum, half_space=3, ref_ratio=3)
+        x_peaks = gt.peakdetect(spectrum, half_space=3, ref_ratio=1.8)
         # tri des valeurs en ordre decroissant
         idx = np.argsort(spectrum[x_peaks])[::-1]
         x_peaks = x_peaks[idx]
-        for i in range(len(x_peaks)):
-            print("{0:4.3f} kHz -->  {1:6.1f} nV".format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]))
-            if i < 4:  # Plotting only the biggest spuriousses
+        if len(x_peaks) > 0:
+            for i in range(min(len(x_peaks), 4)):
                 ax.loglog(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]], 'o', color='r', markersize=2)
                 ax.annotate(
                     '{0:4.3f} kHz\n{1:6.1f} nV'.format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]),
                     xy=(xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]), xycoords='data', ha='left',
-                    fontweight='bold', fontsize=5)
-        # delta = 5000
-        # if len(x_peaks) > 0:
-        #    ax.set_xlim([xf[x_peaks[0]]-delta, xf[x_peaks[0]]+delta])
-
+                    fontweight='bold', fontsize=5, rotation=45)
+                print("{0:4.3f} kHz -->  {1:6.1f} nV".format(1e-3 * xf[x_peaks[i]], 1e9 * spectrum[x_peaks[i]]))
 
     ax.legend(loc='upper right', fontsize=9)
 

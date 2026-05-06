@@ -38,7 +38,6 @@ def get_science_from_fits(fullFileName):
 
     Returns:
         error (array): The error values (one value per pixel and per step)
-
         ctrl (array): The control words (one value per step)
     """
     with fits.open(fullFileName) as hdul:
@@ -160,7 +159,6 @@ def read_dump_from_fits(fits_file):
 
     Returns:
         dump (array): the dump data (4 x 1360 values)
-
         adc_error (array): the ADC error data (1360 bytes)
     """
     with fits.open(fits_file) as hdul:
@@ -188,8 +186,8 @@ def read_dump_from_hdf5(hdf5_file):
 
     Returns:
         tuple: (dump, adc_error)
-            - dump: tableau numpy de forme (3, 1360) contenant Col0, Col1, Col2
-            - adc_error: tableau numpy de forme (1360,) contenant les erreurs ADC (Col3 ou Errors)
+            - dump: tableau numpy de forme (4, 1360) contenant Col0, Col1, Col2, Col3
+            - adc_error: tableau numpy de forme (1360,) contenant les erreurs ADC
     """
     size = 2 * cst.nSamplesPerRow * cst.nPixPerCol
     with h5py.File(hdf5_file, 'r') as f:
@@ -208,12 +206,12 @@ def read_dump_from_hdf5(hdf5_file):
             print(col0.shape)
             raise ValueError("Data have not the expected size ({0:},).".format(size))
 
-        # Retourner les 3 premières colonnes et les erreurs
+        # Retourner les données des colonnes et les erreurs
         dump = np.array([col0, col1, col2, col3])
         return dump, adc_error
 
 
-def read_scan(fits_file):
+def read_scan_fits(fits_file):
     """Reads DEMUX scan data from a fits file.
 
     Parameters
@@ -221,11 +219,8 @@ def read_scan(fits_file):
 
     Returns:
         xName (string): the name of the signal on the X axis
-
         ctrl (array): array with the control words
-
         xValues (array): array with the x values
-
         error (array): array with the error values (one value per pixel and per step)
     """
     with fits.open(fits_file) as hdul:
@@ -247,12 +242,51 @@ def read_scan(fits_file):
         return xName, scan[:,0], scan[:,1], errors
 
 
+def read_scan(hdf5_file):
+    """Reads DEMUX scan data from an hdf5 file.
+
+    Parameters
+        hdf5_file (string): Name of the hdf5 file (includes the path).
+
+    Returns:
+        xName (string): the name of the signal on the X axis
+        ctrl (array): array with the control words
+        xValues (array): array with the x values
+        error (array): array with the error values (one value per pixel and per step)
+    """
+    with h5py.File(hdf5_file, 'r') as f:
+        # Getting the name of the x data (feedback or offset)
+        xName = f.attrs["X_LABEL"].decode("utf-8")
+
+        ctrl = np.array(f['ctrl'])
+        pixels_data = np.array(f['pixels']).T
+        x = np.array(f['x'])
+
+        # Return xName, CTRL, xValues and error per pixels
+        return xName, ctrl, x, pixels_data
+
+
+def read_scan_type(hdf5_file):
+    """Reads DEMUX scan data from an hdf5 file.
+
+    Parameters
+        hdf5_file (string): Name of the hdf5 file (includes the path).
+
+    Returns:
+        xName (string): the name of the signal on the X axis
+    """
+    with h5py.File(hdf5_file, 'r') as f:
+        # Getting the name of the x data (feedback or offset)
+        xName = f.attrs["X_LABEL"].decode("utf-8")
+
+        return xName
+
+
 def export_dump_2_txt(fits_file, col):
     """Saves the data of a column from a dump to a text file.
 
     Parameters
         fits_file (string): the name of the dump fits_file
-
         col (integer): the col id
     """
     data, _ = read_dump_from_fits(fits_file)
@@ -264,7 +298,6 @@ def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=F
 
     Parameters
         data_path (string): path to the fits_file
-
         col (integer): the col id
     """
     print(data_path)
@@ -334,8 +367,8 @@ def read_fwVersion_dmxModel(path):
     if len(files) == 0:
         print("No HK found")
     else:
-        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "firmwareVersion")[0]
-        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "hardwareVersion")[0]
+        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "Firmware Version")[0]
+        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "Hardware Version")[0]
 
         dmxModel = (ref >> 8) & 3
         boardId = ref & (2 ** 5) - 1

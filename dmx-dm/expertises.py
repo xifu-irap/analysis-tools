@@ -23,12 +23,12 @@ def process_scanSquids(dirPath, fb0, pixel_start, pixel_end):
 
     files = [f for f in os.listdir(dirPath) \
              if os.path.isfile(os.path.join(dirPath, f)) \
-             and f[-5:] == ".fits"]
+             and f[-3:] == ".h5"]
 
     if len(files) == 0:
-        raise ValueError("No FITS files.")
+        raise ValueError("No HDF5 files.")
     if len(files) > 1:
-        raise ValueError("Too much FITS files.")
+        raise ValueError("Too much HDF5 files.")
 
     print("Processing file ", files[0])
     xName, ctrl, feedback, error = rddt.read_scan(os.path.join(dirPath, files[0]))
@@ -115,12 +115,12 @@ def plot_scan(dirPath, pixel):
 
     files = [f for f in os.listdir(dirPath) \
              if os.path.isfile(os.path.join(dirPath, f)) \
-             and f[-5:] == ".fits"]
+             and f[-3:] == ".h5"]
 
     if len(files) == 0:
-        raise ValueError("No FITS files.")
+        raise ValueError("No HDF5 files.")
     if len(files) > 1:
-        raise ValueError("Too much FITS files.")
+        raise ValueError("Too much HDF5 files.")
 
     print("Processing file ", files[0])
     xName, ctrl, xscan, error = rddt.read_scan(os.path.join(dirPath, files[0]))
