@@ -575,7 +575,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
         one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
     ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9],
               '-.', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl6)
-    lbl7 = r'Quadratic sum of both req.'
+    lbl7 = r'Quadratic sum of 1/f and white noise requirements'
     ax.loglog(xf, noise_req * 1e9, '-', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl7)
 
     # Plot of the model
@@ -672,8 +672,7 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
 
     fig, ax = plt.subplots(1, 1, figsize=(9, 7))
     suptitle = config_minus_error + ' (Fs = ' + config["rate"] + ' in column {0:})\n'.format(col_id) \
-               + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
-                   "ofco"]
+               + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config["ofco"]
 
     fig.suptitle(suptitle, fontsize=12)
     ax.set_title(config["session_name"], fontsize=10)
