@@ -4,30 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Fix of bug when no dump files were available">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Scan format changed to hdf5&#10;Update of the noise plots">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/error_spectra/ERRO-ONLY_FFRAME_col2_param_fit.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/error_spectra/ERRO-ONLY_FFRAME_col2_param_fit.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/error_spectra/ERRO-ONLY_FFRAME_col2_spectrum_fit.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/error_spectra/ERRO-ONLY_FFRAME_col2_spectrum_fit.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/dre_noise_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/dre_noise_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-awaxe_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-fdbk-rhf200_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_0_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-ofco_1023_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fframe.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fframe.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fref.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Fref.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Frow.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noise_models/mod-erro-only_Frow.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/readData.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/readData.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -640,23 +619,7 @@
       <workItem from="1777134934287" duration="146000" />
       <workItem from="1777836344836" duration="481000" />
       <workItem from="1777908984360" duration="182000" />
-      <workItem from="1777909775679" duration="708000" />
-    </task>
-    <task id="LOCAL-00001" summary="New functions for thermal analysis">
-      <option name="closed" value="true" />
-      <created>1727361353409</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1727361353409</updated>
-    </task>
-    <task id="LOCAL-00002" summary="New functions for analysis of DEMUX thermal HK">
-      <option name="closed" value="true" />
-      <created>1727361992865</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1727361992865</updated>
+      <workItem from="1777909775679" duration="12952000" />
     </task>
     <task id="LOCAL-00003" summary="New functions for analysis of DEMUX performances">
       <option name="closed" value="true" />
@@ -1034,7 +997,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777909962274</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Fix of bug when no dump files were available">
+      <option name="closed" value="true" />
+      <created>1777911016714</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1777911016714</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Scan format changed to hdf5&#10;Update of the noise plots">
+      <option name="closed" value="true" />
+      <created>1778062592453</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1778062592453</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1052,7 +1031,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Obsolete files removed&#10;Noise analysis tools optimised" />
     <MESSAGE value="Fdbk linearity analysis from oscilloscope removed&#10;Several TODOs added" />
     <MESSAGE value="Noise analysis optimized (parallel processing)" />
     <MESSAGE value="New script to check the data integrity" />
@@ -1077,7 +1055,8 @@
     <MESSAGE value="Update of noise analysis tools&#10;Update of the noise models computation script" />
     <MESSAGE value="Peak detection added in noise spectra plots" />
     <MESSAGE value="Fix of bug when no dump files were available" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix of bug when no dump files were available" />
+    <MESSAGE value="Scan format changed to hdf5&#10;Update of the noise plots" />
+    <option name="LAST_COMMIT_MESSAGE" value="Scan format changed to hdf5&#10;Update of the noise plots" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

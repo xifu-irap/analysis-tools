@@ -2,6 +2,10 @@
 import os
 
 import matplotlib.pyplot as plt
+
+plt.rcParams['font.family'] = 'Cambria'
+plt.rcParams['mathtext.fontset'] = 'stix'  # ou 'stixsans' # Police proche de cambria pour Latex
+
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 from numpy.typing import ArrayLike
@@ -557,7 +561,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', linewidth=lw_fit, color='k',
                   label=lbl2)
         lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
         ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', linewidth=lw_fit, color='k',
                   label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise contributions'
@@ -568,7 +572,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
     ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9],
               '--', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl5)
     lbl6 = r'1/f noise req.: {0:3.1f}'.format(
-        one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+        one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
     ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9],
               '-.', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl6)
     lbl7 = r'Quadratic sum of both req.'
@@ -729,7 +733,7 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
             white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
         lbl3 = r'1/f noise derived from fits of measurements: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
         ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise measurements'
         ax.loglog(xf, noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
@@ -738,10 +742,10 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
         lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$' + af_text
         ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
         lbl6 = r'1/f noise req.: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{Hz}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
         ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
                   label=lbl6)
-        lbl7 = r'Quadratic sum of both req.'
+        lbl7 = r'Quadratic sum of 1/f and white noise requirements'
         ax.loglog(xf, noise_req * 1e9, '-', linewidth=2, color='r', label=lbl7)
 
         # Computing model ##############################################################################################
