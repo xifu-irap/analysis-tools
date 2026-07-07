@@ -59,7 +59,7 @@ def get_config():
 
 
 # Plotting noise spectral density for one column
-def plot_col_spectrum(acq_mode, config, process_frow=False, plot_model=False, lpf=0, verbose=False):
+def plot_col_spectrum(acq_mode, config, process_frow=False, peak_detect=True, plot_model=False, lpf=0, verbose=False):
     """
     Plots the column spectrum based on the acquisition mode provided. This function processes science
     files and generates power spectra for either 'DUMP' or 'ERRO' acquisition modes. Visualization
@@ -88,7 +88,7 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, plot_model=False, lp
         xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
         plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True],
                                    plot_model=plot_model, lpf=lpf,
-                                   peak_detect=False, verbose=verbose)
+                                   peak_detect=peak_detect, verbose=verbose)
 
     elif acq_mode == 'ERRO':
         if process_frow:
@@ -96,14 +96,14 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, plot_model=False, lp
             npts = 2 ** 23
             xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
             plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, plot_model=plot_model,
-                                       lpf=lpf, peak_detect=True,
+                                       lpf=lpf, peak_detect=peak_detect,
                                        verbose=verbose)
 
         config["rate"] = "FFRAME"
         npts = 2 ** 18
         xf, power_spectrum, data_exists = nat.power_spectrum_from_error(data_path, npts, config["rate"])
         plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists, plot_model=plot_model, lpf=lpf,
-                                   peak_detect=True,
+                                   peak_detect=peak_detect,
                                    verbose=verbose)
 
 
@@ -197,11 +197,13 @@ def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
 
     if verbose:
         print("  Processing DUMP files")
-    plot_col_spectrum("DUMP", config, process_frow=False, plot_model=plot_model, lpf=lpf, verbose=verbose)
+    plot_col_spectrum("DUMP", config, process_frow=False, peak_detect=False, plot_model=plot_model, lpf=lpf,
+                      verbose=verbose)
 
     if verbose:
         print("  Processing ERROR files")
-    plot_col_spectrum("ERRO", config, process_frow=process_frow, plot_model=plot_model, lpf=lpf, verbose=verbose)
+    plot_col_spectrum("ERRO", config, process_frow=process_frow, peak_detect=False, plot_model=plot_model, lpf=lpf,
+                      verbose=verbose)
 
 
 #-------------------------------------------------------------------------------------

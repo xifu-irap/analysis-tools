@@ -243,7 +243,7 @@ def nonlinearity(verbose=False):
 
                 # Doing the plots
                 ## Non linearity tests data (output versus input)
-                fig0 = plt.figure(figsize=(12, 8))
+                fig0 = plt.figure(figsize=(9, 6))
                 plotFullFileName = os.path.join(pathPlot, data_plotFileName)
                 fig0.suptitle(figsuptitle0, fontsize=14)
                 ax0 = fig0.add_subplot(1, 1, 1)  # output vs input
@@ -256,8 +256,8 @@ def nonlinearity(verbose=False):
                 lbl = 'Linear fit (Y = {0:.4} X'.format(coeffs[0]) + sign_str + '{0:.4})'.format(
                     abs(coeffs[1])) + ' (fit is done on FS)'
                 ax0.plot(scan[i_ok], fit, ':', color=colors[0], linewidth=1, label=lbl)
-                nl_threshold_for_reduce_ranges = 0.3
-                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
+                nl_threshold_for_reduce_ranges_lsb = 2 ** cst.dmxNbBitsADCError * 0.5 / 100  # req expressed in pc
+                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges_lsb:
                     lbl = 'Linear fit2 (Y = {0:.4} X'.format(coeffs_red1[0]) + sign_str + '{0:.4})'.format(
                         abs(coeffs_red1[1])) + ' (fit2 is done on {0:}% of FS)'.format(int(red_factor1 * 100))
                     ax0.plot(scan[i_red1], fit_red1, ':', color=colors[1], linewidth=1, label=lbl)
@@ -285,7 +285,7 @@ def nonlinearity(verbose=False):
                 val2 = val1 * 100 / cst.fsrADCErrorADU
                 lbl = 'Scan - linear Fit  (on FS the non linearity is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
                 ax1.scatter(scan[i_ok], deviation_lsb, s=dotsize, color=colors[0], label=lbl)
-                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges:
+                if np.abs(deviation_lsb).max() > nl_threshold_for_reduce_ranges_lsb:
                     val0, val1 = int(red_factor1 * 100), max(np.abs(deviation_lsb_red1))
                     val2 = val1 * 100 / cst.fsrADCErrorADU
                     lbl = 'Scan - linear Fit2  (on {0:}% of FS the non linearity is {1:2.1f} LSB or {2:.2} %)'.format(
@@ -309,7 +309,7 @@ def nonlinearity(verbose=False):
                 # second y axis for LSB units
                 ax11 = ax1.twinx()
                 ylims = ax1.get_ylim()
-                ylims11 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+                ylims11 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
                 ax11.set_ylim(ylims11)
                 ax11.set_ylabel(ytit_pc)
 
@@ -338,7 +338,7 @@ def nonlinearity(verbose=False):
 
                 ax22 = ax2.twinx()
                 ylims = ax2.get_ylim()
-                ylims22 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
+                ylims22 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
                 ax22.set_ylim(ylims22)
                 ax22.set_ylabel(ytit_pc)
 

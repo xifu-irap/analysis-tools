@@ -450,7 +450,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
     plot_full_file_name = os.path.join(plot_path, col_plot_file_name)
 
     # Doing the plot
-    fig, ax = plt.subplots(1, 1, figsize=(9, 7))
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
     suptitle = config["setup"] + ' (Fs = ' + config["rate"] + ' in column {0:})\n'.format(col_id) \
                + ' BXL = {0:}'.format(config["bxl"]) + ', FDBK = ' + config["fdbk"] + ', OFCO = ' + config[
                    "ofco"]
