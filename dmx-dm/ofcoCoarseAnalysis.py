@@ -21,13 +21,12 @@
 # ---------------------------------------------------------------------------------
 #
 #  laurent.ravera@irap.omp.eu
-#  fdbkDelayAnalysis.py
+#  ofcoCoarseAnalysis.py
 #
 # ---------------------------------------------------------------------------------
 
 # imports
 import os
-import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,14 +35,10 @@ import constants as cst
 import general_tools as gt
 import readData as rddt
 
-xZoom = 49
-
-colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B0000',
-          '#696969', '#A52A2A', '#000000', '#4682B4', '#556B2F', '#4B0082', '#B8860B',
-          '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
+xZoom = 400
 
 
-def fdbkDelayAnalysis(verbose=False):
+def ofcoFineResoAndRange(verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
@@ -57,7 +52,7 @@ def fdbkDelayAnalysis(verbose=False):
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Feedback delay test ")
+        print("/ Ofco Fine resolution and range characterisation ")
         print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
@@ -65,75 +60,58 @@ def fdbkDelayAnalysis(verbose=False):
         # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
 
-
     # Looking for test configuration parameters
-    split = re.split(r'[_-]+', session_name)  # splitting the session name with '_' and '-'
-    start_str = split[-2]
-    end_str = split[-1]
-    start = int(start_str[1:])
-    if start_str[0] == "M":
-        start *= -1
-    end = int(end_str[1:])
-    if end_str[0] == "M":
-        end *= -1
-    nb_steps = end - start + 1
+    test_mode = session_name[10:15]
 
     xlabel = 'Time (ns)'
+    ylabel = 'Error signal (V)'
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'fdbkDelay_col{0:}.png'.format(colid))
-        ylabel = 'Dump of error signal (ADU)'.format(colid)
+        plotFileName = os.path.join(plot_path, 'ofcoFine' + test_mode + '_col{0:}.png'.format(colid))
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \
                  and f[-3:] == ".h5" and f[:5] == "dump_"]
 
-        if len(files) != nb_steps:
-            raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), nb_steps))
+        if len(files) == 0:
+            raise ValueError('No dump files found!')
 
         fig = plt.figure(figsize=(12, 10))
-        ax1 = fig.add_subplot(2, 1, 1)  # global plot
-        ax2 = fig.add_subplot(2, 1, 2)  # zoom plot
-        plt.suptitle("Characterisation of the feedback delay compensation (column {0:})\n".format(colid) \
-                     + '(' + session_name + ')')
+        ax1 = fig.add_subplot(1, 1, 1)  # global plot
+        if test_mode == "HRESO":
+            suptit = "Characterisation of the OFCO FINE resolution (col {0:})".format(colid)
+        else:
+            suptit = "Characterisation of the OFCO FINE range (col {0:})".format(colid)
+        plt.suptitle(suptit + '\n(' + session_name + ')')
 
         xTime = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp
+
+        # Reading data from dump files
+        colDumpsAccu = np.zeros((cst.nColPerDemux, 2 * cst.nPixPerCol * cst.nSamplesPerRow))
         for index, file in enumerate(np.sort(files)):
             colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(data_path, file))
+            colDumpsAccu += colDumps
+        colDumpsAccu /= len(files)
 
-            # Doing plot
-            setting = start + index
-            lw = 2
-            if setting == 0:
-                lw = 4
-            lbl = 'Delay = {0:2d} ns'.format(int(setting * 1e9 / cst.fSamp))
-            ax1.plot(xTime[:], colDumps[colid, :], color=colors[index], label=lbl, linewidth=1)
-            ax2.plot(xTime[:xZoom], colDumps[colid, :xZoom], color=colors[index], label=lbl, linewidth=lw)
+        # Conversion to Volts
+        colDumpsAccu *= cst.fsrADCErrorV / cst.fsrADCErrorADU
 
-        x1_max = 2 * cst.nSamplesPerRow * cst.muxFactor * 1e9 / cst.fSamp
-        x2_max = (xZoom - 1) * 1e9 / cst.fSamp
+        ax1.plot(xTime[:], colDumpsAccu[colid, :], color=blue, linewidth=1)
 
-        ax1.set_ylabel(ylabel)
-        ax2.set_ylabel(ylabel)
+        t_max = (xZoom - 1) * 1e9 / cst.fSamp
+        ax1.set_xlim([0, t_max])
+
         ax1.set_xlabel(xlabel)
-        ax2.set_xlabel(xlabel)
-        # ax1.legend(loc='upper right')
-        ax2.legend(loc='upper right')
-        xlims = ax2.get_xlim()
-        ax2.set_xlim([xlims[0], x2_max])
+        ax1.set_ylabel(ylabel)
 
         # Définition des intervalles majeurs et mineurs pour la grille
-        ax1.set_xticks(np.arange(0, x1_max, 4096))  # Intervalles majeurs tous les 64
-        ax1.set_xticks(np.arange(0, x1_max, 512), minor=True)  # Intervalles mineurs tous les 8
-        ax2.set_xticks(np.arange(0, x2_max, 64))  # Intervalles majeurs tous les 64
-        ax2.set_xticks(np.arange(0, x2_max, 8), minor=True)  # Intervalles mineurs tous les 8
+        ax1.set_xticks(np.arange(0, t_max, 160))  # Intervalles majeurs
+        ax1.set_xticks(np.arange(0, t_max, 8), minor=True)  # Intervalles mineurs
 
         # Activation de la grille majeure et mineure
         ax1.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
         ax1.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
-        ax2.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
-        ax2.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
 
         fig.tight_layout()
 
