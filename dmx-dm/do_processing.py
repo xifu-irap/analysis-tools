@@ -76,5 +76,4 @@ def do_processing(verbose=True):
             ofcoCoarseAnalysis.ofcoCoarseReso(verbose)
 
 
-
 do_processing()

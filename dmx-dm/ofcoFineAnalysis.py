@@ -68,7 +68,7 @@ def ofcoFineResoAndRange(verbose=False):
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'ofcoFine' + test_mode + '_col{0:}.png'.format(colid))
+        plotFileName = os.path.join(plot_path, 'ofcoFine_' + test_mode + '_col{0:}.png'.format(colid))
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \

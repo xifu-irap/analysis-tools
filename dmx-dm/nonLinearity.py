@@ -121,18 +121,16 @@ def nonlinearity(verbose=False):
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(pathHk)
 
-    # Looking for the position of the col id in the file names
+
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
              and f[:5] == "scan_" \
-             and f[-5:] == ".fits"]
+             and f[-5:] == ".h5"]
 
     # Checking number of files
     if len(files) == 0:
         print("No fits file found in this session")
     else:
-        index_col = files[0].find("col")  # to find the column index in the file names
-
         # Checking the scan type (feedback or offset)
         scan_type_ini = rddt.read_scan_type(os.path.join(pathData, files[0]))
 
@@ -153,11 +151,11 @@ def nonlinearity(verbose=False):
 
         for col in range(cst.nColPerDemux):
 
-            # Searching fits files
+            # Searching scan files
             files = [f for f in os.listdir(pathData) \
                      if os.path.isfile(os.path.join(pathData, f)) \
                      and f[:5] == "scan_" \
-                     and f[index_col:index_col + 4] == "col{0:}".format(col) \
+                     and f[-4] == "{0:}".format(col) \
                      and f[-3:] == ".h5"]
 
             # Checking number of files
@@ -170,7 +168,7 @@ def nonlinearity(verbose=False):
                 else:
                     print("Found {0:} HDF5 files for column {1:}".format(len(files), col))
 
-                # Reading and concatenating the data of the different fits files
+                # Reading and concatenating the data of the different scan files
                 error = np.array([])  # Empty array
                 scan = np.array([])  # Empty array
                 scan_type = np.array([])  # Empty array
