@@ -2,9 +2,11 @@
 import os
 
 import XTalkAnalysis
+import cutoffFrequency
 import delayAnalysis
 import noiseAnalysis
 import nonLinearity
+import ofcoFineAnalysis
 import samplingDelayAnalysis
 
 
@@ -38,6 +40,12 @@ def do_processing(verbose=True):
             noiseAnalysis.noiseAnalysis(process_frow=process_frow, plot_model=plot_model, lpf=0, verbose=verbose)
         case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
             XTalkAnalysis.xtalkAnalysis(verbose)
+        case "ERRO_BANDSHAPE-":
+            cutoffFrequency.cutoffFreq(verbose)
+        case "OFCO-FINE-HRESO" | "OFCO-FINE-HRANG":
+            ofcoFineAnalysis.ofcoFineResoAndRange(verbose)
+
+
 
 
 do_processing()

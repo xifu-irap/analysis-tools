@@ -38,14 +38,12 @@ import readData as rddt
 
 @dataclass
 class TestConfig:
-    testPlanPath: str
-    testCase: str
     session_name: str
     module_name: str
 
     @property
     def file_path(self) -> str:
-        return os.path.join(cst.BASE_DATA_PATH, self.testPlanPath, self.testCase, self.session_name)
+        return os.path.join(cst.BASE_DATA_PATH, self.session_name)
 
 
 def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target, legend_location):
@@ -69,7 +67,7 @@ def calib_hk_temp(tconf):
 
     fileNameDMX_list = [f for f in os.listdir(hk_path) \
                         if os.path.isfile(os.path.join(hk_path, f)) \
-                        and f[:8] == 'Hks_DMX_']
+                        and f[:8] == 'Hks_DMXA']
     if len(fileNameDMX_list) != 1:
         print("ERROR: wrong number of DMX hk files: {0:}".format(len(fileNameDMX_list)))
         return
@@ -80,14 +78,14 @@ def calib_hk_temp(tconf):
                           if os.path.isfile(os.path.join(hk_path, f)) \
                           and f[:10] == 'Hks_Pt104_']
     if len(fileNamePt104_list) != 1:
-        print("ERROR: wrong number of Pt104 hk files: {0:}".format(len(fileNamePt104_list)))
+        print("ERROR: wrong number of Pt100 hk files: {0:}".format(len(fileNamePt104_list)))
         return
     fileNamePt104 = os.path.join(hk_path, fileNamePt104_list[0])
 
-    header1 = 'DM-DMX2_TEMP_MAX(raw)'
-    header2 = 'PT104_channel1Value()'
-    header3 = 'DM-DMX2_TEMP_AVE(raw)'
-    header4 = 'PT104_channel2Value()'
+    header1 = 'TEMP_MAX(raw)'
+    header2 = 'PT104_channel2Value()'
+    header3 = 'TEMP_AVE(raw)'
+    header4 = 'PT104_channel1Value()'
     header_Date = 'Date(EGSE)'  # The same header in both files
 
     # Creation of a directory for the plot files
@@ -179,13 +177,6 @@ def calib_hk_temp(tconf):
     plt.savefig(plotfilename, dpi=300, bbox_inches='tight')
     print("plot saved in file ", plotfilename)
 
-
-list_of_configs = [
-    TestConfig(cst.TP24_PATH, "24.010", "4Col", "DM-DMX2"),
-    TestConfig(cst.TP24_PATH, "24.010", "Paliers", "DM-DMX2"),
-    TestConfig(cst.TP24_PATH, "24.010", "20250620_150836_test_dmx_feedback", "DM-DMX2")
-]
-
 if __name__ == '__main__':
-    for conf in list_of_configs[-1:]:
-        calib_hk_temp(conf)
+    conf = TestConfig('..', 'DM-DMX3')
+    calib_hk_temp(conf)

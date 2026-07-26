@@ -1,6 +1,5 @@
 # imports
 import os
-from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +8,37 @@ from scipy.optimize import curve_fit
 import constants as cst
 import general_tools as gt
 import readData as rddt
+
+
+def get_config():
+    """
+    Extracts and returns a configuration dictionary from the current session name and directory structure.
+
+    This function analyzes the session name derived from the directory path to extract specific configuration details,
+    such as boxcar length, feedback settings, and coarse-grained parameter.
+
+    Returns:
+        dict: A dictionary containing the configuration extracted from the session name:
+            - session_name (str): The name of the session extracted from the directory path.
+            - dir_path (str): The base directory path.
+            - signal_name (str): A substring representing the signal.
+    """
+
+    # Data directory
+    dir_path = os.path.join("..", "..")
+
+    # Looking for the session name
+    session_name = os.path.basename(os.path.realpath(dir_path))
+
+    # Looking for the signal name
+    signal_name = session_name[:4]
+
+    config = {"session_name": session_name,
+              "dir_path": dir_path,
+              "signal_name": signal_name,
+              }
+
+    return config
 
 
 # Détection d'un front de montée
@@ -73,9 +103,9 @@ def fit_time_constant(t_data, v_data):
     return U0, tau
 
 
-def cutoffFreq(tconf):
+def measure_cutoffFreq(tconf):
     # Test configuration data
-    dir_path = tconf.file_path
+    dir_path = tconf["dir_path"]
 
     # Data directory
     path_data = os.path.join(dir_path, cst.dataDirName)
@@ -111,83 +141,86 @@ def cutoffFreq(tconf):
 
     # Doing plots
     for col in range(cst.nColPerDemux):
-        if tconf.process_col[col]:
-            plotFileName = os.path.join(path_plot, 'cutoffFreq_col{0:}.png'.format(col))
+        plotFileName = os.path.join(path_plot, 'cutoffFreq_col{0:}.png'.format(col))
 
-            v = accuDumps[col, :]
+        v = accuDumps[col, :]
 
-            tsize = 20
-            it1 = riseDetect(v, 3)
-            it2 = it1 + tsize
+        tsize = 20
+        it1 = riseDetect(v, 3)
+        it2 = it1 + tsize
 
-            fig = plt.figure(figsize=(8, 6))
-            suptitle = "Error cutoff frequency (column {0:})".format(col)
-            title = tconf.testPlanPath + '        ' + os.path.basename(dir_path)
-            fig.suptitle(suptitle, fontsize=12)
+        fig = plt.figure(figsize=(8, 6))
+        suptitle = "Error cutoff frequency (column {0:})".format(col)
+        title = tconf.testPlanPath + '        ' + os.path.basename(dir_path)
+        fig.suptitle(suptitle, fontsize=12)
 
-            ax1 = fig.add_subplot(2, 1, 1)  # global plot
-            ax1.set_title(title, fontsize=10)
-            ax2 = fig.add_subplot(2, 1, 2)  # global plot
+        ax1 = fig.add_subplot(2, 1, 1)  # global plot
+        ax1.set_title(title, fontsize=10)
+        ax2 = fig.add_subplot(2, 1, 2)  # global plot
 
-            ax1.plot(t * 1e9, v)
-            ax1.plot(t[it1: it2] * 1e9, v[it1: it2], color='r')
-            ax1.set_xlabel(xlabel)
-            ax1.set_ylabel(ylabel)
-            ax1.grid()
+        ax1.plot(t * 1e9, v)
+        ax1.plot(t[it1: it2] * 1e9, v[it1: it2], color='r')
+        ax1.set_xlabel(xlabel)
+        ax1.set_ylabel(ylabel)
+        ax1.grid()
 
-            # Calcul du fit
-            vfit = v[it1:it2] - v[it1]
-            tfit = t[it1:it2] - t[it1]
-            U0, tau = fit_time_constant(tfit, vfit)
-            fc = 1 / (2 * np.pi * tau * 1e6)
-            print("Time constant: {0:6.3f} ns".format(tau * 1e9))
-            print("Cutoff frequency: {0:6.3f} MHz".format(fc))
+        # Calcul du fit
+        vfit = v[it1:it2] - v[it1]
+        tfit = t[it1:it2] - t[it1]
+        U0, tau = fit_time_constant(tfit, vfit)
+        fc = 1 / (2 * np.pi * tau * 1e6)
+        print("Time constant: {0:6.3f} ns".format(tau * 1e9))
+        print("Cutoff frequency: {0:6.3f} MHz".format(fc))
 
-            lbl1 = 'ADC Data'
-            ax2.plot(t[it1 - 10:it2] * 1e9, v[it1 - 10:it2])
-            ax2.plot(t[it1:it2] * 1e9, v[it1:it2], color='r', label=lbl1)
-            lbl2 = "First order fit (fc = {0:6.2f} MHz)".format(fc)
-            # Building a higher resolution time array to plot the fit
-            hr_ratio = 10
-            thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
-            ax2.plot((thr + t[it1]) * 1e9, exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
-            ax2.set_xlabel(xlabel)
-            ax2.set_ylabel(ylabel)
-            ax2.legend(loc='best')
-            ax2.grid()
+        lbl1 = 'ADC Data'
+        ax2.plot(t[it1 - 10:it2] * 1e9, v[it1 - 10:it2])
+        ax2.plot(t[it1:it2] * 1e9, v[it1:it2], color='r', label=lbl1)
+        lbl2 = "First order fit (fc = {0:6.2f} MHz)".format(fc)
+        # Building a higher resolution time array to plot the fit
+        hr_ratio = 10
+        thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
+        ax2.plot((thr + t[it1]) * 1e9, exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
+        ax2.set_xlabel(xlabel)
+        ax2.set_ylabel(ylabel)
+        ax2.legend(loc='best')
+        ax2.grid()
 
-            fig.tight_layout()
+        fig.tight_layout()
 
-            plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
-            print("results plotted in file " + plotFileName)
+        plt.savefig(plotFileName, dpi=300, bbox_inches='tight')
+        print("results plotted in file " + plotFileName)
 
 
 # -------------------------------------------------------------------------------------
 
-@dataclass
-class TestConfig:
-    testPlanPath: str
-    session_name: str
-    process_col: np.ndarray = None
+def cutoffFreq(verbose=True):
+    """
+    Measure the cuttOff frequency of Dump data
 
-    def __post_init__(self):
-        if self.process_col is None:
-            self.process_col = np.array([True, True, True, True])
+    Args:
+        verbose (bool): Determines if detailed output should be printed during
+            execution. If True, provides additional information about the noise
+            testing process and file processing steps. Defaults to True.
+    """
 
-    @property
-    def file_path(self) -> str:
-        return f"{cst.BASE_DATA_PATH}/{self.testPlanPath}/{self.session_name}"
+    config = get_config()
 
+    # Data directory
+    hk_path = os.path.join(config["dir_path"], cst.hkDirName)
 
-TP27_TURBO45_PATH = "TestPlan27_DM-DMX2_Func_and_Perfs/FW-turbo-45"
+    # Looking for DEMUX identifiers (board, model, firmware)
+    dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
-list_of_configs = [
-    TestConfig(TP27_TURBO45_PATH, "20250618_182150_caracErrorBandShape"),
-    TestConfig(cst.TP27_PATH, "20251028_092758_caracErrorBandShape", np.array([False, False, True, False]))
-]
+    if verbose:
+        print("/----------------------------------------------------------")
+        print("/ Band shape test:     " + config["setup"])
+        print("/ Test session name:   " + config["session_name"])
+        print("/----------------------------------------------------------")
+        print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
+        print("/ Firmware version:    {0:}".format(fwVersion))
+        print("/ Signal:              " + config["signal_name"])
+        print("/----------------------------------------------------------\n")
 
-# -------------------------------------------------------------------------------------
-for conf in list_of_configs[-1:]:
-    cutoffFreq(conf)
+    measure_cutoffFreq(config)
 
 # -------------------------------------------------------------------------------------
