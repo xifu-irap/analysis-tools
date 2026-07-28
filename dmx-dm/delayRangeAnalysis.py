@@ -38,12 +38,8 @@ import readData as rddt
 
 xZoom = 49
 
-colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B0000',
-          '#696969', '#A52A2A', '#000000', '#4682B4', '#556B2F', '#4B0082', '#B8860B',
-          '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
-
-def detect_rising_edge(sig, roll=True):
+def detect_rising_edge_not_used(sig, roll=True):
     if roll:
         sig = np.concatenate((sig, sig), axis=0)
     diff = sig[1:] - sig[:-1]
@@ -52,7 +48,24 @@ def detect_rising_edge(sig, roll=True):
     return i_rising_edge
 
 
-def fdbkDelayAnalysis(verbose=False):
+def detect_rising_edge(sig):
+    diff = sig[1:] - sig[:-1]
+    threshold = diff.min() + (diff.max() - diff.min()) * 0.75
+    i_rising_edge = np.where(diff > threshold)[0][0]
+    return i_rising_edge
+
+
+def delayRangeAnalysis(test_type, verbose=False):
+    match test_type:
+        case "FDBK-DELAY-----":
+            test_name = "FEEDBACK DELAY RANGE"
+            name = "fdbkDelay_range"
+            xlabel = 'Feedback delay (ADU)'
+        case "OFCOMUX-DELAY--":
+            test_name = "OFCO-MUX DELAY RANGE"
+            name = "ofcoMuxDelay_range"
+            xlabel = 'Ofco MUX delay (ADU)'
+
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
@@ -66,12 +79,11 @@ def fdbkDelayAnalysis(verbose=False):
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Feedback delay test ")
+        print("/ " + test_name)
         print("/ Test session name:   " + session_name)
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
-        # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
 
 
@@ -87,12 +99,11 @@ def fdbkDelayAnalysis(verbose=False):
         end *= -1
     nb_steps = end - start + 1
 
-    xlabel = 'Feedback delay (ADU)'
     ylabel = 'Dump delay wrt to the first one (ns)'
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'fdbkDelay_range_col{0:}.png'.format(colid))
+        plotFileName = os.path.join(plot_path, name + '_col{0:}.png'.format(colid))
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \
@@ -104,7 +115,7 @@ def fdbkDelayAnalysis(verbose=False):
         fig = plt.figure(figsize=(8, 7))
         ax1 = fig.add_subplot(2, 1, 1)  # global plot
         ax2 = fig.add_subplot(2, 1, 2)  # global plot
-        plt.suptitle("Characterisation of the feedback delay compensation (column {0:})\n".format(colid) \
+        plt.suptitle("Characterisation of the delay compensation (column {0:})\n".format(colid) \
                      + '(' + session_name + ')')
 
         edge_position = np.zeros(nb_steps)
@@ -112,7 +123,8 @@ def fdbkDelayAnalysis(verbose=False):
         for index, file in enumerate(np.sort(files)):
             colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(data_path, file))
 
-            edge_position[index] = detect_rising_edge(colDumps[colid, :])
+            # shifting the search by index to avoid side effects
+            edge_position[index] = index + detect_rising_edge(colDumps[colid, index:])
 
         # using the first dump as a reference
         edge_position -= edge_position[0]
@@ -128,6 +140,7 @@ def fdbkDelayAnalysis(verbose=False):
         frame_duration = cst.nPixPerCol * cst.nSamplesPerRow / cst.fSamp * 1e9
         step_size = (edge_position[1:] - edge_position[:-1]) % frame_duration
         ax2.scatter(x[:-1], step_size, s=0.2)
+        ax2.set_ylim([step_size.min() - 1, step_size.max() + 1])
         ax2.set_xlabel(xlabel)
         ax2.set_ylabel("Size of steps % Frame duration (ns)")
         fig.tight_layout()

@@ -38,7 +38,7 @@ import readData as rddt
 xZoom = 400
 
 
-def ofcoFineResoAndRange(verbose=False):
+def ofcoFineResoAndRange(test_type, verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
@@ -57,18 +57,14 @@ def ofcoFineResoAndRange(verbose=False):
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
-        # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
-
-    # Looking for test configuration parameters
-    test_mode = session_name[10:15]
 
     xlabel = 'Time (ns)'
     ylabel = 'Error signal (V)'
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'ofcoFine_' + test_mode + '_col{0:}.png'.format(colid))
+        plotFileName = os.path.join(plot_path, 'ofcoFine_' + test_type[-5:] + '_col{0:}.png'.format(colid))
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \
@@ -77,9 +73,9 @@ def ofcoFineResoAndRange(verbose=False):
         if len(files) == 0:
             raise ValueError('No dump files found!')
 
-        fig = plt.figure(figsize=(12, 10))
+        fig = plt.figure(figsize=(10, 7))
         ax1 = fig.add_subplot(1, 1, 1)  # global plot
-        if test_mode == "HRESO":
+        if test_type == "OFCO-FINE-HRESO":
             suptit = "Characterisation of the OFCO FINE resolution (col {0:})".format(colid)
         else:
             suptit = "Characterisation of the OFCO FINE range (col {0:})".format(colid)
@@ -97,7 +93,7 @@ def ofcoFineResoAndRange(verbose=False):
         # Conversion to Volts
         colDumpsAccu *= cst.fsrADCErrorV / cst.fsrADCErrorADU
 
-        ax1.plot(xTime[:], colDumpsAccu[colid, :], color=blue, linewidth=1)
+        ax1.plot(xTime[:], colDumpsAccu[colid, :], color='b', linewidth=2)
 
         t_max = (xZoom - 1) * 1e9 / cst.fSamp
         ax1.set_xlim([0, t_max])
@@ -111,7 +107,7 @@ def ofcoFineResoAndRange(verbose=False):
 
         # Activation de la grille majeure et mineure
         ax1.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
-        ax1.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
+        # ax1.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
 
         fig.tight_layout()
 

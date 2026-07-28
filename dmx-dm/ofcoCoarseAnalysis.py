@@ -55,7 +55,6 @@ def ofcoCoarseReso(verbose=False):
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
         print("/ Firmware version:     {0:}".format(fwVersion))
-        # print("/ Box car length:       {0:} samples".format(bxl))
         print("/----------------------------------------------------------\n")
 
     xlabel = 'Ofco Coarse signal (V)'

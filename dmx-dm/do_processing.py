@@ -31,7 +31,7 @@ import os
 import XTalkAnalysis
 import cutoffFrequency
 import delayAnalysis
-import fdbkDelayAnalysis
+import delayRangeAnalysis
 import noiseAnalysis
 import nonLinearity
 import ofcoCoarseAnalysis
@@ -58,9 +58,10 @@ def do_processing(verbose=True):
 
     match test_type:
         case "FDBK-DELAY-----":
-            fdbkDelayAnalysis.fdbkDelayAnalysis(verbose)
+            delayRangeAnalysis.delayRangeAnalysis(test_type, verbose)
             delayAnalysis.delayAnalysis(test_type, 10, verbose)
         case "OFCOMUX-DELAY--":
+            delayRangeAnalysis.delayRangeAnalysis(test_type, verbose)
             delayAnalysis.delayAnalysis(test_type, 10, verbose)
         case "SAMP-DELAY-----":
             samplingDelayAnalysis.samplingDelayAnalysis(verbose)
@@ -75,7 +76,7 @@ def do_processing(verbose=True):
         case "ERRO_BANDSHAPE-":
             cutoffFrequency.cutoffFreq(verbose)
         case "OFCO-FINE-HRESO" | "OFCO-FINE-HRANG":
-            ofcoFineAnalysis.ofcoFineResoAndRange(verbose)
+            ofcoFineAnalysis.ofcoFineResoAndRange(test_type, verbose)
         case "OFCO-COAR-TPT--":
             ofcoCoarseAnalysis.ofcoCoarseReso(verbose)
 

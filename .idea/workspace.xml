@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of text in noise plots">
+    <list default="true" id="190c8b9e-78dd-40fd-99b2-84efdedd992e" name="Changes" comment="Update of delay analysis tools">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/noiseAnalysisTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/nonLinearity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/do_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/do_processing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/delayRangeAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/ofcoCoarseAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/ofcoCoarseAnalysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dmx-dm/ofcoFineAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/dmx-dm/ofcoFineAnalysis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +22,7 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="93" />
+    <option name="cachedIndexableFilesCount" value="96" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -86,23 +87,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0" />
-      <entry key="M2" value="1.0" />
-      <entry key="M5" value="1.0" />
-      <entry key="M10" value="1.0" />
-      <entry key="M15" value="1.0" />
-      <entry key="M30" value="1.0" />
-      <entry key="H1" value="1.0" />
-      <entry key="H2" value="1.0" />
-      <entry key="H4" value="1.0" />
-      <entry key="D1" value="1.0" />
-      <entry key="W1" value="1.0" />
+      <entry key="MS100" value="1.3732566793389016" />
+      <entry key="MS500" value="3.1652194700133616" />
+      <entry key="S2" value="4.408934042724855" />
+      <entry key="S5" value="4.7503288635288605" />
+      <entry key="S10" value="4.872838713833577" />
+      <entry key="S30" value="4.957084598601033" />
+      <entry key="S60" value="4.978475530020703" />
+      <entry key="M2" value="4.989221017347319" />
+      <entry key="M5" value="4.995684380394098" />
+      <entry key="M10" value="4.997841518513192" />
+      <entry key="M15" value="4.9985608630350855" />
+      <entry key="M30" value="4.99928035690292" />
+      <entry key="H1" value="4.999681310896036" />
+      <entry key="H2" value="5.03901258987409" />
+      <entry key="H4" value="6.2543541251735055" />
+      <entry key="D1" value="28.821781349155323" />
+      <entry key="W1" value="48.2587714538643" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -124,23 +125,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="9.98166820533845E-10" />
-      <entry key="MS500" value="0.015843116871719205" />
-      <entry key="S2" value="0.3547808390500956" />
-      <entry key="S5" value="0.6606692028291326" />
-      <entry key="S10" value="0.81281560198432" />
-      <entry key="S30" value="0.9332485928389052" />
-      <entry key="S60" value="0.9660479247112459" />
-      <entry key="M2" value="0.9828773701287694" />
-      <entry key="M5" value="0.9931154410108874" />
-      <entry key="M10" value="0.996551775378925" />
-      <entry key="M15" value="0.9976998604179372" />
-      <entry key="M30" value="0.9988492681170354" />
-      <entry key="H1" value="0.9994244684402296" />
-      <entry key="H2" value="0.9997121928036237" />
-      <entry key="H4" value="0.9998560860461988" />
-      <entry key="D1" value="0.999976012902627" />
-      <entry key="W1" value="0.999996573236576" />
+      <entry key="MS100" value="1.2666046993823081" />
+      <entry key="MS500" value="3.1167536264956954" />
+      <entry key="S2" value="4.393440659090066" />
+      <entry key="S5" value="4.743784897574299" />
+      <entry key="S10" value="4.869505445384333" />
+      <entry key="S30" value="4.95595954574232" />
+      <entry key="S60" value="4.977911236162443" />
+      <entry key="M2" value="4.988938426891978" />
+      <entry key="M5" value="4.99557123755126" />
+      <entry key="M10" value="4.99778492929709" />
+      <entry key="M15" value="4.998523132935316" />
+      <entry key="M30" value="4.9992614898748515" />
+      <entry key="H1" value="4.999671876093691" />
+      <entry key="H2" value="5.039007515134004" />
+      <entry key="H4" value="6.254346340994961" />
+      <entry key="D1" value="28.821760273874908" />
+      <entry key="W1" value="48.25876371792495" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -333,6 +334,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="delayRangeAnalysis" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="analysis-tools" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/delayRangeAnalysis.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="dre_noise_models" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="analysis-tools" />
       <option name="ENV_FILES" value="" />
@@ -350,31 +376,6 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/noise_models/dre_noise_models.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="fdbkDelayAnalysis" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="analysis-tools" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dmx-dm" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="DEBUG_JUST_MY_CODE" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -547,7 +548,7 @@
         <item itemvalue="Python.dre_noise_models" />
         <item itemvalue="Python.nonLinearity" />
         <item itemvalue="Python.noiseAnalysis" />
-        <item itemvalue="Python.fdbkDelayAnalysis" />
+        <item itemvalue="Python.delayRangeAnalysis" />
         <item itemvalue="Python.XnoiseAnalysis" />
       </list>
     </recent_temporary>
@@ -555,8 +556,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-PY-261.24374.152" />
-        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-PY-261.26222.68" />
+        <option value="bundled-python-sdk-50341a9f1f9c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.26222.68" />
       </set>
     </attachedChunks>
   </component>
@@ -692,46 +693,10 @@
       <workItem from="1781783770731" duration="12000" />
       <workItem from="1782657839327" duration="1548000" />
       <workItem from="1782902041209" duration="1082000" />
-    </task>
-    <task id="LOCAL-00005" summary="New functions for analysis of DEMUX performances">
-      <option name="closed" value="true" />
-      <created>1735312629565</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1735312629565</updated>
-    </task>
-    <task id="LOCAL-00006" summary="New functions for analysis of DEMUX performances">
-      <option name="closed" value="true" />
-      <created>1735320058805</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1735320058805</updated>
-    </task>
-    <task id="LOCAL-00007" summary="New function for linearity analysis">
-      <option name="closed" value="true" />
-      <created>1736372835383</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1736372835383</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Update of error signal noise analysis">
-      <option name="closed" value="true" />
-      <created>1737216004022</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1737216004022</updated>
-    </task>
-    <task id="LOCAL-00009" summary="New functions for analysis of DEMUX performances">
-      <option name="closed" value="true" />
-      <created>1738227061224</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1738227061224</updated>
+      <workItem from="1783950563866" duration="294000" />
+      <workItem from="1784126314058" duration="237000" />
+      <workItem from="1784196451466" duration="1726000" />
+      <workItem from="1784734758424" duration="32731000" />
     </task>
     <task id="LOCAL-00010" summary="Debug of noiseAnalysis.py scripts">
       <option name="closed" value="true" />
@@ -1085,7 +1050,47 @@
       <option name="project" value="LOCAL" />
       <updated>1778150977275</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="Updated to process DM-DMX3 data">
+      <option name="closed" value="true" />
+      <created>1785063477087</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1785063477089</updated>
+    </task>
+    <task id="LOCAL-00055" summary="Addition of copyright header">
+      <option name="closed" value="true" />
+      <created>1785064285957</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1785064285957</updated>
+    </task>
+    <task id="LOCAL-00056" summary="New tool for OFCO COARSE characterisation">
+      <option name="closed" value="true" />
+      <created>1785071020284</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1785071020284</updated>
+    </task>
+    <task id="LOCAL-00057" summary="New tool for OFCO COARSE characterisation">
+      <option name="closed" value="true" />
+      <created>1785156967043</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1785156967043</updated>
+    </task>
+    <task id="LOCAL-00058" summary="Update of delay analysis tools">
+      <option name="closed" value="true" />
+      <created>1785227889229</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1785227889229</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1103,10 +1108,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="New script to check the data integrity" />
-    <MESSAGE value="Update to run end 2 end scripts" />
-    <MESSAGE value="Addition of a bat file to launch the processing" />
-    <MESSAGE value="Update of the noise analysis plots:&#10;- Fix of the ENOB level computation&#10;- Addition of the white noise level" />
     <MESSAGE value="New notebook to compute error signal noise models" />
     <MESSAGE value="Improvement of noise analysis&#10;Update of Xtalk analysis (to be updated)" />
     <MESSAGE value="Update of fits readout functions" />
@@ -1128,7 +1129,11 @@
     <MESSAGE value="Scan format changed to hdf5&#10;Update of the noise plots" />
     <MESSAGE value="New font for noise plots" />
     <MESSAGE value="Update of text in noise plots" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update of text in noise plots" />
+    <MESSAGE value="Updated to process DM-DMX3 data" />
+    <MESSAGE value="Addition of copyright header" />
+    <MESSAGE value="New tool for OFCO COARSE characterisation" />
+    <MESSAGE value="Update of delay analysis tools" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update of delay analysis tools" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -1227,13 +1232,6 @@
 }</component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dmx-dm/fdbkDelayAnalysis.py</url>
-          <line>40</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
