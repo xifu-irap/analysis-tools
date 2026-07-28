@@ -122,10 +122,17 @@ def exponential_response(t, U0, tau):
     return U0 * (1 - np.exp(-t / tau))
 
 
+# Définition de la fonction exponentielle
+def double_exponential_response(t, U0, tau2):
+    fc1 = 60e6
+    tau1 = 1 / (2 * np.pi * fc1)
+    return U0 * (1 - (tau1 * np.exp(-t / tau1) - tau2 * np.exp(-t / tau2)) / (tau1 - tau2))
+
+
 # Fonction de fit pour trouver la constante de temps
 def fit_time_constant(t_data, v_data):
     # Ajustement des données pour trouver les paramètres U0 et tau
-    popt, pcov = curve_fit(exponential_response, t_data, v_data, p0=[max(v_data), t_data[np.argmax(v_data)]])
+    popt, pcov = curve_fit(double_exponential_response, t_data, v_data, p0=[max(v_data), t_data[np.argmax(v_data)]])
     U0, tau = popt
     return U0, tau
 
@@ -173,12 +180,12 @@ def measure_cutoffFreq(tconf):
         v = accuDumps[col, :]
 
         tsize = 20
-        it1 = riseDetect(v, 3)
+        it1 = riseDetect(v, 5) - 1
         it2 = it1 + tsize
 
         fig = plt.figure(figsize=(8, 6))
-        suptitle = "Error cutoff frequency (column {0:})".format(col)
-        title = tconf.testPlanPath + '        ' + os.path.basename(dir_path)
+        suptitle = "FDBK (fc=60MHz) + ERROR step response (column {0:})".format(col)
+        title = tconf["session_name"] + '        ' + os.path.basename(dir_path)
         fig.suptitle(suptitle, fontsize=12)
 
         ax1 = fig.add_subplot(2, 1, 1)  # global plot
@@ -202,11 +209,11 @@ def measure_cutoffFreq(tconf):
         lbl1 = 'ADC Data'
         ax2.plot(t[it1 - 10:it2] * 1e9, v[it1 - 10:it2])
         ax2.plot(t[it1:it2] * 1e9, v[it1:it2], color='r', label=lbl1)
-        lbl2 = "First order fit (fc = {0:6.2f} MHz)".format(fc)
+        lbl2 = 'FDBK + ERROR fit --> ERROR cutoff frequency is {0:6.2f} MHz)'.format(fc)
         # Building a higher resolution time array to plot the fit
         hr_ratio = 10
         thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
-        ax2.plot((thr + t[it1]) * 1e9, exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
+        ax2.plot((thr + t[it1]) * 1e9, double_exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
         ax2.set_xlabel(xlabel)
         ax2.set_ylabel(ylabel)
         ax2.legend(loc='best')
@@ -240,7 +247,7 @@ def cutoffFreq(verbose=True):
 
     if verbose:
         print("/----------------------------------------------------------")
-        print("/ Band shape test:     " + config["setup"])
+        print("/ ERROR band shape test:     ")
         print("/ Test session name:   " + config["session_name"])
         print("/----------------------------------------------------------")
         print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))

@@ -31,6 +31,7 @@ import os
 import XTalkAnalysis
 import cutoffFrequency
 import delayAnalysis
+import fdbkDelayAnalysis
 import noiseAnalysis
 import nonLinearity
 import ofcoCoarseAnalysis
@@ -56,8 +57,11 @@ def do_processing(verbose=True):
     test_type = session_name[16: 31]
 
     match test_type:
-        case "FDBK-DELAY-----" | "OFCOMUX-DELAY--" | "OFCODAC-DELAY--":
-            delayAnalysis.delayAnalysis(test_type, verbose)
+        case "FDBK-DELAY-----":
+            fdbkDelayAnalysis.fdbkDelayAnalysis(verbose)
+            delayAnalysis.delayAnalysis(test_type, 10, verbose)
+        case "OFCOMUX-DELAY--":
+            delayAnalysis.delayAnalysis(test_type, 10, verbose)
         case "SAMP-DELAY-----":
             samplingDelayAnalysis.samplingDelayAnalysis(verbose)
         case "FDBK-ERROR-LIN-" | "OFCO-ERROR-LIN-":

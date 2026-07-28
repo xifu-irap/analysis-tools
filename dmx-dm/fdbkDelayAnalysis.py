@@ -43,6 +43,15 @@ colors = ['#FF0000', '#0000FF', '#006400', '#FFA500', '#800080', '#008B8B', '#8B
           '#C0C0C0', '#CD5C5C', '#8B008B', '#FFD700', '#228B22', '#00008B']
 
 
+def detect_rising_edge(sig, roll=True):
+    if roll:
+        sig = np.concatenate((sig, sig), axis=0)
+    diff = sig[1:] - sig[:-1]
+    threshold = diff.min() + (diff.max() - diff.min()) * 0.75
+    i_rising_edge = np.where(diff > threshold)[0][0]
+    return i_rising_edge
+
+
 def fdbkDelayAnalysis(verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
@@ -78,12 +87,12 @@ def fdbkDelayAnalysis(verbose=False):
         end *= -1
     nb_steps = end - start + 1
 
-    xlabel = 'Time (ns)'
+    xlabel = 'Feedback delay (ADU)'
+    ylabel = 'Dump delay wrt to the first one (ns)'
 
     for colid in range(cst.nColPerDemux):
 
-        plotFileName = os.path.join(plot_path, 'fdbkDelay_col{0:}.png'.format(colid))
-        ylabel = 'Dump of error signal (ADU)'.format(colid)
+        plotFileName = os.path.join(plot_path, 'fdbkDelay_range_col{0:}.png'.format(colid))
 
         files = [f for f in os.listdir(data_path) \
                  if os.path.isfile(os.path.join(data_path, f)) \
@@ -92,49 +101,35 @@ def fdbkDelayAnalysis(verbose=False):
         if len(files) != nb_steps:
             raise ValueError('Wrong number of files ({0:} instead of {1:})'.format(len(files), nb_steps))
 
-        fig = plt.figure(figsize=(12, 10))
+        fig = plt.figure(figsize=(8, 7))
         ax1 = fig.add_subplot(2, 1, 1)  # global plot
-        ax2 = fig.add_subplot(2, 1, 2)  # zoom plot
+        ax2 = fig.add_subplot(2, 1, 2)  # global plot
         plt.suptitle("Characterisation of the feedback delay compensation (column {0:})\n".format(colid) \
                      + '(' + session_name + ')')
 
-        xTime = np.arange(2 * cst.nSamplesPerRow * cst.muxFactor) * 1e9 / cst.fSamp
+        edge_position = np.zeros(nb_steps)
+
         for index, file in enumerate(np.sort(files)):
             colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(data_path, file))
 
-            # Doing plot
-            setting = start + index
-            lw = 2
-            if setting == 0:
-                lw = 4
-            lbl = 'Delay = {0:2d} ns'.format(int(setting * 1e9 / cst.fSamp))
-            ax1.plot(xTime[:], colDumps[colid, :], color=colors[index], label=lbl, linewidth=1)
-            ax2.plot(xTime[:xZoom], colDumps[colid, :xZoom], color=colors[index], label=lbl, linewidth=lw)
+            edge_position[index] = detect_rising_edge(colDumps[colid, :])
 
-        x1_max = 2 * cst.nSamplesPerRow * cst.muxFactor * 1e9 / cst.fSamp
-        x2_max = (xZoom - 1) * 1e9 / cst.fSamp
+        # using the first dump as a reference
+        edge_position -= edge_position[0]
+        # converting the edge postion in time
+        edge_position = edge_position / cst.fSamp * 1e9
+        x = np.arange(nb_steps) + start
 
-        ax1.set_ylabel(ylabel)
-        ax2.set_ylabel(ylabel)
+        # Doing plot
+        ax1.scatter(x, edge_position, s=0.2)
         ax1.set_xlabel(xlabel)
+        ax1.set_ylabel(ylabel)
+
+        frame_duration = cst.nPixPerCol * cst.nSamplesPerRow / cst.fSamp * 1e9
+        step_size = (edge_position[1:] - edge_position[:-1]) % frame_duration
+        ax2.scatter(x[:-1], step_size, s=0.2)
         ax2.set_xlabel(xlabel)
-        # ax1.legend(loc='upper right')
-        ax2.legend(loc='upper right')
-        xlims = ax2.get_xlim()
-        ax2.set_xlim([xlims[0], x2_max])
-
-        # Définition des intervalles majeurs et mineurs pour la grille
-        ax1.set_xticks(np.arange(0, x1_max, 4096))  # Intervalles majeurs tous les 64
-        ax1.set_xticks(np.arange(0, x1_max, 512), minor=True)  # Intervalles mineurs tous les 8
-        ax2.set_xticks(np.arange(0, x2_max, 64))  # Intervalles majeurs tous les 64
-        ax2.set_xticks(np.arange(0, x2_max, 8), minor=True)  # Intervalles mineurs tous les 8
-
-        # Activation de la grille majeure et mineure
-        ax1.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
-        ax1.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
-        ax2.grid(which='major', linestyle='-', linewidth='0.6', color='black')  # Grille majeure
-        ax2.grid(which='minor', linestyle='--', linewidth='0.4', color='gray')  # Grille mineure
-
+        ax2.set_ylabel("Size of steps % Frame duration (ns)")
         fig.tight_layout()
 
         plt.savefig(plotFileName, dpi=300, bbox_inches='tight')

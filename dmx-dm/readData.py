@@ -389,7 +389,7 @@ def read_fwVersion_dmxModel(path):
     # looking for the hk files
     files = [f for f in os.listdir(path) \
              if os.path.isfile(os.path.join(path, f)) \
-             and f[:7] == "Hks_DMX" \
+             and f[:8] == "Hks_DMXA" \
              and f[-4:] == ".csv"]
 
     if len(files) == 0:
