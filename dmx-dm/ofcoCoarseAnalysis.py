@@ -40,7 +40,7 @@ def ofcoCoarseReso(verbose=False):
     # Paths definition
     dir_path = os.path.join("..", "..")
     hk_path = os.path.join(dir_path, cst.hkDirName)
-    data_path = os.path.join(dir_path, cst.dataDirName)
+    data_path = os.path.join(dir_path, cst.scanDirName)
     plot_path = os.path.join(dir_path, cst.plotDirName)
     gt.createdir(plot_path)
     session_name = os.path.basename(os.path.realpath(dir_path))
@@ -57,8 +57,8 @@ def ofcoCoarseReso(verbose=False):
         print("/ Firmware version:     {0:}".format(fwVersion))
         print("/----------------------------------------------------------\n")
 
-    xlabel = 'Ofco Coarse signal (V)'
-    ylabel = 'Error signal (V)'
+    xlabel = 'Frame number'
+    ylabel = 'Ofco --> Error signal (V)'
 
     for colid in range(cst.nColPerDemux):
 
@@ -76,30 +76,21 @@ def ofcoCoarseReso(verbose=False):
         else:
             print("Found {0:} scan files".format(len(files)))
 
-        fig = plt.figure(figsize=(12, 10))
+        fig = plt.figure(figsize=(8, 6))
         ax1 = fig.add_subplot(1, 1, 1)  # global plot
         plt.suptitle("Characterisation of the OFCO COARSE resolution (col {0:})".format(colid)
                      + '\n(' + session_name + ')')
 
-        # Reading scan files
-        errorAccu = np.array([])  # Empty array
-
-        for file in files:
-            if verbose:
-                print("Reading data from file ", file)
-            xName, ctrl, ofco, error = rddt.read_scan(os.path.join(data_path, file))
-            error = np.mean(error[:, :], axis=0)  # averaging the error value of all pixels
-            errorAccu += error
-            scan_type = np.append(scan_type, xName)
-
-            if (scan_type != "Offset"):
-                raise ValueError("Error, found wrong scan types!")
+        file = files[0]
+        if verbose:
+            print("Reading data from file ", file)
+        scan_type, ctrl, ofco, error = rddt.read_scan(os.path.join(data_path, file))
+        error = np.mean(error[:, :], axis=0)  # averaging the error value of all pixels
 
         # Conversion to Volts
-        errorAccu *= cst.fsrADCErrorV / cst.fsrADCErrorADU
-        ofco *= cst.fsrDACOfcoCoarseV / cst.fsrDACOfcoCoarseADU
+        error *= cst.fsrADCErrorV / cst.fsrADCErrorADU
 
-        ax1.plot(ofco, errorAccu, color=blue, linewidth=1)
+        ax1.plot(error, '.', markersize=0.5)
         ax1.set_xlabel(xlabel)
         ax1.set_ylabel(ylabel)
 

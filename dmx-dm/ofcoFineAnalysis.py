@@ -73,7 +73,7 @@ def ofcoFineResoAndRange(test_type, verbose=False):
         if len(files) == 0:
             raise ValueError('No dump files found!')
 
-        fig = plt.figure(figsize=(10, 7))
+        fig = plt.figure(figsize=(8, 6))
         ax1 = fig.add_subplot(1, 1, 1)  # global plot
         if test_type == "OFCO-FINE-HRESO":
             suptit = "Characterisation of the OFCO FINE resolution (col {0:})".format(colid)
