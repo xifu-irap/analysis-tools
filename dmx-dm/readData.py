@@ -348,7 +348,7 @@ def hks_exist(hk_file, encoding="latin1"):
     df = pd.read_csv(hk_file, sep=';', encoding=encoding)
 
     # if len(df) == 1 there are only the hk names in the file
-    return len(df > 1)
+    return len(df) > 1
 
 
 def read_hk_name_from_csv(hk_file, hk_suffix, encoding="latin1"):
