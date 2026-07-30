@@ -344,6 +344,12 @@ def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=F
 #
 #    return df[hk_name]
 
+def hks_exist(hk_file, encoding="latin1"):
+    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
+
+    # if len(df) == 1 there are only the hk names in the file
+    return len(df > 1)
+
 
 def read_hk_name_from_csv(hk_file, hk_suffix, encoding="latin1"):
     """
@@ -393,17 +399,25 @@ def read_fwVersion_dmxModel(path):
              and f[-4:] == ".csv"]
 
     if len(files) == 0:
-        print("No HK found")
-    else:
+        raise ValueError("No HK files found")
+
+    if hks_exist(os.path.join(path, files[0])):
         fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "Firmware Version")[0]
         # fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "firmwareVersion")[0]
         ref = read_hk_name_from_csv(os.path.join(path, files[0]), "Hardware Version")[0]
         #ref = read_hk_name_from_csv(os.path.join(path, files[0]), "hardwareVersion")[0]
 
-        dmxModel = (ref >> 8) & 3
+        dmxModel_id = (ref >> 8) & 3
+        dmxModel = cst.dmx_models[dmxModel_id]
         boardId = ref & (2 ** 5) - 1
 
-        return cst.dmx_models[dmxModel], boardId, fwVersion
+    else:
+        print("HK file " + files[0] + " is empty")
+        dmxModel = '99999'
+        boardId = 99
+        fwVersion = 99
+
+    return dmxModel, boardId, fwVersion
 
 
 def read_dmxConfig_fromXml(path):

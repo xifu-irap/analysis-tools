@@ -65,8 +65,6 @@ def get_dump(pathData, verbose=True):
         if verbose:
             print("      Column {0:}".format(col_id))
         for file in files[col_id * ndumps_per_measure:(col_id + 1) * ndumps_per_measure]:
-            if verbose:
-                print("         --> ", file)
             dump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
             dumps_lb[col_id] += dump
         dumps_lb[col_id] /= ndumps_per_measure
@@ -84,8 +82,6 @@ def get_dump(pathData, verbose=True):
             print("      Column {0:}".format(col_id))
         i0 = cst.nColPerDemux * ndumps_per_measure  # offset to read the following files
         for file in files[i0 + col_id * ndumps_per_measure:i0 + (col_id + 1) * ndumps_per_measure]:
-            if verbose:
-                print("         --> ", file)
             dump, _ = rddt.read_dump_from_hdf5(os.path.join(pathData, file))
             dumps_100_ohms[col_id] += dump
         dumps_100_ohms[col_id] /= ndumps_per_measure
@@ -160,7 +156,8 @@ def plot_fdbk_2_error_xtalk(dumps_lb, dumps_100_ohms, sig, pathPlot):
             xtalk = np.abs(dumps_100_ohms[c_perp, col, :]).max() / dumps_lb[c_perp, c_perp, :].max()
             xtalk_db = 20 * np.log10(xtalk).min()
 
-            title = 'Victim column {0}: 100 Ohms on error. Cross talk = {1:2.1f}dB'.format(col, xtalk_db)
+            title = ('Victim column {0}: 100 Ohms on error. '.format(col)
+                     + sig + ' loaded by 100 Ohms (Crosstalk = {0:2.1f}dB)'.format(xtalk_db))
 
             ax = fig.add_subplot(5, 1, col + 2)
             ax.plot(t, dumps_100_ohms[c_perp, col, :], color=col2)

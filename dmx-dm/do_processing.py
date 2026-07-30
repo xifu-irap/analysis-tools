@@ -37,6 +37,7 @@ import nonLinearity
 import ofcoCoarseAnalysis
 import ofcoFineAnalysis
 import samplingDelayAnalysis
+import thermal_analysis
 
 
 def do_processing(verbose=True):
@@ -79,6 +80,8 @@ def do_processing(verbose=True):
             ofcoFineAnalysis.ofcoFineResoAndRange(test_type, verbose)
         case "OFCO-COAR-TPT--":
             ofcoCoarseAnalysis.ofcoCoarseReso(verbose)
+        case "THERMAL_CHARAC-":
+            thermal_analysis.thermal_analysis(verbose)
 
 
 do_processing()

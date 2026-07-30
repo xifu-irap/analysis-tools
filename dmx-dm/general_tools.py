@@ -244,6 +244,20 @@ def readHkFromCsv(filename):
 
 
 # -----------------------------------------------------------------------
+def convert_time(time_in_csv):
+    """
+    This function converts times from a csv format into a python timestamp format
+    """
+    # conversion du format de date en timestamp
+    l = len(time_in_csv)
+    time_converted = np.zeros(l)
+    for i in range(l):
+        dt = parse_date_auto(time_in_csv[i])
+        time_converted[i] = dt.timestamp()
+    return time_converted
+
+
+# -----------------------------------------------------------------------
 def do_power_spectrum(x, fs, npts, window="none", verbose=False):
     r"""
         This function computes the spectrum of the input vector.
@@ -528,7 +542,7 @@ def pulseshapingtext(pls_set):
     return switch.get(pls_set, "Invalid input")
 
 
-def parse_date_auto(value):
+def parse_date_auto_old(value):
     """
     Convertit automatiquement une valeur de date en datetime.
     Accepte soit :
@@ -553,6 +567,49 @@ def parse_date_auto(value):
     except ValueError as e:
         raise ValueError(f"Format de date non reconnu : {value}")
 
+
+def parse_date_auto(value):
+    """
+    Convertit automatiquement une valeur de date en datetime.
+    Accepte soit :
+    - une chaîne de type '28/05/2025 09:42:21'
+    - une chaîne de type '28/05/2025 09:42'
+    - une chaîne de type '28/05/2025'
+    - un timestamp (float ou chaîne de float comme '1748347100.938')
+    """
+
+    if isinstance(value, (int, float)):
+        # Format timestamp direct
+        return datetime.fromtimestamp(value)
+
+    if value is None:
+        raise ValueError("Format de date non reconnu : valeur None")
+
+    value_str = str(value).strip()
+
+    try:
+        # Essai conversion float → timestamp
+        ts = float(value_str)
+        return datetime.fromtimestamp(ts)
+    except ValueError:
+        pass  # Ce n'était pas un float, peut-être une chaîne de date
+
+    date_formats = (
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M",
+        "%d/%m/%Y",
+    )
+
+    for date_format in date_formats:
+        try:
+            return datetime.strptime(value_str, date_format)
+        except ValueError:
+            pass
+
+    raise ValueError(
+        f"Format de date non reconnu : {value!r}. "
+        f"Formats acceptés : timestamp, DD/MM/YYYY HH:MM:SS, DD/MM/YYYY HH:MM, DD/MM/YYYY"
+    )
 
 def bit_value(x, bit_id):
     """

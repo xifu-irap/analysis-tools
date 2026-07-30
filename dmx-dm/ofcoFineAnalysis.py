@@ -35,8 +35,6 @@ import constants as cst
 import general_tools as gt
 import readData as rddt
 
-xZoom = 400
-
 
 def ofcoFineResoAndRange(test_type, verbose=False):
     # Paths definition
@@ -95,7 +93,7 @@ def ofcoFineResoAndRange(test_type, verbose=False):
 
         ax1.plot(xTime[:], colDumpsAccu[colid, :], color='b', linewidth=2)
 
-        t_max = (xZoom - 1) * 1e9 / cst.fSamp
+        t_max = 160 * cst.nPixPerCol  # 1 frame in ns
         ax1.set_xlim([0, t_max])
 
         ax1.set_xlabel(xlabel)

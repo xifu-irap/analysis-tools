@@ -90,6 +90,7 @@ def nonlinearity(verbose=False):
     """
 
     colors = ['steelblue', 'turquoise', 'blue', 'teal']
+    req_level = 0.5  # %
 
     # Data directory
     dirpath = os.path.join("..", "..")
@@ -118,7 +119,6 @@ def nonlinearity(verbose=False):
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(pathHk)
 
-    print(pathData)
     files = [f for f in os.listdir(pathData) \
              if os.path.isfile(os.path.join(pathData, f)) \
              and f[:5] == "scan_" \
@@ -194,13 +194,13 @@ def nonlinearity(verbose=False):
             data_plotFileName = 'fdbkAndError_col{0:}_bxl{1:}.png'.format(col, bxl)
             dnl_plotFileName = 'fdbkAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
             inl_plotFileName = 'fdbkAndErrorINL_col{0:}_bxl{1:}.png'.format(col, bxl)
-            figsuptitle0 = 'Feedback + Error non linearity measurement for column {0:}\n'.format(col) \
+            figsuptitle0 = 'Feedback + Error non linearity for column {0:}\n'.format(col) \
                            + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
-            figsuptitleDNL = 'Feedback + Error DNL measurement for column {0:}\n'.format(col) \
+            figsuptitleDNL = 'Feedback + Error DNL for column {0:}\n'.format(col) \
                              + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
-            figsuptitleINL = 'Feedback + Error INL measurement for column {0:} \n'.format(col) \
+            figsuptitleINL = 'Feedback + Error INL for column {0:} (Scan - linear fit)\n'.format(col) \
                              + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
 
@@ -211,13 +211,13 @@ def nonlinearity(verbose=False):
             data_plotFileName = 'ofcoAndError_col{0:}_bxl{1:}.png'.format(col, bxl)
             dnl_plotFileName = 'ofcoAndErrorDNL_col{0:}_bxl{1:}.png'.format(col, bxl)
             inl_plotFileName = 'ofcoAndErrorINL_col{0:}_bxl{1:}.png'.format(col, bxl)
-            figsuptitle0 = 'Offset + Error non linearity measurement for column {0:}\n'.format(col) \
+            figsuptitle0 = 'Offset + Error non linearity for column {0:}\n'.format(col) \
                            + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
-            figsuptitleDNL = 'Offset + Error DNL measurement for column {0:}\n'.format(col) \
+            figsuptitleDNL = 'Offset + Error DNL for column {0:}\n'.format(col) \
                              + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
-            figsuptitleINL = 'Offset + Error INL measurement for column {0:}\n'.format(col) \
+            figsuptitleINL = 'Offset + Error INL for column {0:} (Scan - linear fit)\n'.format(col) \
                              + '(' + dmxModel + " {0:}".format(boardId) + ", Firmware version: {0:}, ".format(
                 fwVersion) + session_name + ')'
 
@@ -231,8 +231,6 @@ def nonlinearity(verbose=False):
 
         # Checking if all DAC values are used
         expected_array = np.arange(scan.min(), scan.max() + 1)
-        print(expected_array[:32], len(expected_array))
-        print(scan[:32], len(scan))
         if not (expected_array == scan).all():
             print("   Error, values are missing in the scan!")
 
@@ -274,6 +272,7 @@ def nonlinearity(verbose=False):
         plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
         print("Linearity data plotted in file " + data_plotFileName)
 
+
         ## INL plot
         fig1 = plt.figure(figsize=(9, 6))
         plotFullFileName = os.path.join(pathPlot, inl_plotFileName)
@@ -282,7 +281,7 @@ def nonlinearity(verbose=False):
 
         val1 = max(np.abs(deviation_lsb))
         val2 = val1 * 100 / cst.fsrADCErrorADU
-        lbl = 'Scan - linear Fit  (the INL is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
+        lbl = 'The INL is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
         ax1.scatter(scan[i_ok], deviation_lsb, s=dotsize, color=colors[0], label=lbl)
         ax1.set_xlim(xlim)
         ax1.set_xlabel(xtit)
@@ -297,6 +296,8 @@ def nonlinearity(verbose=False):
         ylims11 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
         ax11.set_ylim(ylims11)
         ax11.set_ylabel(ytit_pc)
+        ax11.plot(xlim, [req_level, req_level], color='r', linewidth=2)
+        ax11.plot(xlim, [-req_level, -req_level], color='r', linewidth=2)
 
         ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
         yminor = ymajor / grid_ratio
@@ -306,6 +307,7 @@ def nonlinearity(verbose=False):
         plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
         print("INL results plotted in file " + inl_plotFileName)
 
+
         ## DNL plots
         fig2 = plt.figure(figsize=(9, 6))
         plotFullFileName = os.path.join(pathPlot, dnl_plotFileName)
@@ -314,20 +316,23 @@ def nonlinearity(verbose=False):
 
         val1 = max(np.abs(dnl))
         val2 = val1 * 100 / cst.fsrADCErrorADU
-        lbl = 'Scan - linear Fit  (the DNL is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
-        ax2.scatter(scan[i_ok][:-1], dnl, s=dotsize, color=colors[0], label='DNL')
+        lbl = 'The DNL is {0:2.1f} LSB or {1:.2} %)'.format(val1, val2)
+        ax2.scatter(scan[i_ok][:-1], dnl, s=dotsize, color=colors[0], label=lbl)
         ax2.plot(xlim, [0, 0], '-k', linewidth=0.5)
         ax2.set_xlim(xlim)
 
         ax2.set_ylim([-1 * ylim_DNL, ylim_DNL])
         ax2.set_xlabel(xtit)
         ax2.set_ylabel(ytit_ADU)
+        ax2.legend(loc='upper left')
 
         ax22 = ax2.twinx()
         ylims = ax2.get_ylim()
         ylims22 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
         ax22.set_ylim(ylims22)
         ax22.set_ylabel(ytit_pc)
+        ax22.plot(xlim, [req_level, req_level], color='r', linewidth=2)
+        ax22.plot(xlim, [-req_level, -req_level], color='r', linewidth=2)
 
         ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
         yminor = ymajor / grid_ratio
