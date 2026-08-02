@@ -157,7 +157,7 @@ def plot_fdbk_2_error_xtalk(dumps_lb, dumps_100_ohms, sig, pathPlot):
             xtalk_db = 20 * np.log10(xtalk).min()
 
             title = ('Victim column {0}: 100 Ohms on error. '.format(col)
-                     + sig + ' loaded by 100 Ohms (Crosstalk = {0:2.1f}dB)'.format(xtalk_db))
+                     + sig + ' loaded by 10 kOhms (Crosstalk = {0:2.1f}dB)'.format(xtalk_db))
 
             ax = fig.add_subplot(5, 1, col + 2)
             ax.plot(t, dumps_100_ohms[c_perp, col, :], color=col2)

@@ -124,7 +124,7 @@ def exponential_response(t, U0, tau):
 
 # Définition de la fonction exponentielle
 def double_exponential_response(t, U0, tau2):
-    fc1 = 60e6
+    fc1 = 78e6
     tau1 = 1 / (2 * np.pi * fc1)
     return U0 * (1 - (tau1 * np.exp(-t / tau1) - tau2 * np.exp(-t / tau2)) / (tau1 - tau2))
 
