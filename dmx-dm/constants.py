@@ -72,7 +72,7 @@ dmx_models = {0: "DM DMX", 1: "EM DMX", 2: "PFM DMX", 3: "FM DMX", 7: "DevKit"}
 
 BASE_DATA_PATH = "."
 
-# Noise requirements
+# Noise requirements from DRE requirement document v2.0 (20260706)
 ## Wide band noise spectral density in V/sqrt(Hz) with BW = 62.5 MHz
 nsd_erro = 25e-9
 nsd_fdbk = 20e-9
@@ -82,7 +82,8 @@ nsd = {"ERRO-ONLY": nsd_erro,
        "OFCO-ONLY": nsd_ofco,
        "FDBK-ERRO": np.sqrt(nsd_erro ** 2 + nsd_fdbk ** 2),
        "OFCO-ERRO": np.sqrt(nsd_erro ** 2 + nsd_ofco ** 2)}
-one_over_f_at_1hz_erro = 4e-6
+## One over f noise at 1 Hz in V/sqrt(Hz)
+one_over_f_at_1hz_erro = 6e-6
 one_over_f_at_1hz_fdbk = 0.7e-6
 one_over_f_at_1hz_ofco = 2.7e-6
 one_over_f_at_1hz = {"ERRO-ONLY": one_over_f_at_1hz_erro,
