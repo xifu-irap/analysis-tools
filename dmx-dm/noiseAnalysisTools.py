@@ -495,7 +495,8 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
             af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Row}}}$'  # Aliasing factor description
         case 'FFRAME':
             fs = cst.fFrame
-            xlims: list[int | float] = [xf[1], fs / 2]
+            # xlims: list[int | float] = [xf[1], fs / 2]
+            xlims: list[int | float] = [1, fs / 2]
             ylims: list[float] = [1e2, 1e4]
             model_file_name_end = "_Fframe.txt"
             af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Frame}}}$'  # Aliasing factor description
@@ -715,7 +716,8 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
         case 'FFRAME':
             fs = cst.fFrame
             model_file_name_end = "_Fframe.txt"
-            xlims: list[int | float] = [xf[1], fs / 2]
+            # xlims: list[int | float] = [xf[1], fs / 2]
+            xlims: list[int | float] = [1, fs / 2]
             ylims: list[float] = [1e2, 1e4]
             aliasing_factor = np.sqrt(np.pi * cst.fSamp / fs)
             af_text = r' with $AF=\sqrt{\pi {F_{Ref}}/{F_{Frame}}}$'  # Aliasing factor description

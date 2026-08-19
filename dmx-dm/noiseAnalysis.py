@@ -177,14 +177,15 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config,
             nat.plot_spectrum(xf, spectrum[col_id, :], acq_mode, col_id, config, plot_model=plot_model, lpf=lpf,
                               peak_detect=peak_detect, verbose=verbose)
 
-            if substract_error and acq_mode == "ERRO":
-
-                # Soustraction du spectre du signal d'erreur si disponible
-                error_spectra_path = os.path.join(".", cst.errorSpectraDirname)
-                error_param_fit_file_name = os.path.join(error_spectra_path, "ERRO-ONLY_" + config[
-                                                             "rate"] + "_col{0:}_param_fit.txt".format(col_id))
-                if os.path.isfile(error_param_fit_file_name):
-                    nat.plot_fit_spectrum(xf, col_id, config, verbose)
+        ## The following code is not correct
+        #    if substract_error and acq_mode == "ERRO":
+        #
+        #        # Soustraction du spectre du signal d'erreur si disponible
+        #        error_spectra_path = os.path.join(".", cst.errorSpectraDirname)
+        #        error_param_fit_file_name = os.path.join(error_spectra_path, "ERRO-ONLY_" + config[
+        #                                                     "rate"] + "_col{0:}_param_fit.txt".format(col_id))
+        #        if os.path.isfile(error_param_fit_file_name):
+        #            nat.plot_fit_spectrum(xf, col_id, config, verbose)
 
 
 def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
