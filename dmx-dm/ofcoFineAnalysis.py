@@ -96,6 +96,7 @@ def ofcoFineResoAndRange(test_type, verbose=False):
         t_max = 160 * cst.nPixPerCol  # 1 frame in ns
         ax1.set_xlim([0, t_max])
 
+        ax1.tick_params(axis='x', labelrotation=45)
         ax1.set_xlabel(xlabel)
         ax1.set_ylabel(ylabel)
 

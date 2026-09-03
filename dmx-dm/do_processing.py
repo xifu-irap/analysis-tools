@@ -32,6 +32,8 @@ import XTalkAnalysis
 import cutoffFrequency
 import delayAnalysis
 import delayRangeAnalysis
+import display_pulses
+import display_scans
 import noiseAnalysis
 import nonLinearity
 import ofcoCoarseAnalysis
@@ -82,6 +84,12 @@ def do_processing(verbose=True):
             ofcoCoarseAnalysis.ofcoCoarseReso(verbose)
         case "THERMAL_CHARAC-":
             thermal_analysis.thermal_analysis(verbose)
+        case "SCAN_AMP_SQUID-":
+            display_scans.scan_amp_squid(verbose)
+        case "SCAN_MUX_SQUID-":
+            display_scans.scan_mux_squid(verbose)
+        case "MEASURE_PULSES-":
+            display_pulses.display_pulses(verbose)
 
 
 do_processing()
