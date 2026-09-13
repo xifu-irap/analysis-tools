@@ -726,7 +726,7 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
             af_text = r''  # Aliasing factor description
 
     # Récupération des paramètres des fits des mesures erreur seule ####################################################
-    error_spectra_path = os.path.join('.', cst.errorSpectraDirname)
+    error_spectra_path = os.path.join(config["dir_path"], cst.errorSpectraDirname)
     error_param_fit_file_name = os.path.join(error_spectra_path,
                                              "ERRO-ONLY_" + config["rate"] + "_col{0:}_param_fit.txt".format(col_id))
     if os.path.isfile(error_param_fit_file_name):

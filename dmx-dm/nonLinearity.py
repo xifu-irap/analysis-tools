@@ -110,11 +110,26 @@ def nonlinearity(verbose=False):
     ytit_pc = "Non Linearity (% of ADC FSR)"
     ymargin = 0  # margin for ylimits in the plot
     dotsize = 1
-    major_grid_ratio = 4
-    grid_ratio = 4
 
+    # Plot y limits
     ylim_INL = 150
     ylim_DNL = 20
+
+    # x grid steps
+    xmaj = 2 ** 12
+    xmin = 2 ** 7
+
+    # y grid steps for INL plots
+    ymaj_INL_pc = 0.25
+    ymin_INL_pc = 0.05
+    ymaj_INL_ADU = ymaj_INL_pc * cst.fsrADCErrorADU / 100
+    ymin_INL_ADU = ymin_INL_pc * cst.fsrADCErrorADU / 100
+
+    # y grid steps for DNL plots
+    ymaj_DNL_pc = 0.05
+    ymin_DNL_pc = 0.01
+    ymaj_DNL_ADU = ymaj_DNL_pc * cst.fsrADCErrorADU / 100
+    ymin_DNL_ADU = ymin_DNL_pc * cst.fsrADCErrorADU / 100
 
     # Looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(pathHk)
@@ -245,7 +260,7 @@ def nonlinearity(verbose=False):
         # Computing DNL and INL
         lsb_ideal = (error[i_ok].max() - error[i_ok].min()) / len(error[i_ok])
         dnl = (error[i_ok][1:] - error[i_ok][:-1]) / lsb_ideal - 1
-        inl = (error[i_ok] - error[i_ok][0]) / lsb_ideal - np.arange(len(error[i_ok]))
+        # inl = (error[i_ok] - error[i_ok][0]) / lsb_ideal - np.arange(len(error[i_ok]))
 
         # Doing the plots
         ## Non linearity tests data (output versus input)
@@ -266,7 +281,7 @@ def nonlinearity(verbose=False):
         ax0.set_xlabel(xtit)
         ax0.set_ylabel(ytit)
         ax0.legend(loc='upper left')
-        set_grid(ax0, True, True, 2 ** 12, 2 ** 8, 2 ** 12, 2 ** 8)
+        set_grid(ax0, True, True, xmaj, xmin, xmaj, xmin)
 
         fig0.tight_layout()
         plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
@@ -293,15 +308,13 @@ def nonlinearity(verbose=False):
         # second y axis for LSB units
         ax11 = ax1.twinx()
         ylims = ax1.get_ylim()
-        ylims11 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
+        ylims11 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
         ax11.set_ylim(ylims11)
         ax11.set_ylabel(ytit_pc)
         ax11.plot(xlim, [req_level, req_level], color='r', linewidth=2)
         ax11.plot(xlim, [-req_level, -req_level], color='r', linewidth=2)
 
-        ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
-        yminor = ymajor / grid_ratio
-        set_grid(ax1, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
+        set_grid(ax1, True, True, xmaj, xmin, ymaj_INL_ADU, ymin_INL_ADU)
 
         fig1.tight_layout()
         plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
@@ -328,15 +341,13 @@ def nonlinearity(verbose=False):
 
         ax22 = ax2.twinx()
         ylims = ax2.get_ylim()
-        ylims22 = [ylims[0] * 100 / (0.5 * cst.fsrADCErrorADU), ylims[1] * 100 / (0.5 * cst.fsrADCErrorADU)]
+        ylims22 = [ylims[0] * 100 / cst.fsrADCErrorADU, ylims[1] * 100 / cst.fsrADCErrorADU]
         ax22.set_ylim(ylims22)
         ax22.set_ylabel(ytit_pc)
         ax22.plot(xlim, [req_level, req_level], color='r', linewidth=2)
         ax22.plot(xlim, [-req_level, -req_level], color='r', linewidth=2)
 
-        ymajor = np.round((ylims[1] - ylims[0]) / major_grid_ratio)
-        yminor = ymajor / grid_ratio
-        set_grid(ax2, True, True, 2 ** 12, 2 ** 8, ymajor, yminor)
+        set_grid(ax2, True, True, xmaj, xmin, ymaj_DNL_ADU, ymin_DNL_ADU)
 
         fig2.tight_layout()
         plt.savefig(plotFullFileName, dpi=300, bbox_inches='tight')
