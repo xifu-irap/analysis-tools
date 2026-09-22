@@ -29,6 +29,7 @@
 import os
 
 import XTalkAnalysis
+import calibHkTemp
 import cutoffFrequency
 import delayAnalysis
 import delayRangeAnalysis
@@ -82,6 +83,8 @@ def do_processing(verbose=True):
             ofcoFineAnalysis.ofcoFineResoAndRange(test_type, verbose)
         case "OFCO-COAR-TPT--":
             ofcoCoarseAnalysis.ofcoCoarseReso(verbose)
+        case "CALIB-HK-TEMP--":
+            calibHkTemp.calib_hk_temp(verbose)
         case "THERMAL_CHARAC-":
             thermal_analysis.thermal_analysis(verbose)
         case "SCAN_AMP_SQUID-":

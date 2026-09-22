@@ -26,24 +26,13 @@
 # ---------------------------------------------------------------------------------
 
 import os
-from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import constants as cst
-import general_tools as gentools
+import general_tools as gt
 import readData as rddt
-
-
-@dataclass
-class TestConfig:
-    session_name: str
-    module_name: str
-
-    @property
-    def file_path(self) -> str:
-        return os.path.join(cst.BASE_DATA_PATH, self.session_name)
 
 
 def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target, legend_location):
@@ -60,27 +49,36 @@ def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target, legend_location)
     ax2.tick_params(axis='y', labelcolor=col2)
 
 
-def calib_hk_temp(tconf):
-    # Reading the temperature data from the csv files
-    path = tconf.file_path
-    hk_path = os.path.join(path, cst.hkDirName)
+def calib_hk_temp(verbose=False):
+    # Data directory
+    dirpath = os.path.join("..", "..")
 
-    fileNameDMX_list = [f for f in os.listdir(hk_path) \
-                        if os.path.isfile(os.path.join(hk_path, f)) \
+    session_name = os.path.basename(os.path.realpath(dirpath))
+
+    # Looking for test configuration parameters
+    pathHk = os.path.join(dirpath, cst.hkDirName)
+    pathPlot = os.path.join(dirpath, cst.plotDirName)
+    gt.createdir(pathPlot)
+
+    # Looking for DEMUX identifiers (board, model, firmware)
+    dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(pathHk)
+
+    fileNameDMX_list = [f for f in os.listdir(pathHk) \
+                        if os.path.isfile(os.path.join(pathHk, f)) \
                         and f[:8] == 'Hks_DMXA']
     if len(fileNameDMX_list) != 1:
         print("ERROR: wrong number of DMX hk files: {0:}".format(len(fileNameDMX_list)))
         return
-    fileNameDMX = os.path.join(hk_path, fileNameDMX_list[0])
+    fileNameDMX = os.path.join(pathHk, fileNameDMX_list[0])
     date = fileNameDMX_list[0].split("_")[-1][:8]
 
-    fileNamePt104_list = [f for f in os.listdir(hk_path) \
-                          if os.path.isfile(os.path.join(hk_path, f)) \
+    fileNamePt104_list = [f for f in os.listdir(pathHk) \
+                          if os.path.isfile(os.path.join(pathHk, f)) \
                           and f[:10] == 'Hks_Pt104_']
     if len(fileNamePt104_list) != 1:
         print("ERROR: wrong number of Pt100 hk files: {0:}".format(len(fileNamePt104_list)))
         return
-    fileNamePt104 = os.path.join(hk_path, fileNamePt104_list[0])
+    fileNamePt104 = os.path.join(pathHk, fileNamePt104_list[0])
 
     header1 = 'TEMP_MAX(raw)'
     header2 = 'PT104_channel2Value()'
@@ -88,11 +86,7 @@ def calib_hk_temp(tconf):
     header4 = 'PT104_channel1Value()'
     header_Date = 'Date(EGSE)'  # The same header in both files
 
-    # Creation of a directory for the plot files
-    path_plot = os.path.join(path, cst.plotDirName)
-    gentools.createdir(path_plot)
-
-    plotfilename = os.path.join(path_plot, date + '-calibHkTemp.png')
+    plotfilename = os.path.join(pathPlot, date + '-calibHkTemp.png')
 
     print("Reading time and temperatures data from DMX hk file " + fileNameDMX)
     t_DMX = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header_Date))
@@ -122,7 +116,7 @@ def calib_hk_temp(tconf):
     legend_location = 'lower right'
 
     fig = plt.figure(figsize=(14, 16))
-    suptitle = tconf.session_name + "   " + tconf.module_name
+    suptitle = dmxModel
     fig.suptitle(suptitle, fontsize=12)
 
     title1 = 'Max temperature'
@@ -177,6 +171,3 @@ def calib_hk_temp(tconf):
     plt.savefig(plotfilename, dpi=300, bbox_inches='tight')
     print("plot saved in file ", plotfilename)
 
-if __name__ == '__main__':
-    conf = TestConfig('..', 'DM-DMX3')
-    calib_hk_temp(conf)
