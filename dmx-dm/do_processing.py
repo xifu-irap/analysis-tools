@@ -21,7 +21,7 @@
 # ---------------------------------------------------------------------------------
 #
 #  laurent.ravera@irap.omp.eu
-#  do_analysis.py
+#  do_processing.py
 #
 # ---------------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ import delayAnalysis
 import delayRangeAnalysis
 import display_pulses
 import display_scans
+import general_tools as gt
 import noiseAnalysis
 import nonLinearity
 import ofcoCoarseAnalysis
@@ -48,8 +49,8 @@ def do_processing(verbose=True):
     This function launch the data processing of the DEMUX performance tests
 
     Args:
-        verbose: (boolean) if True some informations are displayed during the processing
-                default is False
+        verbose: (boolean) if True some informations are displayed during the
+                 processing. Default is False.
 
     Returns:
 
@@ -58,7 +59,7 @@ def do_processing(verbose=True):
     dir_path = os.path.join("..", "..")
     full_session_name = os.path.realpath(dir_path)
     session_name = os.path.basename(full_session_name)
-    test_type = session_name[16: 31]
+    test_type = gt.get_test_type_from_session_name(session_name)
 
     match test_type:
         case "FDBK-DELAY-----":
@@ -74,7 +75,12 @@ def do_processing(verbose=True):
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
             process_frow = False
             plot_model = False
-            noiseAnalysis.noiseAnalysis(process_frow=process_frow, plot_model=plot_model, lpf=0, verbose=verbose)
+            noiseAnalysis.noiseAnalysis(
+                process_frow=process_frow,
+                plot_model=plot_model,
+                lpf=0,
+                verbose=verbose,
+            )
         case "XTALK-PERP-FDBK" | "XTALK-PERP-OFCO":
             XTalkAnalysis.xtalkAnalysis(verbose)
         case "ERRO_BANDSHAPE-":
@@ -93,6 +99,11 @@ def do_processing(verbose=True):
             display_scans.scan_mux_squid(verbose)
         case "MEASURE_PULSES-":
             display_pulses.display_pulses(verbose)
+        case _:
+            raise ValueError(
+                f"Unknown test type '{test_type}' "
+                f"for session '{session_name}'."
+            )
 
 
 do_processing()

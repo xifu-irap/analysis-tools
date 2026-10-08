@@ -645,3 +645,18 @@ def peakdetect(sig, half_space, ref_ratio=5):
 
     # Removing multiple identical results
     return np.unique(x_ini)
+
+
+def get_test_type_from_session_name(session_name):
+    """Extract the test type from a session directory name.
+
+    The test type is read from a fixed position in the session name,
+    according to the naming convention of the DEMUX performance tests.
+
+    Args:
+        session_name (str): Name of the session directory.
+
+    Returns:
+        str: The test type, as found in the session name.
+    """
+    return session_name[16:31]
