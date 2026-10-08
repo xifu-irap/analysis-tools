@@ -25,113 +25,80 @@
 #
 # ---------------------------------------------------------------------------------
 
-# Imports
+"""Functions to read DEMUX data (science, dump, scan, HK) from files."""
+
 import os
+from typing import Any, Tuple
+from xml.dom import minidom
 
 import h5py
 import numpy as np
 import pandas as pd
-from astropy.io import fits
 
 import constants as cst
 
 
-def read_event_records(fits_file):
+def get_science_from_hdf5(
+    full_file_name: str,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Read DEMUX science data (error or science) from an HDF5 file.
+
+    Parameters
+    ----------
+    full_file_name : str
+        Path to the HDF5 file.
+
+    Returns
+    -------
+    data : np.ndarray
+        The science data (one value per pixel and per step, divided by 4).
+    ctrl : np.ndarray
+        The control words (one value per step).
     """
-    Reads DEMUX science data (error or science) from a fits file.
-
-    Parameters:
-        fits_file (string): Name of the fits file (includes the path).
-
-    Returns:
-        firstDf (int): number of the Data Frame corresponding to the beginning of the fits file.
-
-        data (array): event records. Each element corresponds to a record. It contains:
-            - the data frame number at the beginning of the record
-            - the data
-    """
-    with fits.open(fits_file) as hdul:
-        # Reading the header
-        firstDf = hdul[1].header['FIRST_DF']
-        data = hdul[1].data
-        return firstDf, data
-
-
-def get_science_from_fits(fullFileName):
-    """
-    Reads DEMUX science data (error or science) from a fits file.
-
-    Parameters:
-        fullFileName (string): Name of the fits file (includes the path).
-
-    Returns:
-        error (array): The error values (one value per pixel and per step)
-        ctrl (array): The control words (one value per step)
-    """
-    with fits.open(fullFileName) as hdul:
-
-        # Checking the extension name 'pixels_data'
-        if 'pixels_data' in hdul:
-            data_ext = hdul['pixels_data']
-        else:
-            raise ValueError("'pixels_data' extension not found in the FITS file.")
-
-        # Extraire les données en tant que tableau NumPy
-        data = data_ext.data
-        dataArray = np.array(data.tolist()).T
-
-    ctrl = dataArray[0, :]
-    data = dataArray[1:, :].astype(float) / 4
-    print(data.shape)
-
-    return data, ctrl
-
-
-def get_science_from_hdf5(fullFileName):
-    """
-    Reads DEMUX science data (error or science) from an HDF5 file.
-
-    Parameters:
-        fullFileName (str): Path to the HDF5 file.
-
-    Returns:
-        data (np.ndarray): The science data (one value per pixel and per step, divided by 4).
-        ctrl (np.ndarray): The control words (one value per step).
-    """
-    with h5py.File(fullFileName, 'r') as f:
-        # Lire les données
+    with h5py.File(full_file_name, "r") as f:
         ctrl = f["ctrl"][()]
         data = np.array(f["pixels"][()]).T
 
-        data = data.astype(float) / 4  # Conversion to s(16,2) format
+        # Conversion to s(16,2) format
+        data = data.astype(float) / 4
 
     return data, ctrl
 
 
-def read_science_from_file(fullFileName, flatten=False, remove_dc=True, verbose=True):
+def read_science_from_file(
+    full_file_name: str,
+    flatten: bool = False,
+    remove_dc: bool = True,
+    verbose: bool = True,
+) -> np.ndarray:
+    """Read DEMUX science data for one column from an HDF5 file.
+
+    Parameters
+    ----------
+    full_file_name : str
+        Filename including the path.
+    flatten : bool, optional
+        If True the data are arranged at Frow, else at FFrame.
+    remove_dc : bool, optional
+        If True the dc of the data is removed (default is True).
+    verbose : bool, optional
+        If True some text is displayed.
+
+    Returns
+    -------
+    col_data : np.ndarray
+        The data.
     """
-    Reads DEMUX science data for one column from a fits file.
-
-    Parameters:
-
-        fullFileName (string): filename including the path.
-        flatten (boolean): If True the data are arranged at Frow, else the data are arranged at FFrame
-        remove_dc (boolean): If True, the dc of the data is removed (default is True)
-        verbose: (boolean): If True, some text is displayed
-
-    Returns:
-        col_data (numpy array): The data
-     """
-
     if verbose:
-        print("    Reading TM data from ", fullFileName, ".... ")
+        print("    Reading TM data from ", full_file_name, ".... ")
 
-    col_data, _ = get_science_from_hdf5(fullFileName)
+    col_data, _ = get_science_from_hdf5(full_file_name)
+
     # If requested, flattening the array to have data at Frow
     if flatten:
-        col_data = col_data.flatten('F')
+        col_data = col_data.flatten("F")
 
-    # removing DC
+    # Removing DC
     if remove_dc:
         if verbose:
             print("     Print removing DC")
@@ -143,310 +110,329 @@ def read_science_from_file(fullFileName, flatten=False, remove_dc=True, verbose=
     return col_data
 
 
-def read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True, verbose=True):
+def read_col_science_from_dir(
+    data_path: str,
+    col_id: int,
+    flatten: bool = False,
+    remove_dc: bool = True,
+    verbose: bool = True,
+) -> Tuple[np.ndarray, bool]:
+    """Read DEMUX science data for one column from a data directory.
+
+    Parameters
+    ----------
+    data_path : str
+        Path to the data files.
+    col_id : int
+        Column ID (0 to 3).
+    flatten : bool, optional
+        If True the data are arranged at Frow, else at FFrame.
+    remove_dc : bool, optional
+        If True the dc of the data is removed (default is True).
+    verbose : bool, optional
+        If True some text is displayed.
+
+    Returns
+    -------
+    col_data : np.ndarray
+        The data (0 if no file matches).
+    file_exists : bool
+        True if a matching file was found.
     """
-    Reads DEMUX science data for one column from a fits file.
+    files = [
+        f
+        for f in os.listdir(data_path)
+        if os.path.isfile(os.path.join(data_path, f))
+        and f[:4] != "dump"
+        and f[-4:] == "{0:}.h5".format(col_id)
+    ]
 
-    Parameters:
-        data_path (string): Path to the data files.
-        col_id (int): Column ID (0 to 3)
-        flatten (boolean): If True the data are arranged at Frow, else the data are arranged at FFrame
-        remove_dc (boolean): If True, the dc of the data is removed (default is True)
-        verbose: (boolean): If True, some text is displayed
-
-    Returns:
-        col_data (numpy array): The data
-    """
-    files = [f for f in os.listdir(data_path) \
-             if os.path.isfile(os.path.join(data_path, f)) \
-             # and f[:6] == 'error_' and f[-6:] == '{0:}.fits'.format(col_id)]
-             and f[:4] != 'dump' \
-             and f[-4:] == '{0:}.h5'.format(col_id)]
-
-    file_exists = (len(files) != 0)
+    file_exists = len(files) != 0
 
     if file_exists:
         if len(files) > 1:
-            print("   Warning, {0:3d} files in the directory, processing only one file...".format(len(files)))
+            print(
+                "   Warning, {0:3d} files in the directory, "
+                "processing only one file...".format(len(files))
+            )
         file_name = files[0]
         file_name_with_path = os.path.join(data_path, file_name)
 
-        col_data = read_science_from_file(file_name_with_path, flatten, remove_dc, verbose)
-
+        col_data = read_science_from_file(
+            file_name_with_path, flatten, remove_dc, verbose
+        )
     else:
         col_data = 0
 
     return col_data, file_exists
 
 
-def read_dump_from_fits(fits_file):
-    """Reads DEMUX dump data from a fits file.
+def read_dump_from_hdf5(hdf5_file: str) -> Tuple[np.ndarray, np.ndarray]:
+    """Read DEMUX dump data and ADC errors from an HDF5 file.
 
     Parameters
-        fits_file (string): Name of the fits file (includes the path).
+    ----------
+    hdf5_file : str
+        Path to the HDF5 file.
 
-    Returns:
-        dump (array): the dump data (4 x 1360 values)
-        adc_error (array): the ADC error data (1360 bytes)
-    """
-    with fits.open(fits_file) as hdul:
-
-        # Checking the extension name 'Dumps'
-        if 'Dumps' in hdul:
-            data_ext = hdul['Dumps']
-        else:
-            raise ValueError("'Dumps' extension not found in the FITS file.")
-
-        # Extraire les données en tant que tableau NumPy
-        data = data_ext.data
-        dump = np.array(data.tolist())[0]
-
-        # Return columns and errors
-        return dump[0:-1,:], dump[-1,:]
-
-
-def read_dump_from_hdf5(hdf5_file):
-    """
-    Lit les données DEMUX dump et les erreurs ADC depuis un fichier HDF5.
-
-    Args:
-        hdf5_file (str): Chemin vers le fichier HDF5.
-
-    Returns:
-        tuple: (dump, adc_error)
-            - dump: tableau numpy de forme (4, 1360) contenant Col0, Col1, Col2, Col3
-            - adc_error: tableau numpy de forme (1360,) contenant les erreurs ADC
+    Returns
+    -------
+    dump : np.ndarray
+        Array of shape (4, 1360) containing Col0, Col1, Col2, Col3.
+    adc_error : np.ndarray
+        Array of shape (1360,) containing the ADC errors.
     """
     size = 2 * cst.nSamplesPerRow * cst.nPixPerCol
-    with h5py.File(hdf5_file, 'r') as f:
+    with h5py.File(hdf5_file, "r") as f:
         # Read the columns data Col0, Col1, Col2, Col3
-        col0 = f['Col0'][0, :]
-        col1 = f['Col1'][0, :]
-        col2 = f['Col2'][0, :]
-        col3 = f['Col3'][0, :]
+        col0 = f["Col0"][0, :]
+        col1 = f["Col1"][0, :]
+        col2 = f["Col2"][0, :]
+        col3 = f["Col3"][0, :]
 
         # Read the conversion errors
-        adc_error = f['Errors'][0, :]
+        adc_error = f["Errors"][0, :]
 
         # Check data format consistency
-        if col0.shape != (size,) or col1.shape != (size,) or col2.shape != (size,) or col3.shape != (
-                size,) or adc_error.shape != (size,):
+        expected = (size,)
+        if (
+            col0.shape != expected
+            or col1.shape != expected
+            or col2.shape != expected
+            or col3.shape != expected
+            or adc_error.shape != expected
+        ):
             print(col0.shape)
-            raise ValueError("Data have not the expected size ({0:},).".format(size))
+            raise ValueError(f"Data have not the expected size ({size},).")
 
-        # Retourner les données des colonnes et les erreurs
+        # Return the columns data and the errors
         dump = np.array([col0, col1, col2, col3])
         return dump, adc_error
 
 
-def read_scan_fits(fits_file):
-    """Reads DEMUX scan data from a fits file.
+def read_scan(
+    hdf5_file: str,
+) -> Tuple[str, np.ndarray, np.ndarray, np.ndarray]:
+    """Read DEMUX scan data from an HDF5 file.
 
     Parameters
-        fits_file (string): Name of the fits file (includes the path).
+    ----------
+    hdf5_file : str
+        Name of the HDF5 file (includes the path).
 
-    Returns:
-        xName (string): the name of the signal on the X axis
-        ctrl (array): array with the control words
-        xValues (array): array with the x values
-        error (array): array with the error values (one value per pixel and per step)
+    Returns
+    -------
+    x_name : str
+        The name of the signal on the X axis.
+    ctrl : np.ndarray
+        Array with the control words.
+    x_values : np.ndarray
+        Array with the x values.
+    error : np.ndarray
+        Array with the error values (one value per pixel and per step).
     """
-    with fits.open(fits_file) as hdul:
+    with h5py.File(hdf5_file, "r") as f:
+        # Getting the name of the x data (feedback or offset)
+        x_name = f.attrs["X_LABEL"].decode("utf-8")
 
-        # Checking the extension name 'pixels_data'
-        if 'pixels_data' in hdul:
-            data_ext = hdul['pixels_data']
-        else:
-            raise ValueError("'pixels_data' extension not found in the FITS file.")
-
-        xName = data_ext.header['TTYPE2']
-
-        # Extraire les données en tant que tableau NumPy
-        data = data_ext.data
-        scan = np.array(data.tolist())
-        errors = scan[:,2:].T
+        ctrl = np.array(f["ctrl"])
+        pixels_data = np.array(f["pixels"]).T
+        x_values = np.array(f["x"])
 
         # Return xName, CTRL, xValues and error per pixels
-        return xName, scan[:,0], scan[:,1], errors
+        return x_name, ctrl, x_values, pixels_data
 
 
-def read_scan(hdf5_file):
-    """Reads DEMUX scan data from an hdf5 file.
+def read_scan_type(hdf5_file: str) -> str:
+    """Read the type of a DEMUX scan from an HDF5 file.
 
     Parameters
-        hdf5_file (string): Name of the hdf5 file (includes the path).
+    ----------
+    hdf5_file : str
+        Name of the HDF5 file (includes the path).
 
-    Returns:
-        xName (string): the name of the signal on the X axis
-        ctrl (array): array with the control words
-        xValues (array): array with the x values
-        error (array): array with the error values (one value per pixel and per step)
+    Returns
+    -------
+    x_name : str
+        The name of the signal on the X axis.
     """
-    with h5py.File(hdf5_file, 'r') as f:
+    with h5py.File(hdf5_file, "r") as f:
         # Getting the name of the x data (feedback or offset)
-        xName = f.attrs["X_LABEL"].decode("utf-8")
+        x_name = f.attrs["X_LABEL"].decode("utf-8")
 
-        ctrl = np.array(f['ctrl'])
-        pixels_data = np.array(f['pixels']).T
-        x = np.array(f['x'])
-
-        # Return xName, CTRL, xValues and error per pixels
-        return xName, ctrl, x, pixels_data
+        return x_name
 
 
-def read_scan_type(hdf5_file):
-    """Reads DEMUX scan data from an hdf5 file.
+def hks_exist(hk_file: str, encoding: str = "latin1") -> bool:
+    """Return True if the HK CSV file contains data beyond the header.
 
     Parameters
-        hdf5_file (string): Name of the hdf5 file (includes the path).
+    ----------
+    hk_file : str
+        Path to the CSV file.
+    encoding : str, optional
+        Encoding of the file (default is "latin1").
 
-    Returns:
-        xName (string): the name of the signal on the X axis
+    Returns
+    -------
+    bool
+        True if there is more than one row in the file.
     """
-    with h5py.File(hdf5_file, 'r') as f:
-        # Getting the name of the x data (feedback or offset)
-        xName = f.attrs["X_LABEL"].decode("utf-8")
+    df = pd.read_csv(hk_file, sep=";", encoding=encoding)
 
-        return xName
-
-
-def export_dump_2_txt(fits_file, col):
-    """Saves the data of a column from a dump to a text file.
-
-    Parameters
-        fits_file (string): the name of the dump fits_file
-        col (integer): the col id
-    """
-    data, _ = read_dump_from_fits(fits_file)
-    np.savetxt(fits_file[0:-5] + '_col_{0:}.txt'.format(col), data[col,:])
-
-
-def export_science_data_one_col_2_txt(data_path, col, remove_dc=False, verbose=False):
-    """Saves the data of a column from a science fits file to a text file.
-
-    Parameters
-        data_path (string): path to the fits_file
-        col (integer): the col id
-    """
-    print(data_path)
-    data = read_col_science_from_dir(data_path, col, flatten=True, remove_dc=False, verbose=True)
-    txt_file_name = os.path.join(data_path, "error_txt_file" + '_col_{0:}.txt'.format(col))
-    np.savetxt(txt_file_name, data)
-
-
-# def read_hk_name_from_csv(hk_file, hk_name, encoding="latin1"):
-#    # Loading the csv file
-#    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
-#
-#    if hk_name[:4] == 'Date':
-#        df[hk_name] = pd.to_datetime(df[hk_name], dayfirst=True, errors="coerce")
-#        df[hk_name] = pd.to_datetime(df[hk_name], format="%Y:%M:%D %H:%M:%S")
-#
-#    return df[hk_name]
-
-def hks_exist(hk_file, encoding="latin1"):
-    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
-
-    # if len(df) == 1 there are only the hk names in the file
+    # If len(df) == 1 there are only the HK names in the file
     return len(df) > 1
 
 
-def read_hk_name_from_csv(hk_file, hk_suffix, encoding="latin1"):
+def read_hk_name_from_csv(
+    hk_file: str, hk_suffix: str, encoding: str = "latin1"
+) -> pd.Series:
+    """Read a column of a CSV file matching the end of its name.
+
+    Parameters
+    ----------
+    hk_file : str
+        Path to the CSV file.
+    hk_suffix : str
+        The last characters of the column name to look for.
+    encoding : str, optional
+        Encoding of the file (default is "latin1").
+
+    Returns
+    -------
+    pd.Series
+        The matching column.
+
+    Raises
+    ------
+    ValueError
+        If no or more than one column matches the suffix.
     """
-    Lit une colonne d'un fichier CSV en utilisant les 'suffix_length' derniers caractères de son nom.
+    df = pd.read_csv(hk_file, sep=";", encoding=encoding)
 
-    Args:
-        hk_file (str): Chemin vers le fichier CSV.
-        hk_suffix (str): Les 'suffix_length' derniers caractères du nom de la colonne.
-        suffix_length (int, optionnel): Longueur du suffixe à vérifier. Par défaut 10.
-        encoding (str, optionnel): Encodage du fichier. Par défaut "latin1".
-
-    Returns:
-        pd.Series: La colonne correspondante.
-
-    Raises:
-        ValueError: Si aucune ou plusieurs colonnes correspondent au suffixe.
-    """
-    df = pd.read_csv(hk_file, sep=';', encoding=encoding)
-
-    # Trouver les colonnes dont le nom se termine par hk_suffix
-    suffix_length = len(hk_suffix)
+    # Find the columns whose name ends with hk_suffix
     matching_columns = [
-        col for col in df.columns
-        if col[-suffix_length:] == hk_suffix
+        col for col in df.columns if col.endswith(hk_suffix)
     ]
 
     if not matching_columns:
-        raise ValueError(f"No HK match the name '{hk_suffix}'.")
+        raise ValueError(f"No HK matches the name '{hk_suffix}'.")
     if len(matching_columns) > 1:
-        raise ValueError(f"More than one HK match the name '{hk_suffix}': {matching_columns}")
+        names = ", ".join(matching_columns)
+        raise ValueError(
+            f"More than one HK matches the name '{hk_suffix}': {names}"
+        )
 
     selected_column = matching_columns[0]
 
-    # Conversion en datetime si le nom de la colonne commence par 'Date'
-    if selected_column[:4] == 'Date':
-        df[selected_column] = pd.to_datetime(df[selected_column], dayfirst=True, errors="coerce")
-        df[selected_column] = pd.to_datetime(df[selected_column], format="%Y:%M:%D %H:%M:%S")
+    # Convert to datetime if the column name starts with 'Date'
+    if selected_column.startswith("Date"):
+        df[selected_column] = pd.to_datetime(
+            df[selected_column], dayfirst=True, errors="coerce"
+        )
 
     return df[selected_column]
 
 
-def read_fwVersion_dmxModel(path):
-    # looking for the hk files
-    files = [f for f in os.listdir(path) \
-             if os.path.isfile(os.path.join(path, f)) \
-             and f[:8] == "Hks_DMXA" \
-             and f[-4:] == ".csv"]
+def read_fwVersion_dmxModel(path: str) -> Tuple[str, int, Any]:
+    """Read the firmware version, DMX model and board id from the HK files.
+
+    Parameters
+    ----------
+    path : str
+        Directory containing the HK files.
+
+    Returns
+    -------
+    dmx_model : str
+        The DEMUX model.
+    board_id : int
+        The board id.
+    fw_version : Any
+        The firmware version.
+    """
+    # Looking for the HK files
+    files = [
+        f
+        for f in os.listdir(path)
+        if os.path.isfile(os.path.join(path, f))
+        and f.startswith("Hks_DMXA")
+        and f.endswith(".csv")
+    ]
 
     if len(files) == 0:
         raise ValueError("No HK files found")
 
     if hks_exist(os.path.join(path, files[0])):
-        fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "Firmware Version")[0]
-        # fwVersion = read_hk_name_from_csv(os.path.join(path, files[0]), "firmwareVersion")[0]
-        ref = read_hk_name_from_csv(os.path.join(path, files[0]), "Hardware Version")[0]
-        #ref = read_hk_name_from_csv(os.path.join(path, files[0]), "hardwareVersion")[0]
+        fw_version = read_hk_name_from_csv(
+            os.path.join(path, files[0]), "Firmware Version"
+        )[0]
+        ref = read_hk_name_from_csv(
+            os.path.join(path, files[0]), "Hardware Version"
+        )[0]
 
-        dmxModel_id = (ref >> 8) & 3
-        dmxModel = cst.dmx_models[dmxModel_id]
-        boardId = ref & (2 ** 5) - 1
+        dmx_model_id = (ref >> 8) & 3
+        dmx_model = cst.dmx_models[dmx_model_id]
+        board_id = ref & (2 ** 5) - 1
 
     else:
         print("HK file " + files[0] + " is empty")
-        dmxModel = '99999'
-        boardId = 99
-        fwVersion = 99
+        dmx_model = "99999"
+        board_id = 99
+        fw_version = 99
 
-    return dmxModel, boardId, fwVersion
+    return dmx_model, board_id, fw_version
 
 
-def read_dmxConfig_fromXml(path):
-    from xml.dom import minidom
+def read_dmxConfig_fromXml(path: str) -> dict:
+    """Read the DEMUX configuration from an XML file.
 
-    dict_conf = {'fw_version': '',
-                 'hw_version': '',
-                 'boxcar_length': '',
-                 'c0_pulse_shaping_set': '',
-                 'c0_offset_coarse': '',
-                 'c0_offset_lsb': '',
-                 'c0_sampling_delay': '',
-                 'c0_feedback_delay': '',
-                 'c0_offset_dac_delay': '',
-                 'c0_offset_mux_delay': '',
-                 'relock_delay': '',
-                 'relock_threshold': ''}
+    Parameters
+    ----------
+    path : str
+        Directory containing the XML file.
 
-    # looking for the hk files
-    files = [f for f in os.listdir(path) \
-             if os.path.isfile(os.path.join(path, f)) \
-             and f[-4:] == ".xml"]
+    Returns
+    -------
+    dict
+        The DEMUX configuration parameters.
+    """
+    config_keys = [
+        "fw_version",
+        "hw_version",
+        "boxcar_length",
+        "c0_pulse_shaping_set",
+        "c0_offset_coarse",
+        "c0_offset_lsb",
+        "c0_sampling_delay",
+        "c0_feedback_delay",
+        "c0_offset_dac_delay",
+        "c0_offset_mux_delay",
+        "relock_delay",
+        "relock_threshold",
+    ]
+    dict_conf = {key: "" for key in config_keys}
+
+    # Looking for the XML files
+    files = [
+        f
+        for f in os.listdir(path)
+        if os.path.isfile(os.path.join(path, f)) and f.endswith(".xml")
+    ]
 
     if len(files) != 1:
-        raise ValueError(f"Wrong number of xml files: expected 1, found {0:}".format(len(files)))
-    else:
-        # parsing the xml file
-        file = minidom.parse(files[0])
-        dmx = file.getElementsByTagName('dmx')
-        dict_conf[key] = models[1].attributes['name'].value
+        raise ValueError(
+            f"Wrong number of xml files: expected 1, found {len(files)}"
+        )
 
-    return dmx_config
+    # Parsing the XML file
+    file = minidom.parse(os.path.join(path, files[0]))
+    dmx = file.getElementsByTagName("dmx")
+
+    if dmx:
+        attributes = dmx[0].attributes
+        for key in config_keys:
+            if key in attributes:
+                dict_conf[key] = attributes[key].value
+
+    return dict_conf
