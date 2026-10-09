@@ -361,7 +361,7 @@ detect_hdf5_type(filename)
 | Fonction | Retour |
 | --- | --- |
 | `get_science_from_hdf5(full_file_name)` | `(data, ctrl)` : `data` de forme `[34, N]` en unités s(16,2) (divisé par 4), `ctrl` mots de contrôle |
-| `read_science_from_file(full_file_name, flatten=False, remove_dc=True, verbose=True)` | `col_data` : données de science d'une colonne |
+| `read_col_science_from_file(full_file_name, flatten=False, remove_dc=True, verbose=True)` | `col_data` : données de science d'une colonne |
 | `read_col_science_from_dir(data_path, col_id, flatten=False, remove_dc=True, verbose=True)` | `(col_data, file_exists)` : lecture depuis un répertoire de fichiers `_C{col_id}.h5` |
 
 ### Scan

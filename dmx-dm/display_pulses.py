@@ -62,7 +62,7 @@ def get_pulse(filename, pix=0, trig_level=10):
     nPointsBefore = 100
     record_length = 1024
 
-    col_data = rddt.read_science_from_file(filename)
+    col_data = rddt.read_col_science_from_file(filename)
     pix_data = col_data[pix, :]
 
     # searching a pulse

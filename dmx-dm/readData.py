@@ -65,7 +65,7 @@ def get_science_from_hdf5(
     return data, ctrl
 
 
-def read_science_from_file(
+def read_col_science_from_file(
     full_file_name: str,
     flatten: bool = False,
     remove_dc: bool = True,
@@ -158,7 +158,7 @@ def read_col_science_from_dir(
         file_name = files[0]
         file_name_with_path = os.path.join(data_path, file_name)
 
-        col_data = read_science_from_file(
+        col_data = read_col_science_from_file(
             file_name_with_path, flatten, remove_dc, verbose
         )
     else:
