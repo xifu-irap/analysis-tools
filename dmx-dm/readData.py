@@ -210,6 +210,24 @@ def read_dump_from_hdf5(hdf5_file: str) -> Tuple[np.ndarray, np.ndarray]:
         return dump, adc_error
 
 
+def _decode_text(value: Any) -> str:
+    """Decode an HDF5 attribute to a string.
+
+    Parameters
+    ----------
+    value : Any
+        The attribute value, either ``str`` or ``bytes``.
+
+    Returns
+    -------
+    str
+        The decoded text.
+    """
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return str(value)
+
+
 def read_scan(
     hdf5_file: str,
 ) -> Tuple[str, np.ndarray, np.ndarray, np.ndarray]:
@@ -233,7 +251,7 @@ def read_scan(
     """
     with h5py.File(hdf5_file, "r") as f:
         # Getting the name of the x data (feedback or offset)
-        x_name = f.attrs["X_LABEL"].decode("utf-8")
+        x_name = _decode_text(f.attrs["X_LABEL"])
 
         ctrl = np.array(f["ctrl"])
         pixels_data = np.array(f["pixels"]).T
@@ -258,9 +276,170 @@ def read_scan_type(hdf5_file: str) -> str:
     """
     with h5py.File(hdf5_file, "r") as f:
         # Getting the name of the x data (feedback or offset)
-        x_name = f.attrs["X_LABEL"].decode("utf-8")
+        x_name = _decode_text(f.attrs["X_LABEL"])
 
         return x_name
+
+
+def read_pulses_from_hdf5(
+    hdf5_file: str,
+    column: int = None,
+    pixel: int = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Read DEMUX pulse data from an HDF5 file.
+
+    Parameters
+    ----------
+    hdf5_file : str
+        Name of the HDF5 file (includes the path).
+    column : int, optional
+        If given, keep only the pulses of this column (0 to 3).
+    pixel : int, optional
+        If given, keep only the pulses of this pixel (0 to 33).
+
+    Returns
+    -------
+    frame_num : np.ndarray
+        Array of frame numbers (one per selected pulse).
+    columns : np.ndarray
+        Array of column ids (one per selected pulse).
+    pixels : np.ndarray
+        Array of pixel ids (one per selected pulse).
+    pulses : np.ndarray
+        Array of shape (M, S) with the S samples of each selected pulse.
+    """
+    with h5py.File(hdf5_file, "r") as f:
+        columns = np.array(f["Pulses/col"][:])
+        pixels = np.array(f["Pulses/pixel"][:])
+
+        selected = np.ones(len(columns), dtype=bool)
+        if column is not None:
+            selected &= columns == column
+        if pixel is not None:
+            selected &= pixels == pixel
+
+        indices = np.flatnonzero(selected)
+        frame_num = np.array(f["Pulses/FrameNum"][indices])
+        columns = columns[indices]
+        pixels = pixels[indices]
+        pulses = np.array(f["Pulses/pulse"][indices, :])
+
+        return frame_num, columns, pixels, pulses
+
+
+def _to_python_value(value: Any) -> Any:
+    """Convert an HDF5 value into a plain Python object.
+
+    Parameters
+    ----------
+    value : Any
+        The value read from the HDF5 file.
+
+    Returns
+    -------
+    Any
+        The value converted to a plain Python type.
+    """
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    if isinstance(value, np.ndarray):
+        return [_to_python_value(item) for item in value.tolist()]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _read_config_group(group: Any) -> dict:
+    """Recursively read an HDF5 configuration group.
+
+    Parameters
+    ----------
+    group : h5py.Group
+        The HDF5 group to read.
+
+    Returns
+    -------
+    dict
+        The group content as nested dictionaries.
+    """
+    result: dict = {}
+    if group.attrs:
+        result["_attributes"] = {
+            name: _to_python_value(value)
+            for name, value in group.attrs.items()
+        }
+    for name, item in group.items():
+        if isinstance(item, h5py.Group):
+            result[name] = _read_config_group(item)
+        else:
+            result[name] = _to_python_value(item[()])
+    return result
+
+
+def read_instrument_configuration(
+    hdf5_filename: str, required: bool = False
+) -> Any:
+    """Read the instrument configuration from an HDF5 file.
+
+    The values stored in the group ``/Configuration`` are already decoded:
+    fractional parameters are exposed as floats and the others keep their
+    integer type.
+
+    Parameters
+    ----------
+    hdf5_filename : str
+        Path to the HDF5 file.
+    required : bool, optional
+        If True, raise a ``KeyError`` when the file has no ``/Configuration``
+        group. If False (default), return ``None`` instead (e.g. for old v1
+        scans and dumps).
+
+    Returns
+    -------
+    dict or None
+        The content of ``/Configuration`` as a Python dictionary, or ``None``
+        if the group is absent and ``required`` is False.
+
+    Raises
+    ------
+    KeyError
+        If the file does not contain a ``/Configuration`` group and
+        ``required`` is True.
+    """
+    with h5py.File(hdf5_filename, "r") as h5:
+        if "Configuration" not in h5:
+            if required:
+                raise KeyError(
+                    f"{hdf5_filename!r} does not contain /Configuration"
+                )
+            return None
+        return _read_config_group(h5["Configuration"])
+
+
+def detect_hdf5_type(filename: str) -> str:
+    """Detect the type of an HDF5 file.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the HDF5 file.
+
+    Returns
+    -------
+    str
+        One of ``"pulses"``, ``"scan"``, ``"science"``, ``"dump"`` or
+        ``"inconnu"``.
+    """
+    with h5py.File(filename, "r") as h5:
+        if "Pulses" in h5:
+            return "pulses"
+        if "x" in h5 and "pixels" in h5:
+            return "scan"
+        if "ctrl" in h5 and "pixels" in h5:
+            return "science"
+        if all(f"Col{i}" in h5 for i in range(4)) and "Errors" in h5:
+            return "dump"
+        return "inconnu"
 
 
 def hks_exist(hk_file: str, encoding: str = "latin1") -> bool:
