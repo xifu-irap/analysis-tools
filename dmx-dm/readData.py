@@ -20,7 +20,7 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
+#  laurent.ravera@cnrs.fr
 #  readData.py
 #
 # ---------------------------------------------------------------------------------
@@ -28,8 +28,7 @@
 """Functions to read DEMUX data (science, dump, scan, HK) from files."""
 
 import os
-from typing import Any, Tuple
-from xml.dom import minidom
+from typing import Any, Tuple, Union
 
 import h5py
 import numpy as np
@@ -143,8 +142,7 @@ def read_col_science_from_dir(
         f
         for f in os.listdir(data_path)
         if os.path.isfile(os.path.join(data_path, f))
-        and f[:4] != "dump"
-        and f[-4:] == "{0:}.h5".format(col_id)
+        and f.endswith("C{0:}.h5".format(col_id))
     ]
 
     file_exists = len(files) != 0
@@ -465,7 +463,7 @@ def hks_exist(hk_file: str, encoding: str = "latin1") -> bool:
 
 def read_hk_name_from_csv(
     hk_file: str, hk_suffix: str, encoding: str = "latin1"
-) -> pd.Series:
+) -> Union[pd.Series, int]:
     """Read a column of a CSV file matching the end of its name.
 
     Parameters
@@ -479,13 +477,13 @@ def read_hk_name_from_csv(
 
     Returns
     -------
-    pd.Series
-        The matching column.
+    Union[pd.Series, int]
+        The matching column, or 0 if no column matches the suffix.
 
     Raises
     ------
     ValueError
-        If no or more than one column matches the suffix.
+        If more than one column matches the suffix.
     """
     df = pd.read_csv(hk_file, sep=";", encoding=encoding)
 
@@ -495,7 +493,8 @@ def read_hk_name_from_csv(
     ]
 
     if not matching_columns:
-        raise ValueError(f"No HK matches the name '{hk_suffix}'.")
+        print(f"No HK match the name '{hk_suffix}'.")
+        return 0
     if len(matching_columns) > 1:
         names = ", ".join(matching_columns)
         raise ValueError(
@@ -545,10 +544,20 @@ def read_fwVersion_dmxModel(path: str) -> Tuple[str, int, Any]:
     if hks_exist(os.path.join(path, files[0])):
         fw_version = read_hk_name_from_csv(
             os.path.join(path, files[0]), "Firmware Version"
-        )[0]
+        )
+        if isinstance(fw_version, int):
+            fw_version = read_hk_name_from_csv(
+                os.path.join(path, files[0]), "firmwareVersion"
+            )
+        fw_version = fw_version[0]
         ref = read_hk_name_from_csv(
             os.path.join(path, files[0]), "Hardware Version"
-        )[0]
+        )
+        if isinstance(ref, int):
+            ref = read_hk_name_from_csv(
+                os.path.join(path, files[0]), "hardwareVersion"
+            )
+        ref = ref[0]
 
         dmx_model_id = (ref >> 8) & 3
         dmx_model = cst.dmx_models[dmx_model_id]
@@ -561,57 +570,3 @@ def read_fwVersion_dmxModel(path: str) -> Tuple[str, int, Any]:
         fw_version = 99
 
     return dmx_model, board_id, fw_version
-
-
-def read_dmxConfig_fromXml(path: str) -> dict:
-    """Read the DEMUX configuration from an XML file.
-
-    Parameters
-    ----------
-    path : str
-        Directory containing the XML file.
-
-    Returns
-    -------
-    dict
-        The DEMUX configuration parameters.
-    """
-    config_keys = [
-        "fw_version",
-        "hw_version",
-        "boxcar_length",
-        "c0_pulse_shaping_set",
-        "c0_offset_coarse",
-        "c0_offset_lsb",
-        "c0_sampling_delay",
-        "c0_feedback_delay",
-        "c0_offset_dac_delay",
-        "c0_offset_mux_delay",
-        "relock_delay",
-        "relock_threshold",
-    ]
-    dict_conf = {key: "" for key in config_keys}
-
-    # Looking for the XML files
-    files = [
-        f
-        for f in os.listdir(path)
-        if os.path.isfile(os.path.join(path, f)) and f.endswith(".xml")
-    ]
-
-    if len(files) != 1:
-        raise ValueError(
-            f"Wrong number of xml files: expected 1, found {len(files)}"
-        )
-
-    # Parsing the XML file
-    file = minidom.parse(os.path.join(path, files[0]))
-    dmx = file.getElementsByTagName("dmx")
-
-    if dmx:
-        attributes = dmx[0].attributes
-        for key in config_keys:
-            if key in attributes:
-                dict_conf[key] = attributes[key].value
-
-    return dict_conf

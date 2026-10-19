@@ -20,7 +20,7 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
+#  laurent.ravera@cnrs.fr
 #  noise.py
 #
 # ---------------------------------------------------------------------------------
@@ -112,8 +112,8 @@ def plot_col_spectrum(acq_mode, config, process_frow=False, peak_detect=True, pl
     if acq_mode == 'DUMP':
         config["rate"] = "FREF"
         npts = 2 * cst.nSamplesPerRow * cst.muxFactor
-        xf, power_spectrum = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
-        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, [True, True, True, True],
+        xf, power_spectrum, data_exists = nat.power_spectrum_from_dumps(data_path, npts, config["rate"])
+        plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config, data_exists,
                                    plot_model=plot_model, lpf=lpf,
                                    peak_detect=peak_detect, verbose=verbose)
 
@@ -153,6 +153,10 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config,
         lpf: Optional; Boolean flag to specify if a low-pass filter should be applied to the data.
         verbose: Optional; Boolean flag to enable or disable detailed output for debugging purposes.
     """
+    if not any(data_exists):
+        print("No data to plot for {0:}".format(acq_mode))
+        return
+
     rbw = xf[1]
     xf = xf[1:]  # Removing f=0 to make log scale plots easier to manage
     spectrum = np.sqrt(power_spectrum[:, 1:] / rbw)

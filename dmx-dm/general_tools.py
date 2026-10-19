@@ -20,150 +20,137 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
+#  laurent.ravera@cnrs.fr
 #  general_tools.py
 #
 # ---------------------------------------------------------------------------------
 
-import csv
 import os
 import shutil
 from datetime import datetime
+from typing import Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 import constants as cst
 
 # definition of equivalent noise bandwidth for some well known windows
-enb = {'boxcar': 1.0, 'hann': 1.5, 'hamming': 1.363, 'blackman': 1.727, 'blackmanharris': 2.004,
-       'barlett': 1.333, 'flattop': 3.77, 'triang': 1.333}
+enb = {'boxcar': 1.0, 'hann': 1.5, 'hamming': 1.363, 'blackman': 1.727,
+       'blackmanharris': 2.004, 'barlett': 1.333, 'flattop': 3.77,
+       'triang': 1.333}
 
 
 # -----------------------------------------------------------------------
-def checkdir(dirname):
-    r"""
-        This function checks if a directory exists. If not it creates it.
+def checkdir(dirname: str) -> None:
+    """Check if a directory exists, creating it if it does not.
 
-        Parameters:
-        -----------
-        dirname: String
+    Parameters
+    ----------
+    dirname : str
         Name of the directory to be verified / created.
 
-        Returns
-        -------
-        Nothing
-
-        """
+    Returns
+    -------
+    None
+    """
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
-    return ()
 
 
 # -----------------------------------------------------------------------
-def purgedir(dirname):
-    r"""
-        This function erase a directory if it exists, and it creates a new empty directory
+def purgedir(dirname: str) -> None:
+    """Erase a directory if it exists, then create a new empty directory.
 
-        Parameters:
-        -----------
-        dirname: String
+    Parameters
+    ----------
+    dirname : str
         Name of the directory to be erased / created.
 
-        Returns
-        -------
-        Nothing
-
-        """
+    Returns
+    -------
+    None
+    """
     if os.path.isdir(dirname):
         shutil.rmtree(dirname)
     os.mkdir(dirname)
-    return ()
 
 
 # -----------------------------------------------------------------------
-def createdir(dirname):
-    r"""
-        This function creates a directory if it doesn't exist
+def createdir(dirname: str) -> None:
+    """Create a directory if it does not exist.
 
-        Parameters:
-        -----------
-        dirname: String
-        Name of the directory to be erased / created.
+    Parameters
+    ----------
+    dirname : str
+        Name of the directory to be created.
 
-        Returns
-        -------
-        Nothing
-
-        """
+    Returns
+    -------
+    None
+    """
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
-    return ()
 
 
 # -----------------------------------------------------------------------
-def get_csv(filename):
-    r"""
-        This function reads a dictionnary from a csv file.
+def compute_spectrum(signal: np.ndarray, period: float, file_name: str,
+                     window: str = 'blackman',
+                     plot: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+    """Compute the amplitude spectrum of a signal and optionally plot it.
 
-        Parameters:
-        -----------
-        filename: string
-        The name of the csv file
+    Parameters
+    ----------
+    signal : numpy.ndarray
+        Input time series.
+    period : float
+        Sampling period in seconds.
+    file_name : str
+        Base file name used to derive the plot file name.
+    window : str, optional
+        Windowing function to apply ('blackman', 'blackmanharris', 'hann').
+        Default is 'blackman'.
+    plot : bool, optional
+        If True, save the spectrum plot to disk. Default is False.
 
-        Returns
-        -------
-        dictionnary: dictionnary
-
-        """
-
-    dictionnary = {}
-
-    if not os.path.exists(os.path.join(filename)):
-        print("File " + filename + " not found.")
-    else:
-        with open(filename, newline='') as csvfile:
-            dict_reader = csv.reader(csvfile, delimiter='=', quotechar='|')
-            for row in dict_reader:
-                try:  # for numbers
-                    dictionnary[row[0]] = float(row[1].replace(',', '.'))
-                except Exception:  # for strings
-                    dictionnary[row[0]] = row[1]
-    return dictionnary
-
-
-# -----------------------------------------------------------------------
-def compute_spectrum(signal, period, file_name, window='blackman', plot=False):
+    Returns
+    -------
+    xf : numpy.ndarray
+        Frequencies of the spectrum.
+    fft_norm : numpy.ndarray
+        Normalized amplitude spectrum in ADU.
+    """
     from scipy.signal.windows import blackman, blackmanharris, hann
 
-    plotFileName = os.path.join(cst.plotDirName, file_name[:-5] + '_sp.png')
-    nPts = len(signal)
+    plot_file_name = os.path.join(cst.plotDirName,
+                                  file_name[:-5] + '_sp.png')
+    n_pts = len(signal)
 
-    w = np.ones(nPts)
-    # create blackman window
+    # create the selected window
     if window == 'blackman':
-        w = blackman(nPts)
-    if window == 'blackmanharris':
-        w = blackmanharris(nPts)
-    if window == 'hann':
-        w = hann(nPts)
+        w = blackman(n_pts)
+    elif window == 'blackmanharris':
+        w = blackmanharris(n_pts)
+    elif window == 'hann':
+        w = hann(n_pts)
+    else:
+        w = np.ones(n_pts)
 
-    # Calculer la FFT
-    fft_result = np.fft.rfft(signal*w)
+    # compute the FFT
+    fft_result = np.fft.rfft(signal * w)
 
-    # Normaliser le résultat en ADU
-    fft_norm = np.abs(fft_result) / nPts * np.sqrt(2)
+    # normalize the result in ADU
+    fft_norm = np.abs(fft_result) / n_pts * np.sqrt(2)
 
-    # Ajuster la normalisation pour les composantes à zéro et à la fréquence d'échantillonnage / 2
+    # adjust normalization for the DC and Nyquist components
     fft_norm[0] /= np.sqrt(2)
     if len(signal) % 2 == 0:
         fft_norm[-1] /= np.sqrt(2)
 
-    # Créer les fréquences pour l'axe des x
-    xf = np.linspace(0, 0.5/period, len(fft_norm))
+    # create the frequency axis
+    xf = np.linspace(0, 0.5 / period, len(fft_norm))
 
-    # Afficher le spectre
+    # display the spectrum
     if plot:
         fig = plt.figure(figsize=(10, 5))
         ax = fig.add_subplot(111)
@@ -173,150 +160,158 @@ def compute_spectrum(signal, period, file_name, window='blackman', plot=False):
         ax.set_ylabel('Amplitude (ADU)')
         ax.grid(True)
         fig.tight_layout()
-        plt.savefig(plotFileName, dpi=300, format='png', bbox_inches='tight')
+        plt.savefig(plot_file_name, dpi=300, format='png',
+                    bbox_inches='tight')
 
     return xf, fft_norm
 
 
 # -----------------------------------------------------------------------
-def is_even(x):
-    r"""
-        This function checks if a number is even.
+def is_even(x: int) -> bool:
+    """Check if a number is even.
 
-        Parameters:
-        -----------
-        x: number
-        The value to be verified
+    Parameters
+    ----------
+    x : int
+        The value to be verified.
 
-        Returns
-        -------
-        result: boolean
+    Returns
+    -------
+    bool
         True if the input is even, False if the input is odd.
-
-        """
+    """
     return x % 2 == 0
 
 
 # -----------------------------------------------------------------------
-def first_order_low_pass_filter(data_vector, tau):
-    """
-    Applies a first-order low-pass filter to a data vector.
+def first_order_low_pass_filter(data_vector: np.ndarray,
+                                tau: float) -> np.ndarray:
+    """Apply a first-order low-pass filter to a data vector.
 
-    Args:
-        data_vector (numpy.ndarray): The input data vector.
-        tau (float): Time constant of the filter (in seconds).
+    Parameters
+    ----------
+    data_vector : numpy.ndarray
+        The input data vector.
+    tau : float
+        Time constant of the filter (in seconds).
 
-    Returns:
-        numpy.ndarray: The filtered vector.
+    Returns
+    -------
+    numpy.ndarray
+        The filtered vector.
     """
-    dt = 1.0 / cst.fSamp  # Time interval (can be adjusted as needed)
-    alpha = dt / (tau + dt)  # Filter coefficient
+    dt = 1.0 / cst.fSamp  # time interval
+    alpha = dt / (tau + dt)  # filter coefficient
 
     filtered_vector = np.zeros_like(data_vector)
-    filtered_vector[0] = data_vector[0]  # Initial condition
+    filtered_vector[0] = data_vector[0]  # initial condition
 
     for i in range(1, len(data_vector)):
-        filtered_vector[i] = alpha * data_vector[i] + (1 - alpha) * filtered_vector[i - 1]
+        filtered_vector[i] = (alpha * data_vector[i]
+                              + (1 - alpha) * filtered_vector[i - 1])
 
     return filtered_vector
 
 
 # -----------------------------------------------------------------------
-def ma_date():
-    """This function returns a string containing the date and time"""
+def ma_date() -> str:
+    """Return a string containing the current date and time.
+
+    Returns
+    -------
+    str
+        The current date and time as 'YYYY-MM-DD_HHhMMmnSSs'.
+    """
     n = datetime.now()
     return ("{0:04d}-{1:02d}-{2:02d}_{3:02d}h{4:02d}mn{5:02d}s"
             .format(n.year, n.month, n.day, n.hour, n.minute, n.second))
 
 
 # -----------------------------------------------------------------------
-def readHkFromCsv(filename):
-    """This function reads a set of HK and a set of time from a csv file"""
-    df = np.array(pd.read_csv(filename, sep=";"))
-    time = df[:, 0]
-    # conversion du format de date en timestamp
-    time_converted = np.zeros(len(time))
-    for i in range(len(time)):
-        dt = parse_date_auto(time[i])
-        time_converted[i] = dt.timestamp()
-    hk = df[:, 1]
-    return time_converted, hk
+def convert_time(time_in_csv: Union[list, np.ndarray]) -> np.ndarray:
+    """Convert times from a csv format into python timestamps.
 
+    Parameters
+    ----------
+    time_in_csv : list or numpy.ndarray
+        Array of date strings or timestamps to convert.
 
-# -----------------------------------------------------------------------
-def convert_time(time_in_csv):
+    Returns
+    -------
+    numpy.ndarray
+        The converted timestamps.
     """
-    This function converts times from a csv format into a python timestamp format
-    """
-    # conversion du format de date en timestamp
-    l = len(time_in_csv)
-    time_converted = np.zeros(l)
-    for i in range(l):
+    n = len(time_in_csv)
+    time_converted = np.zeros(n)
+    for i in range(n):
         dt = parse_date_auto(time_in_csv[i])
         time_converted[i] = dt.timestamp()
     return time_converted
 
 
 # -----------------------------------------------------------------------
-def do_power_spectrum(x, fs, npts, window="none", verbose=False):
-    r"""
-        This function computes the spectrum of the input vector.
-        If the input vector is long enough, several computations are averaged.
-        A Blackman window can be applied before the rfft.
+def do_power_spectrum(x: np.ndarray, fs: float, npts: int,
+                      window: str = "none",
+                      verbose: bool = False) -> Tuple[np.ndarray,
+                                                      np.ndarray]:
+    """Compute the power spectrum of the input vector.
 
-        Parameters:
-        -----------
-        x: numpy array
-        input vector
+    If the input vector is long enough, several computations are averaged.
+    A window can be applied before the rfft.
 
-        fs: float
-        sampling frequency
-
-        npts: number
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Input vector.
+    fs : float
+        Sampling frequency.
+    npts : int
         Number of values to be used in the rfft.
+    window : str, optional
+        Indicates if a window shall be applied ('blackman' or 'none').
+        Default is 'none'.
+    verbose : bool, optional
+        If True, print power conservation checks. Default is False.
 
-        window: string
-        indicates if a window shall be applied ("blackman" or "none")
-        (default is "none")
-
-        Returns
-        -------
-        xf: numpy array
-        frequencies
-
-        spectrum: numpy array
-        computed spectrum.
-        """
+    Returns
+    -------
+    xf : numpy.ndarray
+        Frequencies.
+    spectrum : numpy.ndarray
+        Computed power spectrum.
+    """
     from numpy.fft import rfft
     from scipy.signal.windows import blackman
 
-    if window=="blackman":
-        w=blackman(npts, False)
+    if window == "blackman":
+        w = blackman(npts, False)
     else:
-        w=np.ones(npts)
+        w = np.ones(npts)
 
-    if len(x)<npts:
-        raise ValueError("Not enough values in input vector to compute spectra.")
+    if len(x) < npts:
+        raise ValueError("Not enough values in input vector to compute "
+                         "spectra.")
 
-    # Removing DC
+    # removing DC
     x = x.astype(float) - x.mean()
 
-    # Analyse spectrale avec rfft
-    xf = np.fft.rfftfreq(npts, 1 / fs)  # Fréquences associées
+    # spectral analysis with rfft
+    xf = np.fft.rfftfreq(npts, 1 / fs)
 
-    power_spectrum = np.zeros_like(xf)  # Initialisation du spectre
-    nslices=int(len(x)/npts)
+    power_spectrum = np.zeros_like(xf)
+    nslices = int(len(x) / npts)
     for slice in range(nslices):
-        power_spectrum += abs(rfft(x[slice*npts:(slice+1)*npts]*w))**2
+        power_spectrum += (abs(rfft(x[slice * npts:(slice + 1) * npts] * w))
+                           ** 2)
 
-    power_spectrum /= nslices  # Amplitude par slice
-    power_spectrum /= npts**2  # Amplitude par échantillon
-    power_spectrum[1:-1] *= 2  # Compensations pour les composantes positives
+    power_spectrum /= nslices  # amplitude per slice
+    power_spectrum /= npts ** 2  # amplitude per sample
+    power_spectrum[1:-1] *= 2  # compensation for positive components
 
     if verbose:
-        # Vérification de la conservation de la puissance
-        power_time_domain = np.mean(x ** 2)  # Puissance du signal temporel
-        power_freq_domain = np.sum(power_spectrum)  # Puissance spectrale
+        # power conservation check
+        power_time_domain = np.mean(x ** 2)
+        power_freq_domain = np.sum(power_spectrum)
         print(f"Puissance temporelle : {power_time_domain:.5f}")
         print(f"Puissance fréquentielle : {power_freq_domain:.5f}")
 
@@ -324,94 +319,105 @@ def do_power_spectrum(x, fs, npts, window="none", verbose=False):
 
 
 # -----------------------------------------------------------------------
-def do_cross_power_spectrum(x, y, fs, npts, window="none", verbose = False):
-    r"""
-        This function computes the cross-power spectrum of two input vectors.
-        If the input vector is long enough, several computations are averaged.
-        A Blackman window can be applied before the rfft.
+def do_cross_power_spectrum(x: np.ndarray, y: np.ndarray, fs: float,
+                            npts: int, window: str = "none",
+                            verbose: bool = False) -> Tuple[np.ndarray,
+                                                            np.ndarray]:
+    """Compute the cross-power spectrum of two input vectors.
 
-        Parameters:
-        -----------
-        x: numpy array
-        input vector
+    If the input vectors are long enough, several computations are averaged.
+    A window can be applied before the rfft.
 
-        y: numpy array
-        input vector
-
-        fs: float
-        sampling frequency
-
-        npts: number
+    Parameters
+    ----------
+    x : numpy.ndarray
+        First input vector.
+    y : numpy.ndarray
+        Second input vector.
+    fs : float
+        Sampling frequency.
+    npts : int
         Number of values to be used in the rfft.
+    window : str, optional
+        Indicates if a window shall be applied ('blackman' or 'none').
+        Default is 'none'.
+    verbose : bool, optional
+        If True, print power conservation checks. Default is False.
 
-        window: string
-        indicates if a window shall be applied ("blackman" or "none")
-        (default is "none")
-
-        Returns
-        -------
-        xf: numpy array
-        frequencies
-
-        spectrum: numpy array
-        computed spectrum.
-        """
+    Returns
+    -------
+    xf : numpy.ndarray
+        Frequencies.
+    spectrum : numpy.ndarray
+        Computed cross-power spectrum.
+    """
     from numpy.fft import rfft, rfftfreq
     from scipy.signal.windows import blackman
     from scipy.signal import correlate
 
-    if window=="blackman":
-        w=blackman(npts, False)
+    if window == "blackman":
+        w = blackman(npts, False)
     else:
-        w=np.ones(npts)
+        w = np.ones(npts)
 
-    # Ensuring that x and y have the same size
-    l = min(len(x), len(y))
-    x = x[:l]
-    y = y[:l]
+    # ensuring that x and y have the same size
+    n = min(len(x), len(y))
+    x = x[:n]
+    y = y[:n]
 
-    if l<npts:
-        raise ValueError("Not enough values in input vector to compute spectra.")
+    if n < npts:
+        raise ValueError("Not enough values in input vector to compute "
+                         "spectra.")
 
-    # Calcul de la correlation des deux vecteurs de données
-    print("    Computing cross-correlation......... ", end = '')
+    # compute the correlation of the two data vectors
+    print("    Computing cross-correlation......... ", end='')
     correl = correlate(x, y, mode='full')
-    #norm_factor = np.linalg.norm(x) * np.linalg.norm(y)
-    #correl /= norm_factor
     print("Done")
 
-    # Analyse spectrale avec rfft
-    print("    Doing spectral analysis......... ", end = '')
-    xf = rfftfreq(npts, 1 / fs)  # Fréquences associées
-    power_spectrum = np.zeros_like(xf)  # Initialisation du spectre
-    nslices=int(len(correl)/npts)
+    # spectral analysis with rfft
+    print("    Doing spectral analysis......... ", end='')
+    xf = rfftfreq(npts, 1 / fs)
+    power_spectrum = np.zeros_like(xf)
+    nslices = int(len(correl) / npts)
     for slice in range(nslices):
-        power_spectrum += abs(rfft(correl[slice*npts:(slice+1)*npts]*w))
+        power_spectrum += abs(rfft(correl[slice * npts:(slice + 1) * npts]
+                                   * w))
 
-    power_spectrum /= nslices  # Amplitude par slice
-    power_spectrum /= npts**2  # Amplitude par échantillon
-    power_spectrum[1:-1] *= 2  # Compensations pour les composantes positives
+    power_spectrum /= nslices  # amplitude per slice
+    power_spectrum /= npts ** 2  # amplitude per sample
+    power_spectrum[1:-1] *= 2  # compensation for positive components
     print("Done")
 
     if verbose:
-        # Vérification de la conservation de la puissance
-        power_time_domain = np.mean(x ** 2)  # Puissance du signal temporel
-        power_freq_domain = np.sum(power_spectrum)  # Puissance spectrale
+        # power conservation check
+        power_time_domain = np.mean(x ** 2)
+        power_freq_domain = np.sum(power_spectrum)
         print(f"Puissance temporelle : {power_time_domain:.5f}")
         print(f"Puissance fréquentielle : {power_freq_domain:.5f}")
 
     return xf, power_spectrum
 
+
 # -----------------------------------------------------------------------
-def derivative(x, y):
-    """Computes the derivative of a function from x and y values.
+def derivative(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Compute the derivative of a function from x and y values.
 
-    Parameters:
-        x (array): xvalues.
-        y (array): yvalues.
+    Parameters
+    ----------
+    x : numpy.ndarray
+        x values.
+    y : numpy.ndarray
+        y values.
 
-    Returns:
-        derivative (array): the derivative of the function from x to y
+    Returns
+    -------
+    numpy.ndarray
+        The derivative of the function.
+
+    Raises
+    ------
+    ValueError
+        If x and y do not have the same length.
     """
     if len(x) != len(y):
         raise ValueError("x and y shall have the same length")
@@ -420,108 +426,124 @@ def derivative(x, y):
 
 
 # -----------------------------------------------------------------------
-def unzip_files_from_dir(dir):
+def unzip_files_from_dir(dir: str) -> bool:
+    """Unzip all zip files found in the data directory of dir.
 
+    Parameters
+    ----------
+    dir : str
+        Base directory containing the data subdirectory.
+
+    Returns
+    -------
+    bool
+        True if at least one zip file was found and unzipped, False otherwise.
+    """
     import zipfile
 
     data_from_zip_file = False
-    # Looking for zip files if any
-    dataPath = os.path.join(dir, cst.dataDirName)
-    zipfiles = [f for f in os.listdir(dataPath) \
-                if os.path.isfile(os.path.join(dataPath, f)) \
-                and f[-4:] == '.zip']
+    # looking for zip files if any
+    data_path = os.path.join(dir, cst.dataDirName)
+    zipfiles = [f for f in os.listdir(data_path)
+                if os.path.isfile(os.path.join(data_path, f))
+                and f.endswith('.zip')]
 
-    # Unzipping zip files
+    # unzipping zip files
     if len(zipfiles) == 0:
         print('There is no zip file...')
     else:
         data_from_zip_file = True
         for z in zipfiles:
             print('Unzipping Error data from ', z)
-            with zipfile.ZipFile(os.path.join(dataPath, z), 'r') as zip_ref:
-                zip_ref.extractall(dataPath)
+            with zipfile.ZipFile(os.path.join(data_path, z), 'r') as zip_ref:
+                zip_ref.extractall(data_path)
 
     return data_from_zip_file
 
 
 # -----------------------------------------------------------------------
-def read_two_vectors_from_file_obsolete(nom_fichier):
+def read_two_vectors_from_file(
+        nom_fichier: str) -> Tuple[np.ndarray, np.ndarray]:
+    """Read two vectors from a two-column file, ignoring the header line.
+
+    Parameters
+    ----------
+    nom_fichier : str
+        Path to the file containing the data. The first line is ignored
+        as it is assumed to be a header.
+
+    Returns
+    -------
+    x : numpy.ndarray
+        The first vector extracted from the file.
+    y : numpy.ndarray
+        The second vector extracted from the file.
+
+    Raises
+    ------
+    ValueError
+        If the total number of values is not even (2 columns expected).
     """
-    Reads two vectors from a specified file, ignoring header rows.
-
-    This function loads numerical data from a given file, skipping the first row that is
-    presumed to contain headers. The data is expected to be structured into two columns.
-    The first column is interpreted as a vector of frequencies, while the second column
-    is interpreted as a corresponding vector of noise values. The two vectors are then
-    returned separately.
-
-    Args:
-        nom_fichier: The path to the file containing the data to be read. The file should
-            have a specific structure with two columns of numerical data. The first row
-            of the file is ignored as it is assumed to be a header.
-
-    Returns:
-        A tuple containing:
-            - x: A NumPy array representing the first vector
-              extracted from the specified file.
-            - y: A NumPy array representing the second vector
-              extracted from the specified file.
-    """
-    # Charger les données en ignorant les lignes d'en-tête
-    data = np.loadtxt(nom_fichier, skiprows=1)
-
-    # Séparer les colonnes en deux vecteurs
-    x = data[:, 0]
-    y = data[:, 1]
-
-    return x, y
-
-
-def read_two_vectors_from_file(nom_fichier):
-    """
-    Lit deux vecteurs depuis un fichier contenant 2 colonnes et 1 ou plusieurs lignes de données.
-    Ignore la première ligne (en-tête).
-    Retourne deux tableaux numpy x et y.
-    """
-    # Lire toutes les lignes du fichier
+    # read all lines of the file
     with open(nom_fichier, 'r') as fichier:
         lines = fichier.readlines()
 
-    # Ignorer la première ligne (en-tête)
+    # ignore the first line (header)
     data_lines = lines[1:]
 
-    # Préparer une liste pour stocker les données
+    # prepare a list to store the data
     data = []
     for line in data_lines:
-        # Nettoyer la ligne : remplacer les espaces multiples par un seul
+        # clean the line: replace multiple spaces by a single one
         line = line.strip()
         line = ' '.join(line.split())
-        # Ajouter les valeurs à la liste data
         data.extend(line.split())
 
-    # Convertir en tableau numpy
+    # convert to a numpy array
     data = np.array(data, dtype=float)
 
-    # Reshaper en deux colonnes (on suppose que le nombre total de valeurs est pair)
+    # reshape into two columns
     if len(data) % 2 != 0:
-        raise ValueError("Le nombre total de valeurs doit être pair (2 colonnes).")
+        raise ValueError("Le nombre total de valeurs doit être pair "
+                         "(2 colonnes).")
 
     data = data.reshape((-1, 2))
 
-    # Séparer les colonnes en deux vecteurs
+    # split the columns into two vectors
     x = data[:, 0]
     y = data[:, 1]
 
     return x, y
 
-def save_two_vectors_to_file(vecteur1, vecteur2, fichier, label1='x', label2='y'):
-    """
-    Sauvegarde deux vecteurs dans un fichier texte.
 
-    :param fichier: Chemin du fichier texte à créer ou à écraser.
-    :param vecteur1: Premier vecteur (list ou numpy array).
-    :param vecteur2: Deuxième vecteur (list ou numpy array).
-    :param separateur: Caractère utilisé pour séparer les données (par défaut : espace).
+# -----------------------------------------------------------------------
+def save_two_vectors_to_file(vecteur1: Union[list, np.ndarray],
+                             vecteur2: Union[list, np.ndarray],
+                             fichier: str, label1: str = 'x',
+                             label2: str = 'y') -> None:
+    """Save two vectors to a text file.
+
+    Parameters
+    ----------
+    vecteur1 : list or numpy.ndarray
+        First vector.
+    vecteur2 : list or numpy.ndarray
+        Second vector.
+    fichier : str
+        Path of the text file to create or overwrite.
+    label1 : str, optional
+        Header of the first column. Default is 'x'.
+    label2 : str, optional
+        Header of the second column. Default is 'y'.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If the two vectors do not have the same length.
     """
     if len(vecteur1) != len(vecteur2):
         raise ValueError("Les deux vecteurs doivent avoir la même longueur.")
@@ -529,57 +551,56 @@ def save_two_vectors_to_file(vecteur1, vecteur2, fichier, label1='x', label2='y'
     with open(fichier, "w") as f:
         f.write(label1 + '   ' + label2 + "\n")
         for val1, val2 in zip(vecteur1, vecteur2):
-            f.write(f"{val1}{"  "}{val2}\n")
+            f.write(f"{val1}  {val2}\n")
 
 
-def pulseshapingtext(pls_set):
-    switch={
-      0:'no pulse shaping',
-      1:'pulse shaping at 20 MHz',
-      2:'pulse shaping at 25 MHz',
-      3:'pulse shaping at 30 MHz'
-      }
+# -----------------------------------------------------------------------
+def pulseshapingtext(pls_set: int) -> str:
+    """Return the text description of a pulse shaping setting.
+
+    Parameters
+    ----------
+    pls_set : int
+        The pulse shaping setting code.
+
+    Returns
+    -------
+    str
+        The text description of the setting.
+    """
+    switch = {
+        0: 'no pulse shaping',
+        1: 'pulse shaping at 20 MHz',
+        2: 'pulse shaping at 25 MHz',
+        3: 'pulse shaping at 30 MHz'
+    }
     return switch.get(pls_set, "Invalid input")
 
 
-def parse_date_auto_old(value):
-    """
-    Convertit automatiquement une valeur de date en datetime.
-    Accepte soit :
-    - une chaîne de type '28/05/2025 09:42:21'
-    - un timestamp (float ou chaîne de float comme '1748347100.938')
-    """
+# -----------------------------------------------------------------------
+def parse_date_auto(value: Union[int, float, str, None]) -> datetime:
+    """Convert a value into a datetime automatically.
 
+    Accepts either a timestamp (float or string) or a date string in
+    'DD/MM/YYYY HH:MM:SS', 'DD/MM/YYYY HH:MM' or 'DD/MM/YYYY' format.
+
+    Parameters
+    ----------
+    value : int, float, str or None
+        The value to convert.
+
+    Returns
+    -------
+    datetime
+        The converted date and time.
+
+    Raises
+    ------
+    ValueError
+        If the value format is not recognized.
+    """
     if isinstance(value, (int, float)):
-        # Format timestamp direct
-        return datetime.fromtimestamp(value)
-
-    try:
-        # Essai conversion float → timestamp
-        ts = float(value)
-        return datetime.fromtimestamp(ts)
-    except ValueError:
-        pass  # Ce n'était pas un float, peut-être une chaîne de date
-
-    try:
-        # Essai conversion chaîne de date classique
-        return datetime.strptime(value.strip(), "%d/%m/%Y %H:%M:%S")
-    except ValueError as e:
-        raise ValueError(f"Format de date non reconnu : {value}")
-
-
-def parse_date_auto(value):
-    """
-    Convertit automatiquement une valeur de date en datetime.
-    Accepte soit :
-    - une chaîne de type '28/05/2025 09:42:21'
-    - une chaîne de type '28/05/2025 09:42'
-    - une chaîne de type '28/05/2025'
-    - un timestamp (float ou chaîne de float comme '1748347100.938')
-    """
-
-    if isinstance(value, (int, float)):
-        # Format timestamp direct
+        # direct timestamp format
         return datetime.fromtimestamp(value)
 
     if value is None:
@@ -588,11 +609,11 @@ def parse_date_auto(value):
     value_str = str(value).strip()
 
     try:
-        # Essai conversion float → timestamp
+        # try float to timestamp conversion
         ts = float(value_str)
         return datetime.fromtimestamp(ts)
     except ValueError:
-        pass  # Ce n'était pas un float, peut-être une chaîne de date
+        pass  # not a float, maybe a date string
 
     date_formats = (
         "%d/%m/%Y %H:%M:%S",
@@ -608,21 +629,31 @@ def parse_date_auto(value):
 
     raise ValueError(
         f"Format de date non reconnu : {value!r}. "
-        f"Formats acceptés : timestamp, DD/MM/YYYY HH:MM:SS, DD/MM/YYYY HH:MM, DD/MM/YYYY"
+        f"Formats acceptés : timestamp, DD/MM/YYYY HH:MM:SS, "
+        f"DD/MM/YYYY HH:MM, DD/MM/YYYY"
     )
 
-def bit_value(x, bit_id):
-    """
-    This function retrieves the value of a specific bit from an integer.
-    The function raises a TypeError if 'bit_id' is not an integer.
-    This function can be applied to integers or numpy arrays.
 
-    Args:
-        x: the integer from which to extract the bit
-        bit_id: the position of the bit to retrieve (0-indexed)
+# -----------------------------------------------------------------------
+def bit_value(x: int, bit_id: int) -> int:
+    """Retrieve the value of a specific bit from an integer.
 
-    Returns: The bit value
+    Parameters
+    ----------
+    x : int
+        The integer from which to extract the bit.
+    bit_id : int
+        The position of the bit to retrieve (0-indexed).
 
+    Returns
+    -------
+    int
+        The bit value.
+
+    Raises
+    ------
+    TypeError
+        If bit_id is not an integer.
     """
     if not isinstance(bit_id, int):
         raise TypeError("The bit number shall be an integer")
@@ -630,33 +661,60 @@ def bit_value(x, bit_id):
         return (x >> bit_id) % 2
 
 
-def peakdetect(sig, half_space, ref_ratio=5):
-    # First search of a spike (could do a double detection on the rise and fall edges)
+# -----------------------------------------------------------------------
+def peakdetect(sig: np.ndarray, half_space: int,
+               ref_ratio: float = 5) -> np.ndarray:
+    """Detect peaks in a signal.
+
+    Parameters
+    ----------
+    sig : numpy.ndarray
+        The input signal.
+    half_space : int
+        Half width of the detection window.
+    ref_ratio : float, optional
+        Detection threshold ratio. Default is 5.
+
+    Returns
+    -------
+    numpy.ndarray
+        The indices of the detected peaks.
+    """
+    # first search of a spike (could do a double detection on the rise and
+    # fall edges)
     ratio = np.zeros_like(sig)
-    ratio[half_space:-1 * half_space] = sig[half_space:-1 * half_space] / (
-                np.abs(sig[2 * half_space:] + sig[:-2 * half_space]) / 2)
+    ratio[half_space:-1 * half_space] = (sig[half_space:-1 * half_space]
+                                         / (np.abs(sig[2 * half_space:]
+                                                   + sig[:-2 * half_space])
+                                            / 2))
     x_ini = np.where(ratio > ref_ratio)[0]
 
-    # Second search around the first detections based on a maximum detection
+    # second search around the first detections based on a maximum detection
     for ix in range(len(x_ini)):
-        new_ix = x_ini[ix] - half_space + np.where(sig[x_ini[ix] - half_space:x_ini[ix] + half_space] == sig[
-            x_ini[ix] - half_space:x_ini[ix] + half_space].max())[0]
+        new_ix = x_ini[ix] - half_space + np.where(
+            sig[x_ini[ix] - half_space:x_ini[ix] + half_space]
+            == sig[x_ini[ix] - half_space:x_ini[ix] + half_space].max())[0]
         x_ini[ix] = new_ix
 
-    # Removing multiple identical results
+    # removing multiple identical results
     return np.unique(x_ini)
 
 
-def get_test_type_from_session_name(session_name):
+# -----------------------------------------------------------------------
+def get_test_type_from_session_name(session_name: str) -> str:
     """Extract the test type from a session directory name.
 
     The test type is read from a fixed position in the session name,
     according to the naming convention of the DEMUX performance tests.
 
-    Args:
-        session_name (str): Name of the session directory.
+    Parameters
+    ----------
+    session_name : str
+        Name of the session directory.
 
-    Returns:
-        str: The test type, as found in the session name.
+    Returns
+    -------
+    str
+        The test type, as found in the session name.
     """
     return session_name[16:31]

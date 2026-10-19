@@ -20,7 +20,7 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
+#  laurent.ravera@cnrs.fr
 #  noiseAnalysisTools.py
 #
 # ---------------------------------------------------------------------------------
@@ -60,24 +60,26 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
         win_name (str): Name of the window function to be applied during the computation.
             default="none"
 
-    Raises:
-        ValueError: If no valid dump files are found in the specified directory.
-
     Returns:
         tuple: A tuple containing the following:
-            - xf (numpy.ndarray): Frequency bins corresponding to the computed power spectrum.
-            - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum.
+            - xf (numpy.ndarray or None): Frequency bins corresponding to the computed power
+              spectrum, or None if no dump files are found.
+            - power_spectrum (numpy.ndarray): Averaged and normalized power spectrum, or an array
+              of zeros if no dump files are found.
+            - data_exists (list[bool]): Boolean flag per column indicating whether data was found.
     """
 
-    global xf
     from joblib import Parallel, delayed
 
     files = [f for f in os.listdir(data_path) \
              if os.path.isfile(os.path.join(data_path, f)) \
-             and f[:5] == "dump_" and f[-3:] == ".h5"]
+             and f.startswith("dump_") and f.endswith(".h5")]
 
     if len(files) == 0:
         print('No dump files to process')
+        xf = None
+        power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
+        data_exists = [False] * cst.nColPerDemux
 
     else:
         print("    Accumulating {0:} DUMP files... ".format(len(files)))
@@ -85,12 +87,11 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
         power_spectrum = np.zeros((cst.nColPerDemux, int(npts / 2) + 1))
 
         for i in range(len(files)):
-            dumpData, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))
+            dump_data, _ = rddt.read_dump_from_hdf5(os.path.join(data_path, files[i]))
 
             # Computing spectrum (the 4 columns in parallel)
-            # xf, power_spectrum_i = gt.do_power_spectrum(dumpData, cst.fSamp, npts, window=win_name)
             results = Parallel(n_jobs=cst.nColPerDemux)(
-                delayed(gt.do_power_spectrum)(dumpData[col, :], cst.fSamp, npts, window=win_name) for col in
+                delayed(gt.do_power_spectrum)(dump_data[col, :], cst.fSamp, npts, window=win_name) for col in
                 range(cst.nColPerDemux))
 
             # Accumulating power spectra
@@ -103,7 +104,9 @@ def power_spectrum_from_dumps(data_path, npts, win_name="none"):
         # passage V => ADU
         power_spectrum *= (cst.fsrADCErrorV / cst.fsrADCErrorADU) ** 2
 
-    return xf, power_spectrum
+        data_exists = [True] * cst.nColPerDemux
+
+    return xf, power_spectrum, data_exists
 
 
 def power_spectrum_from_1error_column(data_path, col_id, npts, rate, win_name):
@@ -225,52 +228,6 @@ def low_pass_filter_2(f, a_dc, fc, Q=1 / np.sqrt(2)):
     den = np.sqrt((w0 ** 2 - w ** 2) ** 2 + (w * w0 / Q) ** 2)
     H = num / den
     return H
-
-
-def cross_power_spectrum_from_error(data_path, col_ref, npts, win_name):
-    """
-    Compute the cross-power spectrum from error data.
-
-    This function processes error data files from the specified directory, performs
-    data preprocessing steps such as flattening, DC component removal, and spectral
-    analysis, and then computes the normalized power spectrum. The computation
-    includes steps for windowing and normalization with respect to the signal's
-    root-mean-square (RMS). The processed frequency and power spectrum data are
-    returned as output.
-
-    Args:
-        data_path: Path to the directory containing error data files.
-        col_ref: Column identifier to differentiate error files.
-        npts: Number of points used for power spectrum computation.
-        win_name: Name of the window function to use for spectral analysis.
-
-    Returns:
-        Tuple containing:
-        - xf: 1D array of frequencies corresponding to the computed power spectrum.
-        - cross_power_spectrum: 1D array of the normalized power spectrum values.
-
-    Raises:
-        ValueError: If no valid error file matching the specified parameters is found
-            in the provided directory.
-    """
-
-    cross_power_spectrum = np.zeros((cst.nColPerDemux, int(npts/2+1)))
-
-    ref_data, _ = rddt.read_col_science_from_dir(data_path, col_ref, flatten=True, remove_dc=True, verbose=False)
-
-    for col_id in range(cst.nColPerDemux):
-        if col_id == col_ref:
-            col_data = ref_data
-        else:
-            col_data = rddt.read_col_science_from_dir(data_path, col_id, flatten=True, remove_dc=True, verbose=False)
-
-        # Computing cross-spectrum
-        xf, cross_power_spectrum[col_id,:] = gt.do_cross_power_spectrum(ref_data, col_data, cst.fRow, npts, window=win_name)
-
-    # passage V => ADU
-    cross_power_spectrum *= (cst.fsrADCErrorV/cst.fsrADCErrorADU)**2
-
-    return xf, cross_power_spectrum
 
 
 def one_over_f(freq: ArrayLike, num: ArrayLike) -> np.ndarray:
@@ -395,15 +352,15 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
     # re-sampling frequencies and signal at regularly spaced frequencies
     freq = np.arange(0, old_fs/2, old_fs/2/(downsampling_factor*new_n))
     sig = np.interp(freq, frequencies, signal)
-    pow = sig**2
+    power = sig**2
 
     # Aliasing of the signal around new_fs/2
     folded_pow = np.zeros(new_n)
     for i in range(downsampling_factor):
         if i % 2 == 0:
-            folded_pow += pow[i*new_n : (i+1)*new_n]
+            folded_pow += power[i*new_n : (i+1)*new_n]
         else:
-            folded_pow += np.flip(pow[i*new_n : (i+1)*new_n])
+            folded_pow += np.flip(power[i*new_n : (i+1)*new_n])
 
     # New frequency array
     new_frequencies = freq[:new_n]  # Repliement spectral

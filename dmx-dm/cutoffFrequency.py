@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------
-# !/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2021-2030 Laurent Ravera, IRAP Toulouse.
@@ -20,13 +20,14 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
+#  laurent.ravera@cnrs.fr
 #  cutoffFrequency.py
 #
 # ---------------------------------------------------------------------------------
 
 # imports
 import os
+from typing import Dict, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,27 +38,27 @@ import general_tools as gt
 import readData as rddt
 
 
-def get_config():
+def get_config() -> Dict[str, str]:
+    """Extract a configuration dictionary from the current session.
+
+    The session name is derived from the directory path and is used to
+    extract configuration details such as the signal name.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the configuration:
+        - session_name (str): the session name.
+        - dir_path (str): the base directory path.
+        - signal_name (str): a substring representing the signal.
     """
-    Extracts and returns a configuration dictionary from the current session name and directory structure.
-
-    This function analyzes the session name derived from the directory path to extract specific configuration details,
-    such as boxcar length, feedback settings, and coarse-grained parameter.
-
-    Returns:
-        dict: A dictionary containing the configuration extracted from the session name:
-            - session_name (str): The name of the session extracted from the directory path.
-            - dir_path (str): The base directory path.
-            - signal_name (str): A substring representing the signal.
-    """
-
-    # Data directory
+    # data directory
     dir_path = os.path.join("..", "..")
 
-    # Looking for the session name
+    # looking for the session name
     session_name = os.path.basename(os.path.realpath(dir_path))
 
-    # Looking for the signal name
+    # looking for the signal name
     signal_name = session_name[:4]
 
     config = {"session_name": session_name,
@@ -68,95 +69,154 @@ def get_config():
     return config
 
 
-# Détection d'un front de montée
-def riseDetect_old(data):
-    threshold = (data.max() + data.min()) / 2
+def riseDetect(signal: np.ndarray, threshold_pc: float = 5) -> int:
+    """Detect the first rising edge of a two-level noisy signal.
 
-    i_sup = np.where(data > threshold)[0][0]
-    i_inf = np.where(data < threshold)[0][0]
-
-    # Shifting the data if the dump is at the high value at the beginning
-    if i_sup == 0:
-        data = np.roll(data, -1 * (i_inf + 1))
-
-        i_sup = np.where(data[decal:] > threshold)[0]
-
-    i = i_sup - 1
-
-    return (i)
-
-    # Détection d'un front de montée
-
-
-def riseDetect(signal, threshold_pc=5):
-    """
-    Détecte le premier front montant d'un signal bruité à deux niveaux.
-
-    Paramètres
+    Parameters
     ----------
     signal : array-like
-        Signal à deux niveaux (avec bruit).
-    hysteresis : float
-        Fraction d’hystérésis pour éviter les faux fronts.
-        Par exemple 0.1 = 10% entre le niveau bas et le niveau haut.
+        Two-level signal (with noise).
+    threshold_pc : float, optional
+        Percentage of the signal amplitude used as the detection
+        threshold. Default is 5.
 
-    Retour
-    ------
-    int ou None
-        Indice du premier front montant détecté.
+    Returns
+    -------
+    int
+        Index of the first detected rising edge.
     """
     signal = np.array(signal)
 
-    # Estimation des deux niveaux
-    threshold = signal.min() + threshold_pc * (signal.max() - signal.min()) / 100
+    # estimation of the two levels
+    threshold = (signal.min()
+                 + threshold_pc * (signal.max() - signal.min()) / 100)
 
-    # On commence par rechercher une phase où le signal est à l'état bas
+    # first search for a phase where the signal is at the low state
     bas = np.where(signal < threshold)[0][0] + 5  # +5 is a margin
-    # On recherche la phase qui suit où le signal est à l'état haut
+    # search for the following phase where the signal is at the high state
     haut = np.where(signal[bas:] > threshold)[0][0] + bas
 
     return haut
 
-# Définition de la fonction exponentielle
-def exponential_response(t, U0, tau):
+
+def exponential_response(t: np.ndarray, U0: float,
+                         tau: float) -> np.ndarray:
+    """Compute a first-order exponential response.
+
+    Parameters
+    ----------
+    t : numpy.ndarray
+        Time values.
+    U0 : float
+        Asymptotic amplitude.
+    tau : float
+        Time constant.
+
+    Returns
+    -------
+    numpy.ndarray
+        The exponential response.
+    """
     return U0 * (1 - np.exp(-t / tau))
 
 
-# Définition de la fonction exponentielle
-def double_exponential_response(t, U0, tau2):
-    fc1 = 78e6
-    tau1 = 1 / (2 * np.pi * fc1)
-    return U0 * (1 - (tau1 * np.exp(-t / tau1) - tau2 * np.exp(-t / tau2)) / (tau1 - tau2))
+def double_exponential_response(t: np.ndarray, U0: float, tau1: float,
+                                tau2: float) -> np.ndarray:
+    """Compute a double exponential response.
+
+    Parameters
+    ----------
+    t : numpy.ndarray
+        Time values.
+    U0 : float
+        Asymptotic amplitude.
+    tau1 : float
+        First time constant.
+    tau2 : float
+        Second time constant.
+
+    Returns
+    -------
+    numpy.ndarray
+        The double exponential response.
+    """
+    return (U0 * (1 - (tau1 * np.exp(-t / tau1)
+                       - tau2 * np.exp(-t / tau2)) / (tau1 - tau2)))
 
 
-# Fonction de fit pour trouver la constante de temps
-def fit_time_constant(t_data, v_data):
-    # Ajustement des données pour trouver les paramètres U0 et tau
-    popt, pcov = curve_fit(double_exponential_response, t_data, v_data, p0=[max(v_data), t_data[np.argmax(v_data)]])
-    U0, tau = popt
-    return U0, tau
+def fit_time_constant(t_data: np.ndarray, v_data: np.ndarray,
+                      fc_feedback: float) -> Tuple[float, float, float]:
+    """Fit the data to find the time constants.
+
+    Parameters
+    ----------
+    t_data : numpy.ndarray
+        Time values of the data to fit.
+    v_data : numpy.ndarray
+        Voltage values of the data to fit.
+    fc_feedback : float
+        Cutoff frequency of the feedback output.
+
+    Returns
+    -------
+    tuple of float
+        The fitted parameters U0, tau1 and tau2.
+    """
+    fc1_bound1 = fc_feedback - 40e6
+    fc1_bound2 = fc_feedback + 60e6
+    tau1_bound1 = 1 / (2 * np.pi * fc1_bound1)
+    tau1_bound2 = 1 / (2 * np.pi * fc1_bound2)
+    fc2_bound1 = 5e6
+    fc2_bound2 = 30e6
+    tau2_bound1 = 1 / (2 * np.pi * fc2_bound1)
+    tau2_bound2 = 1 / (2 * np.pi * fc2_bound2)
+    # fit the data to find the parameters U0 and tau
+    popt, pcov = curve_fit(double_exponential_response, t_data, v_data,
+                           bounds=([0, tau1_bound2, tau2_bound2],
+                                   [3, tau1_bound1, tau2_bound1]))
+    U0, tau1, tau2 = popt
+    print("  >>> ", popt)
+    return U0, tau1, tau2
 
 
-def measure_cutoffFreq(tconf):
-    # Test configuration data
+def measure_cutoffFreq(tconf: Dict[str, str], fc_feedback: float) -> None:
+    """Measure and plot the cutoff frequency from dump files.
+
+    Parameters
+    ----------
+    tconf : dict
+        Test configuration dictionary (see get_config).
+    fc_feedback : float
+        Cutoff frequency of the feedback output.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If no dump files are found.
+    """
+    # test configuration data
     dir_path = tconf["dir_path"]
 
-    # Data directory
+    # data directory
     path_data = os.path.join(dir_path, cst.dataDirName)
 
     print("Processing dump files from directory " + path_data)
 
-    # Creation of a directory for the plot files
+    # creation of a directory for the plot files
     path_plot = os.path.join(dir_path, cst.plotDirName)
     gt.createdir(path_plot)
 
-    # Plot labels
+    # plot labels
     xlabel = r'Time (ns)'
     ylabel = r'ADC data (V)'
 
-    # Getting data
-    files = [f for f in os.listdir(path_data) \
-             if os.path.isfile(os.path.join(path_data, f)) \
+    # getting data
+    files = [f for f in os.listdir(path_data)
+             if os.path.isfile(os.path.join(path_data, f))
              and f[-3:] == ".h5" and f[:5] == "dump_"]
 
     if len(files) == 0:
@@ -167,15 +227,18 @@ def measure_cutoffFreq(tconf):
     accuDumps = np.zeros((cst.nColPerDemux, lenDumps))
     for index, file in enumerate(np.sort(files)):
         print(file)
-        colDumps, errors = rddt.read_dump_from_hdf5(os.path.join(path_data, file))
+        colDumps, errors = rddt.read_dump_from_hdf5(
+            os.path.join(path_data, file))
         accuDumps += colDumps
-    accuDumps = (accuDumps / len(files)) * (cst.fsrADCErrorV / cst.fsrADCErrorADU)
+    accuDumps = (accuDumps / len(files)
+                 * (cst.fsrADCErrorV / cst.fsrADCErrorADU))
 
     t = np.arange(lenDumps) / cst.fSamp
 
-    # Doing plots
+    # doing plots
     for col in range(cst.nColPerDemux):
-        plotFileName = os.path.join(path_plot, 'cutoffFreq_col{0:}.png'.format(col))
+        plotFileName = os.path.join(
+            path_plot, 'cutoffFreq_col{0:}.png'.format(col))
 
         v = accuDumps[col, :]
 
@@ -183,14 +246,29 @@ def measure_cutoffFreq(tconf):
         it1 = riseDetect(v, 5) - 1
         it2 = it1 + tsize
 
+        # computation of the fit
+        vfit = v[it1:it2] - v[it1]
+        tfit = t[it1:it2] - t[it1]
+        U0, tau1, tau2 = fit_time_constant(tfit, vfit, fc_feedback)
+        fc1 = 1 / (2 * np.pi * tau1 * 1e6)
+        fc2 = 1 / (2 * np.pi * tau2 * 1e6)
+        print("Time constant: {0:6.3f} ns".format(tau2 * 1e9))
+        print("Cutoff frequency: {0:6.1f} MHz".format(fc2))
+
         fig = plt.figure(figsize=(8, 6))
-        suptitle = "FDBK (fc=60MHz) + ERROR step response (column {0:})".format(col)
-        title = tconf["session_name"] + '        ' + os.path.basename(dir_path)
+        fc1_limit = 120  # in MHz
+        if fc1 > fc1_limit:
+            suptitle = ("FDBK (fc > {0:6.1f} MHz) + ERROR step response "
+                        "(column {1:})".format(fc1_limit, col))
+        else:
+            suptitle = ("FDBK (fc={0:6.1f} MHz) + ERROR step response "
+                        "(column {1:})".format(fc1, col))
+        title = tconf["session_name"]
         fig.suptitle(suptitle, fontsize=12)
 
         ax1 = fig.add_subplot(2, 1, 1)  # global plot
         ax1.set_title(title, fontsize=10)
-        ax2 = fig.add_subplot(2, 1, 2)  # global plot
+        ax2 = fig.add_subplot(2, 1, 2)  # zoomed plot
 
         ax1.plot(t * 1e9, v)
         ax1.plot(t[it1: it2] * 1e9, v[it1: it2], color='r')
@@ -198,22 +276,17 @@ def measure_cutoffFreq(tconf):
         ax1.set_ylabel(ylabel)
         ax1.grid()
 
-        # Calcul du fit
-        vfit = v[it1:it2] - v[it1]
-        tfit = t[it1:it2] - t[it1]
-        U0, tau = fit_time_constant(tfit, vfit)
-        fc = 1 / (2 * np.pi * tau * 1e6)
-        print("Time constant: {0:6.3f} ns".format(tau * 1e9))
-        print("Cutoff frequency: {0:6.3f} MHz".format(fc))
-
         lbl1 = 'ADC Data'
         ax2.plot(t[it1 - 10:it2] * 1e9, v[it1 - 10:it2])
         ax2.plot(t[it1:it2] * 1e9, v[it1:it2], color='r', label=lbl1)
-        lbl2 = 'FDBK + ERROR fit --> ERROR cutoff frequency is {0:6.2f} MHz)'.format(fc)
-        # Building a higher resolution time array to plot the fit
+        lbl2 = ('FDBK + ERROR fit --> ERROR cutoff frequency is '
+                '{0:6.1f} MHz)'.format(fc2))
+        # building a higher resolution time array to plot the fit
         hr_ratio = 10
         thr = np.arange(hr_ratio * tsize) / (cst.fSamp * hr_ratio)
-        ax2.plot((thr + t[it1]) * 1e9, double_exponential_response(thr, U0, tau) + v[it1], '--', color='k', label=lbl2)
+        ax2.plot((thr + t[it1]) * 1e9,
+                 double_exponential_response(thr, U0, tau1, tau2) + v[it1],
+                 '--', color='k', label=lbl2)
         ax2.set_xlabel(xlabel)
         ax2.set_ylabel(ylabel)
         ax2.legend(loc='best')
@@ -227,22 +300,27 @@ def measure_cutoffFreq(tconf):
 
 # -------------------------------------------------------------------------------------
 
-def cutoffFreq(verbose=True):
-    """
-    Measure the cuttOff frequency of Dump data
+def cutoffFreq(verbose: bool = True) -> None:
+    """Measure the cutoff frequency of dump data.
 
-    Args:
-        verbose (bool): Determines if detailed output should be printed during
-            execution. If True, provides additional information about the noise
-            testing process and file processing steps. Defaults to True.
-    """
+    Parameters
+    ----------
+    verbose : bool, optional
+        If True, print detailed information during execution.
+        Default is True.
 
+    Returns
+    -------
+    None
+    """
     config = get_config()
 
-    # Data directory
+    fc_feedback = 80e6  # cutoff frequency of feedback output
+
+    # data directory
     hk_path = os.path.join(config["dir_path"], cst.hkDirName)
 
-    # Looking for DEMUX identifiers (board, model, firmware)
+    # looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
 
     if verbose:
@@ -255,6 +333,6 @@ def cutoffFreq(verbose=True):
         print("/ Signal:              " + config["signal_name"])
         print("/----------------------------------------------------------\n")
 
-    measure_cutoffFreq(config)
+    measure_cutoffFreq(config, fc_feedback)
 
 # -------------------------------------------------------------------------------------

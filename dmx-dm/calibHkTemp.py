@@ -20,8 +20,8 @@
 #
 # ---------------------------------------------------------------------------------
 #
-#  laurent.ravera@irap.omp.eu
-#  calibHKTemp.py
+#  laurent.ravera@cnrs.fr
+#  calibHkTemp.py
 #
 # ---------------------------------------------------------------------------------
 
@@ -35,7 +35,33 @@ import general_tools as gt
 import readData as rddt
 
 
-def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target, legend_location):
+def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target,
+                    legend_location):
+    """Plot the uncalibrated and reference temperature on a shared axis.
+
+    Parameters
+    ----------
+    title : str
+        Title of the plot.
+    col1 : str
+        Color of the uncalibrated HK curve.
+    col2 : str
+        Color of the reference PT104 curve.
+    ax : matplotlib.axes.Axes
+        Axes on which to plot the data.
+    time : numpy.ndarray
+        Time values (seconds).
+    hk : numpy.ndarray
+        Uncalibrated HK temperature values (ADU).
+    hk_target : numpy.ndarray
+        Reference temperature values.
+    legend_location : str
+        Location of the legend.
+
+    Returns
+    -------
+    None
+    """
     ax.plot(time, hk, color=col1, label='Uncalibrated HK')
     ax.set_title(title)
     ax.set_xlabel("Time (s)")
@@ -49,34 +75,48 @@ def plot_uncal_temp(title, col1, col2, ax, time, hk, hk_target, legend_location)
     ax2.tick_params(axis='y', labelcolor=col2)
 
 
-def calib_hk_temp(verbose=False):
-    # Data directory
+def calib_hk_temp(verbose: bool = False) -> None:
+    """Calibrate the DEMUX housekeeping temperatures against the PT104.
+
+    The uncalibrated HK temperatures are fitted linearly against the PT104
+    reference temperatures, and the results are plotted.
+
+    Parameters
+    ----------
+    verbose : bool, optional
+        If True, print progress information. Default is False.
+
+    Returns
+    -------
+    None
+    """
+    # data directory
     dirpath = os.path.join("..", "..")
 
-    session_name = os.path.basename(os.path.realpath(dirpath))
-
-    # Looking for test configuration parameters
+    # looking for test configuration parameters
     pathHk = os.path.join(dirpath, cst.hkDirName)
     pathPlot = os.path.join(dirpath, cst.plotDirName)
     gt.createdir(pathPlot)
 
-    # Looking for DEMUX identifiers (board, model, firmware)
+    # looking for DEMUX identifiers (board, model, firmware)
     dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(pathHk)
 
-    fileNameDMX_list = [f for f in os.listdir(pathHk) \
-                        if os.path.isfile(os.path.join(pathHk, f)) \
+    fileNameDMX_list = [f for f in os.listdir(pathHk)
+                        if os.path.isfile(os.path.join(pathHk, f))
                         and f[:8] == 'Hks_DMXA']
     if len(fileNameDMX_list) != 1:
-        print("ERROR: wrong number of DMX hk files: {0:}".format(len(fileNameDMX_list)))
+        print("ERROR: wrong number of DMX hk files: {0:}".format(
+            len(fileNameDMX_list)))
         return
     fileNameDMX = os.path.join(pathHk, fileNameDMX_list[0])
     date = fileNameDMX_list[0].split("_")[-1][:8]
 
-    fileNamePt104_list = [f for f in os.listdir(pathHk) \
-                          if os.path.isfile(os.path.join(pathHk, f)) \
+    fileNamePt104_list = [f for f in os.listdir(pathHk)
+                          if os.path.isfile(os.path.join(pathHk, f))
                           and f[:10] == 'Hks_Pt104_']
     if len(fileNamePt104_list) != 1:
-        print("ERROR: wrong number of Pt100 hk files: {0:}".format(len(fileNamePt104_list)))
+        print("ERROR: wrong number of Pt100 hk files: {0:}".format(
+            len(fileNamePt104_list)))
         return
     fileNamePt104 = os.path.join(pathHk, fileNamePt104_list[0])
 
@@ -84,25 +124,30 @@ def calib_hk_temp(verbose=False):
     header2 = 'PT104_channel2Value()'
     header3 = 'TEMP_AVE(raw)'
     header4 = 'PT104_channel1Value()'
-    header_Date = 'Date(EGSE)'  # The same header in both files
+    header_Date = 'Date(EGSE)'  # the same header in both files
 
     plotfilename = os.path.join(pathPlot, date + '-calibHkTemp.png')
 
-    print("Reading time and temperatures data from DMX hk file " + fileNameDMX)
+    print("Reading time and temperatures data from DMX hk file "
+          + fileNameDMX)
     t_DMX = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header_Date))
-    hk1 = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header1)).astype(float)
-    hk3 = np.array(rddt.read_hk_name_from_csv(fileNameDMX, header3)).astype(float)
+    hk1 = np.array(rddt.read_hk_name_from_csv(
+        fileNameDMX, header1)).astype(float)
+    hk3 = np.array(rddt.read_hk_name_from_csv(
+        fileNameDMX, header3)).astype(float)
 
-    print("Reading time and temperatures data from Pt104 hk file " + fileNamePt104)
-    t_Pt104 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header_Date))
+    print("Reading time and temperatures data from Pt104 hk file "
+          + fileNamePt104)
+    t_Pt104 = np.array(rddt.read_hk_name_from_csv(
+        fileNamePt104, header_Date))
     hk2 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header2))
     hk4 = np.array(rddt.read_hk_name_from_csv(fileNamePt104, header4))
 
-    # Convertir en secondes depuis t0
+    # convert to seconds since t0
     time_DMX = (t_DMX - t_DMX[0]) / np.timedelta64(1, 's')
     time_Pt104 = (t_Pt104 - t_DMX[0]) / np.timedelta64(1, 's')
 
-    # resampling data on same times
+    # resample data on the same times
     hk2_target = np.interp(time_DMX, time_Pt104, hk2)
     hk4_target = np.interp(time_DMX, time_Pt104, hk4)
 
@@ -116,18 +161,20 @@ def calib_hk_temp(verbose=False):
     legend_location = 'lower right'
 
     fig = plt.figure(figsize=(14, 16))
-    suptitle = dmxModel
+    suptitle = dmxModel + '{0:}'.format(boardId)
     fig.suptitle(suptitle, fontsize=12)
 
     title1 = 'Max temperature'
     col1, col2 = 'b', 'r'
     ax1 = fig.add_subplot(3, 2, 1)
-    plot_uncal_temp(title1, col1, col2, ax1, time_DMX, hk1, hk2_target, legend_location)
+    plot_uncal_temp(title1, col1, col2, ax1, time_DMX, hk1, hk2_target,
+                    legend_location)
 
     title3 = 'Average temperature'
     col3, col4 = 'g', 'orange'
     ax3 = fig.add_subplot(3, 2, 2)
-    plot_uncal_temp(title3, col3, col4, ax3, time_DMX, hk3, hk4_target, legend_location)
+    plot_uncal_temp(title3, col3, col4, ax3, time_DMX, hk3, hk4_target,
+                    legend_location)
 
     ax5 = fig.add_subplot(3, 2, 3)
     ax5.plot(time_DMX, hk2_target, color=col2, label='Reference PT104')
@@ -135,7 +182,8 @@ def calib_hk_temp(verbose=False):
         sign = '+'
     else:
         sign = ''
-    lbl5 = 'Calibrated HK (Eng = {0:6.5f}xADU '.format(p_AVE[0]) + sign + '{0:6.5f})'.format(p_AVE[1])
+    lbl5 = ('Calibrated HK (Eng = {0:6.5f}xADU '.format(p_AVE[0]) + sign
+            + '{0:6.5f})'.format(p_AVE[1]))
     ax5.plot(time_DMX, hk1_cor, color='k', label=lbl5)
     ax5.set_xlabel("Time (s)")
     ax5.set_ylabel("Temperature (°C)")
@@ -147,27 +195,31 @@ def calib_hk_temp(verbose=False):
         sign = '+'
     else:
         sign = ''
-    lbl6 = 'Calibrated HK (Eng = {0:6.5f}xADU '.format(p_MAX[0]) + sign + '{0:6.5f})'.format(p_MAX[1])
+    lbl6 = ('Calibrated HK (Eng = {0:6.5f}xADU '.format(p_MAX[0]) + sign
+            + '{0:6.5f})'.format(p_MAX[1]))
     ax6.plot(time_DMX, hk3_cor, color='k', label=lbl6)
     ax6.set_xlabel("Time (s)")
     ax6.set_ylabel("Temperature (°C)")
     ax6.legend(loc=legend_location)
 
-    deltaymax=0.5
-    deltaymin=-0.5
+    deltaymax = 0.5
+    deltaymin = -0.5
     ax7 = fig.add_subplot(3, 2, 5)
     ax7.plot(time_DMX, hk1_cor - hk2_target, color='grey')
-    ax7.plot([0, time_DMX[-1]], [deltaymin, deltaymin], '--', color='k', linewidth=2)
-    ax7.plot([0, time_DMX[-1]], [deltaymax, deltaymax], '--', color='k', linewidth=2)
+    ax7.plot([0, time_DMX[-1]], [deltaymin, deltaymin], '--', color='k',
+             linewidth=2)
+    ax7.plot([0, time_DMX[-1]], [deltaymax, deltaymax], '--', color='k',
+             linewidth=2)
     ax7.set_ylabel("Delta (°C)")
 
     ax8 = fig.add_subplot(3, 2, 6)
     ax8.plot(time_DMX, hk3_cor - hk4_target, color='grey')
-    ax8.plot([0, time_DMX[-1]], [deltaymin, deltaymin], '--', color='k', linewidth=2)
-    ax8.plot([0, time_DMX[-1]], [deltaymax, deltaymax], '--', color='k', linewidth=2)
+    ax8.plot([0, time_DMX[-1]], [deltaymin, deltaymin], '--', color='k',
+             linewidth=2)
+    ax8.plot([0, time_DMX[-1]], [deltaymax, deltaymax], '--', color='k',
+             linewidth=2)
     ax8.set_ylabel("Delta (°C)")
 
     fig.tight_layout()
     plt.savefig(plotfilename, dpi=300, bbox_inches='tight')
     print("plot saved in file ", plotfilename)
-
