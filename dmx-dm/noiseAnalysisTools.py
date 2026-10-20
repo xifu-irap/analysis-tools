@@ -42,6 +42,9 @@ import constants as cst
 import general_tools as gt
 import readData as rddt
 
+nv_sqrt_hz_txt = r' nV/$\sqrt{\mathrm{Hz}}$'
+uv_sqrt_hz_at_1hz = r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
+
 
 def power_spectrum_from_dumps(data_path, npts, win_name="none"):
     """
@@ -201,7 +204,7 @@ def low_pass_filter_1(f, a_dc, fc):
     return a_dc / (1 + f / fc)
 
 
-def low_pass_filter_2(f, a_dc, fc, Q=1 / np.sqrt(2)):
+def low_pass_filter_2(f, a_dc, fc, q=1 / np.sqrt(2)):
     """
     Calcule le module (gain) d'un filtre passe-bas d'ordre 2.
 
@@ -225,7 +228,7 @@ def low_pass_filter_2(f, a_dc, fc, Q=1 / np.sqrt(2)):
     w0 = 2 * np.pi * fc
 
     num = a_dc * w0 ** 2
-    den = np.sqrt((w0 ** 2 - w ** 2) ** 2 + (w * w0 / Q) ** 2)
+    den = np.sqrt((w0 ** 2 - w ** 2) ** 2 + (w * w0 / q) ** 2)
     H = num / den
     return H
 
@@ -272,8 +275,8 @@ def fit_one_over_f(x, y):
     and is the model function used for fitting.
     """
 
-    indexes = np.where(np.isfinite(y))[0]
-    params, params_covariance = curve_fit(one_over_f, x[indexes], y[indexes])
+    indexes = np.nonzero(np.isfinite(y))[0]
+    params, _ = curve_fit(one_over_f, x[indexes], y[indexes])
     return params[0]
 
 
@@ -318,7 +321,7 @@ def combine_noises_data(nom_fichier1, fs1, nom_fichier2, fs2, nom_fichier3, npts
     gt.save_two_vectors_to_file(freq, dt, nom_fichier3)
 
 
-def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
+def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048, debug=False):
     """
     Computes the downsampled and aliased frequencies and amplitudes of a signal when
     undersampling is employed. This function takes a signal sampled at a higher sampling
@@ -365,10 +368,9 @@ def undersampling_with_aliasing(frequencies, signal, new_fs, new_n=2048):
     # New frequency array
     new_frequencies = freq[:new_n]  # Repliement spectral
 
-    debug = False
     if debug:
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+        _, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.semilogx(frequencies, signal * 1e9)
         ax.semilogx(new_frequencies, np.sqrt(folded_pow) * 1e9)
         ax.set_xlim(1e5, 125e6)
@@ -423,7 +425,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
     lw_req = 1  # line width of the requirements plots
 
     xlabel_log: str = r'Frequencies (Hz)'
-    ylabel: str = r'Error signal noise (nV / $\sqrt{\mathrm{Hz}}$)'
+    ylabel: str = r'Error signal noise' + nv_sqrt_hz_txt
 
     plot_path = os.path.join(config["dir_path"], cst.plotDirName)
 
@@ -495,7 +497,6 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
     noise_req = np.sqrt(one_over_f(xf, one_over_f_at_one_hz_req) ** 2 + np.ones(len(xf)) * (white_noise_req ** 2))
 
     # Plot of the measured spectrum
-    lbl1 = "Measurement"
     ax.loglog(xf, spectrum * 1e9)
 
     # Plot of the averaged noise in the band for dump data
@@ -503,22 +504,22 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
         f_range_limits = [500e3, 10e6]
         i_range_limit0 = int(len(xf) * f_range_limits[0] / (cst.fSamp / 2))
         i_range_limit1 = int(len(xf) * f_range_limits[1] / (cst.fSamp / 2))
-        noise_avg_nV = spectrum[i_range_limit0:i_range_limit1].mean() * 1e9
-        lbl_noise_avg = r'Averaged noise between {0:3.0f} kHz and {1:3.0f} MHz: {2:3.1f} nV/$\sqrt{{\mathrm{{Hz}}}}$' \
-            .format(f_range_limits[0] / 1e3, f_range_limits[1] / 1e6, noise_avg_nV)
-        ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nV, noise_avg_nV], '-', color='k',
+        noise_avg_nv = spectrum[i_range_limit0:i_range_limit1].mean() * 1e9
+        lbl_noise_avg = r'Averaged noise between {0:3.0f} kHz and {1:3.0f} MHz: {2:3.1f}' + nv_sqrt_hz_txt \
+            .format(f_range_limits[0] / 1e3, f_range_limits[1] / 1e6, noise_avg_nv)
+        ax.loglog([xf[i_range_limit0], xf[i_range_limit1]], [noise_avg_nv, noise_avg_nv], '-', color='k',
                   label=lbl_noise_avg)
 
     if acq_mode.startswith('ERRO'):
         # Fit of white noise
         f_white_start = 30e3  # to avoid 1/f contribution
-        xf_white_start = np.where(xf > f_white_start)[0][0]
+        xf_white_start = np.nonzero(xf > f_white_start)[0][0]
         white_noise = spectrum[xf_white_start:].mean()
 
         # Fit of 1/f behavior
         xf_start = 3 # to avoid DC perturbations
         f_stop = 1e1  # max frequency of 1/f area
-        xf_stop = np.where(xf < f_stop)[0][-1]
+        xf_stop = np.nonzero(xf < f_stop)[0][-1]
         one_over_f_at_one_hz = fit_one_over_f(xf[xf_start:xf_stop], spectrum[xf_start:xf_stop])
 
         # Corner frequency
@@ -530,34 +531,32 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
 
         # Saving results
         spectra_path = os.path.join(config["dir_path"], cst.spectraDirname)
-        spectrum_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_spectrum.txt")
-        spectrum_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_spectrum_fit.txt")
-        param_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + "_col{0:}".format(
-            col_id) + "_param_fit.txt")
+        col_txt = "_col{0:}".format(col_id)
+        spectrum_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + col_txt + "_spectrum.txt")
+        spectrum_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + col_txt + "_spectrum_fit.txt")
+        param_fit_file_name = os.path.join(spectra_path, config["setup"] + '_' + config["rate"] + col_txt + "_param_fit.txt")
         gt.save_two_vectors_to_file(xf, spectrum, spectrum_file_name, label1='frequency', label2='noise_req')
         gt.save_two_vectors_to_file(xf, one_over_f_plus_white_noise, spectrum_fit_file_name, label1='frequency',
                                     label2='noise_req')
         gt.save_two_vectors_to_file(np.array([one_over_f_at_one_hz]), np.array([white_noise]), param_fit_file_name,
                                     label1='one_over_f_at_one_hz', label2='white_noise')
 
-        lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
+        lbl2 = r'Measured white noise: {0:3.0f}'.format(white_noise * 1e9) + nv_sqrt_hz_txt
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', linewidth=lw_fit, color='k',
                   label=lbl2)
         lbl3 = r'Measured 1/f noise: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz) * 1e6) + uv_sqrt_hz_at_1hz
         ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', linewidth=lw_fit, color='k',
                   label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise contributions'
         ax.loglog(xf, one_over_f_plus_white_noise * 1e9, '-', linewidth=lw_fit, color='k', label=lbl4)
 
     # Plot of the requirements
-    lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$' + af_text
+    lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + nv_sqrt_hz_txt + af_text
     ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9],
               '--', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl5)
     lbl6 = r'1/f noise req.: {0:3.1f}'.format(
-        one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
+        one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + uv_sqrt_hz_at_1hz
     ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9],
               '-.', linewidth=lw_req, color='r', alpha=alpha_req, label=lbl6)
     lbl7 = r'Quadratic sum of 1/f and white noise requirements'
@@ -588,7 +587,7 @@ def plot_spectrum(xf, spectrum, acq_mode, col_id, config, plot_model=False, lpf=
 
     if lpf != 0:  # comparison with a low pass filter model
         a_dc_estimated = spectrum[4:50].mean()
-        popt, pcov = curve_fit(low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
+        popt, _ = curve_fit(low_pass_filter_1, xf, spectrum, np.array([a_dc_estimated, lpf]))
         a_dc = popt[0]
         fc = popt[1]
         if verbose:
@@ -643,7 +642,7 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
     """
 
     xlabel_log: str = r'Frequencies (Hz)'
-    ylabel: str = r'Error signal noise (nV / $\sqrt{\mathrm{Hz}}$)'
+    ylabel: str = r'Error signal noise' + nv_sqrt_hz_txt
 
     plot_path = os.path.join(config["dir_path"], cst.plotDirName)
 
@@ -715,19 +714,19 @@ def plot_fit_spectrum(xf, col_id, config, verbose=False):
         noise_req = np.sqrt(one_over_f(xf, one_over_f_at_one_hz_req) ** 2 + np.ones(len(xf)) * (white_noise_req ** 2))
 
         lbl2 = r'White noise derived from fits of measurements: {0:3.0f}'.format(
-            white_noise * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$'
+            white_noise * 1e9) + nv_sqrt_hz_txt
         ax.loglog([f_corner, xf[-1]], [white_noise * 1e9, white_noise * 1e9], '--', color='k', label=lbl2)
         lbl3 = r'1/f noise derived from fits of measurements: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz) * 1e6) + uv_sqrt_hz_at_1hz
         ax.loglog([1, f_corner], [one_over_f_at_one_hz * 1e9, white_noise * 1e9], '-.', color='k', label=lbl3)
         lbl4 = r'Quadratic sum of 1/f and white noise measurements'
         ax.loglog(xf, noise * 1e9, '-', linewidth=2, color='k', label=lbl4)
 
         # Plot of the requirements
-        lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + r' nV/$\sqrt{{\mathrm{{Hz}}}}$' + af_text
+        lbl5 = r'White noise req.: {0:3.0f}'.format(white_noise_req * 1e9) + nv_sqrt_hz_txt + af_text
         ax.loglog([f_corner_req, xf[-1]], [white_noise_req * 1e9, white_noise_req * 1e9], '--', color='r', label=lbl5)
         lbl6 = r'1/f noise req.: {0:3.1f}'.format(
-            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + r' µV/$\sqrt{\mathrm{Hz}}$ at 1 Hz'
+            one_over_f(1, one_over_f_at_one_hz_req) * 1e6) + uv_sqrt_hz_at_1hz
         ax.loglog([1, f_corner_req], [one_over_f_at_one_hz_req * 1e9, white_noise_req * 1e9], '-.', color='r',
                   label=lbl6)
         lbl7 = r'Quadratic sum of 1/f and white noise requirements'

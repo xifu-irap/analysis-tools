@@ -214,7 +214,7 @@ def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
     hk_path = os.path.join(config["dir_path"], cst.hkDirName)
 
     # Looking for DEMUX identifiers (board, model, firmware)
-    dmxModel, boardId, fwVersion = rddt.read_fwVersion_dmxModel(hk_path)
+    dmx_model, board_id, fw_version = rddt.read_fwVersion_dmxModel(hk_path)
 
 
     if verbose:
@@ -222,8 +222,8 @@ def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
         print("/ Noise test:          " + config["setup"])
         print("/ Test session name:   " + config["session_name"])
         print("/----------------------------------------------------------")
-        print("/ DEMUX model:         " + dmxModel + " {0:}".format(boardId))
-        print("/ Firmware version:    {0:}".format(fwVersion))
+        print("/ DEMUX model:         " + dmx_model + " {0:}".format(board_id))
+        print("/ Firmware version:    {0:}".format(fw_version))
         print("/ Box car length:      {0:} samples".format(config["bxl"] + 1))
         print("/ Feedback:            " + config["fdbk"])
         print("/ Offset compensation: " + config["ofco"])
