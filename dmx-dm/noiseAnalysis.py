@@ -194,7 +194,7 @@ def plot_acq_mode_col_spectrum(xf, power_spectrum, acq_mode, config,
                 nat.plot_fit_spectrum(xf, col_id, config, verbose)
 
 
-def noiseAnalysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
+def noise_analysis(process_frow=False, plot_model=False, lpf=0, verbose=True):
     """
     Analyzes noise characteristics based on DEMUX identifiers and configurations,
     processes specific file types, and optionally provides verbose output for

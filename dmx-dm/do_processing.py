@@ -42,6 +42,7 @@ import ofcoCoarseAnalysis
 import ofcoFineAnalysis
 import samplingDelayAnalysis
 import thermal_analysis
+import gain_vs_temp
 
 
 def do_processing(verbose=True):
@@ -75,7 +76,7 @@ def do_processing(verbose=True):
         case "NOISE-ERRO-ONLY" | "NOISE-FDBK-ERRO" | "NOISE-OFCO-ERRO":
             process_frow = False
             plot_model = False
-            noiseAnalysis.noiseAnalysis(
+            noiseAnalysis.noise_analysis(
                 process_frow=process_frow,
                 plot_model=plot_model,
                 lpf=0,
@@ -99,6 +100,8 @@ def do_processing(verbose=True):
             display_scans.scan_mux_squid(verbose)
         case "MEASURE_PULSES-":
             display_pulses.display_pulses(verbose)
+        case "GAIN_VS_TEMP---":
+            gain_vs_temp.thermal_behaviour(verbose)
         case _:
             raise ValueError(
                 f"Unknown test type '{test_type}' "

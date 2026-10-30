@@ -4,3 +4,4 @@ __pycache__
 
 # extra files from Laurent's IDE
 /.idea
+/.vscode
