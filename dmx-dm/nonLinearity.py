@@ -164,7 +164,7 @@ def get_scan_files(path_data: str, col: int = None) -> List[str]:
     """
     files = [f for f in os.listdir(path_data)
              if os.path.isfile(os.path.join(path_data, f))
-             and f.startswith("scan_")
+             and "scan_" in f
              and f.endswith(".h5")]
     if col is not None:
         files = [f for f in files if f.endswith("{0:}.h5".format(col))]
